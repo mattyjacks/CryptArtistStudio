@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donate Computer - CryptArtist Studio</title>
+  <meta name="description" content="Donate your GPU, CPU, and RAM to the CryptArtist Community Cloud - a free, peer-to-peer alternative to AWS powered by community computers.">
+  <meta name="keywords" content="donate computer, peer to peer, distributed computing, free cloud, GPU sharing, CPU sharing, community cloud">
+  <meta name="author" content="Matt - MattyJacks.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="nav-logo-emoji" aria-hidden="true">&#x1F480;&#x1F3A8;</span>
+        <span class="nav-logo-text">CryptArtist</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="programs.html" class="nav-link">Programs</a>
+        <a href="donate-computer.html" class="nav-link active">Donate Computer</a>
+        <a href="docs.html" class="nav-link">Docs</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="download.html" class="nav-cta">Download Free</a>
+      </div>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <span class="page-header-emoji">&#x1F4BB;</span>
+    <h1 class="page-header-title"><span class="gradient-text">Donate Computer</span></h1>
+    <p class="page-header-subtitle">
+      Share your GPU, CPU, and RAM with the world. A free, community-powered 
+      alternative to Amazon Web Services - powered by people like you.
+    </p>
+  </header>
+
+  <!-- How It Works -->
+  <section class="section-sm">
+    <div class="container">
+      <div class="dc-how-grid reveal">
+        <div class="dc-how-card">
+          <div class="dc-how-step">1</div>
+          <div class="dc-how-icon">&#x1F4BB;</div>
+          <h3 class="dc-how-title">Press Donate</h3>
+          <p class="dc-how-desc">Click the Donate Computer button below. Your browser detects your available CPU, GPU, and RAM automatically.</p>
+        </div>
+        <div class="dc-how-card">
+          <div class="dc-how-step">2</div>
+          <div class="dc-how-icon">&#x1F517;</div>
+          <h3 class="dc-how-title">Connect P2P</h3>
+          <p class="dc-how-desc">Your computer connects directly to other peers via WebRTC. Password-protected by default - no middleman.</p>
+        </div>
+        <div class="dc-how-card">
+          <div class="dc-how-step">3</div>
+          <div class="dc-how-icon">&#x26A1;</div>
+          <h3 class="dc-how-title">Share Power</h3>
+          <p class="dc-how-desc">Your idle processing power helps others render videos, train models, and crunch data - all sandboxed and safe.</p>
+        </div>
+        <div class="dc-how-card">
+          <div class="dc-how-step">4</div>
+          <div class="dc-how-icon">&#x1F30D;</div>
+          <h3 class="dc-how-title">Borrow Power</h3>
+          <p class="dc-how-desc">Need compute? Borrow from the community pool. Free cloud computing powered by generous donors worldwide.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Control Panel -->
+  <section class="section" id="control-panel">
+    <div class="container">
+      <div class="dc-panel reveal">
+        <div class="dc-panel-header">
+          <div>
+            <h2 class="dc-panel-title">&#x1F5A5;&#xFE0F; Community Cloud Control Panel</h2>
+            <p class="dc-panel-subtitle">Donate your computer's power or borrow from the network</p>
+          </div>
+          <div class="dc-panel-status" id="dc-status">
+            <span class="dc-status-dot" id="dc-status-dot"></span>
+            <span id="dc-status-text">Offline</span>
+          </div>
+        </div>
+
+        <!-- System Resources Detected -->
+        <div class="dc-resources" id="dc-resources">
+          <h3 class="dc-resources-title">&#x1F4CA; Your System Resources</h3>
+          <div class="dc-resources-grid">
+            <div class="dc-resource-card">
+              <div class="dc-resource-icon">&#x2699;&#xFE0F;</div>
+              <div class="dc-resource-label">CPU Cores</div>
+              <div class="dc-resource-value" id="dc-cpu-cores">--</div>
+            </div>
+            <div class="dc-resource-card">
+              <div class="dc-resource-icon">&#x1F9E0;</div>
+              <div class="dc-resource-label">RAM</div>
+              <div class="dc-resource-value" id="dc-ram">--</div>
+            </div>
+            <div class="dc-resource-card">
+              <div class="dc-resource-icon">&#x1F3AE;</div>
+              <div class="dc-resource-label">GPU</div>
+              <div class="dc-resource-value" id="dc-gpu">--</div>
+            </div>
+            <div class="dc-resource-card">
+              <div class="dc-resource-icon">&#x1F310;</div>
+              <div class="dc-resource-label">Network</div>
+              <div class="dc-resource-value" id="dc-network">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="dc-password-section">
+          <h3 class="dc-resources-title">&#x1F512; Connection Password</h3>
+          <p class="dc-password-info">All peer connections are password-protected by default. Share this password with people you want to connect with, or use a custom one.</p>
+          <div class="dc-password-row">
+            <div class="dc-password-field">
+              <input type="text" id="dc-password" class="form-input dc-password-input" readonly>
+              <button class="dc-password-copy" id="dc-copy-pw" title="Copy password">&#x1F4CB;</button>
+              <button class="dc-password-toggle" id="dc-toggle-pw" title="Show/hide password">&#x1F441;</button>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="dc-regen-pw">Regenerate</button>
+            <button class="btn btn-ghost btn-sm" id="dc-custom-pw">Custom</button>
+          </div>
+        </div>
+
+        <!-- Donation Limits -->
+        <div class="dc-limits-section">
+          <h3 class="dc-resources-title">&#x1F4CF; Donation Limits</h3>
+          <p class="dc-password-info">Control how much of your computer's power to share. You stay in control.</p>
+          <div class="dc-limits-grid">
+            <div class="dc-limit-item">
+              <label class="dc-limit-label">CPU: <span id="dc-cpu-limit-val">80</span>%</label>
+              <input type="range" id="dc-cpu-limit" min="10" max="80" value="80" class="dc-slider">
+            </div>
+            <div class="dc-limit-item">
+              <label class="dc-limit-label">RAM: <span id="dc-ram-limit-val">50</span>%</label>
+              <input type="range" id="dc-ram-limit" min="10" max="50" value="50" class="dc-slider">
+            </div>
+            <div class="dc-limit-item">
+              <label class="dc-limit-label">GPU: <span id="dc-gpu-limit-val">90</span>%</label>
+              <input type="range" id="dc-gpu-limit" min="10" max="90" value="90" class="dc-slider">
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="dc-actions">
+          <button class="btn btn-primary btn-lg dc-btn-donate" id="dc-btn-donate">
+            &#x1F49A; Donate Computer
+          </button>
+          <button class="btn btn-secondary btn-lg dc-btn-borrow" id="dc-btn-borrow">
+            &#x26A1; Borrow Compute
+          </button>
+          <button class="btn btn-ghost btn-lg dc-btn-stop" id="dc-btn-stop" style="display:none;">
+            &#x23F9; Stop
+          </button>
+        </div>
+
+        <!-- Live Stats -->
+        <div class="dc-live-stats" id="dc-live-stats" style="display:none;">
+          <h3 class="dc-resources-title">&#x1F4C8; Live Stats</h3>
+          <div class="dc-stats-grid">
+            <div class="dc-stat-item">
+              <div class="dc-stat-value" id="dc-stat-peers">0</div>
+              <div class="dc-stat-label">Connected Peers</div>
+            </div>
+            <div class="dc-stat-item">
+              <div class="dc-stat-value" id="dc-stat-tasks">0</div>
+              <div class="dc-stat-label">Tasks Completed</div>
+            </div>
+            <div class="dc-stat-item">
+              <div class="dc-stat-value" id="dc-stat-uptime">0s</div>
+              <div class="dc-stat-label">Uptime</div>
+            </div>
+            <div class="dc-stat-item">
+              <div class="dc-stat-value" id="dc-stat-cpu-time">0s</div>
+              <div class="dc-stat-label">CPU Time Shared</div>
+            </div>
+          </div>
+
+          <!-- Activity Log -->
+          <div class="dc-log">
+            <div class="dc-log-header">
+              <span>&#x1F4DD; Activity Log</span>
+              <button class="dc-log-clear" id="dc-log-clear">Clear</button>
+            </div>
+            <div class="dc-log-entries" id="dc-log-entries">
+              <div class="dc-log-entry dc-log-info">Waiting to start...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Peer ID -->
+        <div class="dc-peer-info">
+          <span class="dc-peer-label">Your Peer ID:</span>
+          <code class="dc-peer-id" id="dc-peer-id">--</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section-sm">
+    <div class="container">
+      <h2 class="text-center mb-6" style="font-size: 2rem; font-weight: 800;"><span class="gradient-text">Why Donate Computer?</span></h2>
+      <div class="tech-grid reveal">
+        <div class="tech-card">
+          <div class="tech-card-icon">&#x1F512;</div>
+          <div class="tech-card-name">Password Protected</div>
+          <div class="tech-card-desc">Every connection is password-protected by default. You choose who can access your donated resources. Full control, always.</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-card-icon">&#x1F517;</div>
+          <div class="tech-card-name">True Peer-to-Peer</div>
+          <div class="tech-card-desc">Direct WebRTC connections between computers. No cloud servers touching your data. Your compute goes straight to who needs it.</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-card-icon">&#x1F6E1;&#xFE0F;</div>
+          <div class="tech-card-name">Sandboxed Execution</div>
+          <div class="tech-card-desc">All tasks run in WebAssembly sandboxes. No access to your files, accounts, or system. Mathematically isolated from your computer.</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-card-icon">&#x1F4B0;</div>
+          <div class="tech-card-name">100% Free</div>
+          <div class="tech-card-desc">No subscriptions, no credits, no hidden costs. Community-powered cloud computing for everyone. Like AWS, but free.</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-card-icon">&#x1F3AE;</div>
+          <div class="tech-card-name">GPU Sharing</div>
+          <div class="tech-card-desc">Share your graphics card for AI training, video rendering, and 3D computation. Your idle GPU cycles help creators worldwide.</div>
+        </div>
+        <div class="tech-card">
+          <div class="tech-card-icon">&#x1F4CA;</div>
+          <div class="tech-card-name">Real-Time Dashboard</div>
+          <div class="tech-card-desc">Watch your donations in action. See connected peers, tasks completed, CPU time shared, and network stats - all in real time.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- API Section -->
+  <section class="section" id="api">
+    <div class="container">
+      <h2 class="text-center mb-2" style="font-size: 2rem; font-weight: 800;"><span class="gradient-text">Developer API</span></h2>
+      <p class="text-center text-muted mb-6" style="max-width: 600px; margin-left: auto; margin-right: auto;">
+        Integrate Donate Computer into your own apps. The API is open and free for anyone to use.
+      </p>
+
+      <div class="code-block reveal">
+        <div class="code-block-header">
+          <div class="code-block-dots">
+            <span class="code-block-dot red"></span>
+            <span class="code-block-dot yellow"></span>
+            <span class="code-block-dot green"></span>
+          </div>
+          donate-example.js
+        </div>
+        <pre><span class="comment">// Include the API</span>
+&lt;script src=<span class="string">"donate-computer-api.js"</span>&gt;&lt;/script&gt;
+
+<span class="comment">// Create an instance and start donating</span>
+<span class="key">const</span> dc = DonateComputerAPI.create();
+
+<span class="key">await</span> dc.init({
+  password: <span class="string">"my-secure-password-123"</span>,
+  limits: {
+    cpuPercent: <span class="number">60</span>,
+    ramPercent: <span class="number">40</span>,
+    gpuPercent: <span class="number">80</span>,
+  }
+});
+
+<span class="comment">// Start donating your compute power</span>
+<span class="key">await</span> dc.startDonating();
+
+dc.on(<span class="string">"peer-verified"</span>, (peer) =&gt; {
+  console.log(<span class="string">"Connected to:"</span>, peer.peerId);
+});
+
+dc.on(<span class="string">"task-received"</span>, (task) =&gt; {
+  console.log(<span class="string">"Processing task:"</span>, task.id);
+});
+
+<span class="comment">// Or borrow compute from the network</span>
+<span class="key">await</span> dc.startBorrowing();
+dc.submitTask({
+  type: <span class="string">"compute"</span>,
+  payload: { operation: <span class="string">"hash"</span>, data: <span class="string">"hello world"</span> }
+});</pre>
+      </div>
+
+      <!-- API Endpoints Table -->
+      <div class="mt-4 reveal">
+        <h3 class="mb-2" style="font-size: 1.3rem; font-weight: 700;">API Methods</h3>
+        <table class="docs-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>DonateComputerAPI.create()</code></td>
+              <td>Create a new DonateComputer instance</td>
+            </tr>
+            <tr>
+              <td><code>dc.init(options)</code></td>
+              <td>Initialize with password and resource limits</td>
+            </tr>
+            <tr>
+              <td><code>dc.startDonating()</code></td>
+              <td>Begin sharing your compute resources with the network</td>
+            </tr>
+            <tr>
+              <td><code>dc.startBorrowing()</code></td>
+              <td>Connect as a borrower to use community compute</td>
+            </tr>
+            <tr>
+              <td><code>dc.submitTask(task)</code></td>
+              <td>Submit a compute task to an available donor</td>
+            </tr>
+            <tr>
+              <td><code>dc.stop()</code></td>
+              <td>Stop donating/borrowing and disconnect all peers</td>
+            </tr>
+            <tr>
+              <td><code>dc.getStats()</code></td>
+              <td>Get current stats (peers, tasks, uptime, etc.)</td>
+            </tr>
+            <tr>
+              <td><code>dc.getPeers()</code></td>
+              <td>List all connected peers and their resources</td>
+            </tr>
+            <tr>
+              <td><code>dc.setLimits(limits)</code></td>
+              <td>Update CPU/RAM/GPU donation limits on the fly</td>
+            </tr>
+            <tr>
+              <td><code>dc.on(event, fn)</code></td>
+              <td>Listen to events (peer-verified, task-complete, etc.)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="section-sm">
+    <div class="container-narrow">
+      <h2 class="text-center mb-6" style="font-size: 2rem; font-weight: 800;"><span class="gradient-text">FAQ</span></h2>
+      <div class="accordion reveal">
+        <div class="accordion-item">
+          <button class="accordion-trigger">Is it safe to donate my computer?<span class="accordion-arrow">&#x25BC;</span></button>
+          <div class="accordion-content"><div class="accordion-body">
+            Yes. All tasks run inside WebAssembly sandboxes that have zero access to your filesystem, accounts, or personal data. The sandbox is mathematically proven to be isolated. You also control exactly how much CPU, RAM, and GPU to share, and can stop at any time.
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">What can borrowed compute be used for?<span class="accordion-arrow">&#x25BC;</span></button>
+          <div class="accordion-content"><div class="accordion-body">
+            Video rendering, AI model training, scientific computation, data processing, 3D rendering, hash computation, matrix math, and any task that can be expressed as WebAssembly. Perfect for creators who need processing power but can't afford cloud services.
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">How is this different from AWS/Google Cloud?<span class="accordion-arrow">&#x25BC;</span></button>
+          <div class="accordion-content"><div class="accordion-body">
+            It's free. There are no bills, no credits, no subscriptions. Instead of paying a corporation, you borrow idle compute from generous community members who have donated their resources. It's peer-to-peer, so there's no central server - your data goes directly between peers.
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">Why is a password required?<span class="accordion-arrow">&#x25BC;</span></button>
+          <div class="accordion-content"><div class="accordion-body">
+            Passwords are on by default for security. When you donate, a password is auto-generated. Only peers with the matching password can connect to your computer. You can share the password with trusted people or use a custom one for private compute pools.
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">Will it slow down my computer?<span class="accordion-arrow">&#x25BC;</span></button>
+          <div class="accordion-content"><div class="accordion-body">
+            You control exactly how much to donate. Set CPU to 30%, RAM to 20%, and GPU to 50% if you want to keep most of your power for yourself. The system only uses what you allow, and you can change limits or stop at any time.
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">Can I use this from my own website or app?<span class="accordion-arrow">&#x25BC;</span></button>
+          <div class="accordion-content"><div class="accordion-body">
+            Yes! The Donate Computer API is fully open and free. Just include <code>donate-computer-api.js</code> in your page and call <code>DonateComputerAPI.create()</code>. See the Developer API section above for full documentation.
+          </div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container" style="position: relative; z-index: 1;">
+      <div class="reveal">
+        <h2 class="cta-title"><span class="gradient-text">Join the Community Cloud</span></h2>
+        <p class="cta-desc">
+          Every donated computer makes free computing available to someone who needs it.
+          Creators, students, researchers - powered by people like you.
+        </p>
+        <div class="hero-actions">
+          <a href="#control-panel" class="btn btn-primary btn-lg">&#x1F49A; Donate Computer</a>
+          <a href="download.html" class="btn btn-secondary btn-lg">&#x2B07; Download CryptArtist Studio</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand-title">&#x1F480;&#x1F3A8; CryptArtist Studio</div>
+          <p class="footer-brand-desc">
+            The open creative suite - powered by community donations.
+            Five programs, one app, zero cost. Made with love by Matt.
+          </p>
+          <div class="footer-social">
+            <a href="https://github.com/mattyjacks/CryptArtistStudio" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GH</a>
+            <a href="https://mattyjacks.com" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="Website">MJ</a>
+            <a href="https://givegigs.com" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="GiveGigs">GG</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Programs</div>
+          <div class="footer-col-links">
+            <a href="programs.html#media-mogul" class="footer-col-link">&#x1F4FA; Media Mogul</a>
+            <a href="programs.html#vibecode-worker" class="footer-col-link">&#x1F469;&#x200D;&#x1F4BB; VibeCodeWorker</a>
+            <a href="programs.html#demo-recorder" class="footer-col-link">&#x1F3A5; DemoRecorder</a>
+            <a href="programs.html#valley-net" class="footer-col-link">&#x1F471;&#x200D;&#x2640;&#xFE0F; ValleyNet</a>
+            <a href="programs.html#game-studio" class="footer-col-link">&#x1F3AE; GameStudio</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Resources</div>
+          <div class="footer-col-links">
+            <a href="docs.html" class="footer-col-link">Documentation</a>
+            <a href="donate-computer.html" class="footer-col-link">Donate Computer</a>
+            <a href="donate-computer.html#api" class="footer-col-link">Compute API</a>
+            <a href="docs.html#api" class="footer-col-link">REST API</a>
+            <a href="https://github.com/mattyjacks/CryptArtistStudio" class="footer-col-link" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Community</div>
+          <div class="footer-col-links">
+            <a href="about.html" class="footer-col-link">About</a>
+            <a href="contact.html" class="footer-col-link">Contact</a>
+            <a href="https://mattyjacks.com" class="footer-col-link" target="_blank" rel="noopener noreferrer">mattyjacks.com</a>
+            <a href="https://givegigs.com" class="footer-col-link" target="_blank" rel="noopener noreferrer">givegigs.com</a>
+            <a href="https://sitefari.com" class="footer-col-link" target="_blank" rel="noopener noreferrer">sitefari.com</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">
+          &copy; <span class="current-year">2026</span> CryptArtist Studio. MIT License. Made with &#x2764; by Matt.
+        </div>
+        <div class="footer-legal">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Use</a>
+          <a href="mailto:Matt@MattyJacks.com">Matt@MattyJacks.com</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="donate-computer-api.js"></script>
+  <script src="donate-computer.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -14,6 +14,8 @@ import FFmpegSetup from "../../components/FFmpegSetup";
 import type { ChatMessage } from "../../App";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { logger } from "../../utils/logger";
+import { useDeviceType } from "../../utils/platform";
+import { useWorkspace } from "../../utils/workspace";
 
 export type MogulWorkspace = "edit" | "node-mode" | "color" | "audio" | "ai" | "deliver" | "podcast";
 
@@ -29,6 +31,9 @@ const workspaces: { id: MogulWorkspace; label: string; icon: string }[] = [
 
 export default function MediaMogul() {
   const navigate = useNavigate();
+  const deviceType = useDeviceType();
+  const isMobile = deviceType === "mobile";
+  const isTablet = deviceType === "tablet";
   useEffect(() => { logger.info("MediaMogul", "Program loaded"); }, []);
   const [workspace, setWorkspace] = useState<MogulWorkspace>("edit");
   const [showSettings, setShowSettings] = useState(false);
@@ -161,6 +166,19 @@ export default function MediaMogul() {
   // .CryptArt save/open
   // ---------------------------------------------------------------------------
 
+  const wsCtx = useWorkspace();
+
+  // Load data from active workspace if one is set for this program
+  useEffect(() => {
+    const active = wsCtx.getActiveWorkspace();
+    if (active && active.program === "media-mogul") {
+      const data = active.project.data as any;
+      if (data.workspace) setWorkspace(data.workspace);
+      if (data.currentFrame !== undefined) setCurrentFrame(data.currentFrame);
+      if (data.chatMessages) setChatMessages(data.chatMessages);
+    }
+  }, [wsCtx.activeWorkspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSaveProject = async () => {
     try {
       const projectData = {
@@ -170,12 +188,23 @@ export default function MediaMogul() {
       };
       const cryptArt = createCryptArtFile("media-mogul", "Media Mogul Project", projectData);
       const json = serializeCryptArt(cryptArt);
+
+      // If there's an active workspace with a file path, save there by default
+      const active = wsCtx.getActiveWorkspace();
+      const defaultPath = active?.filePath || "project.CryptArt";
+
       const savePath = await saveDialog({
-        defaultPath: "project.CryptArt",
+        defaultPath,
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
       });
       if (savePath) {
         await invoke("write_text_file", { path: savePath, contents: json });
+        // Update workspace manager
+        if (active) {
+          wsCtx.updateProject(active.id, cryptArt);
+          wsCtx.updateFilePath(active.id, savePath);
+          wsCtx.markClean(active.id);
+        }
         toast.success("Project saved successfully");
       }
     } catch (err) {
@@ -188,21 +217,29 @@ export default function MediaMogul() {
     try {
       const selected = await openDialog({
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
-        multiple: false,
+        multiple: true,
       });
-      if (selected && typeof selected === "string") {
-        const json = await invoke<string>("read_text_file", { path: selected });
+      if (!selected) return;
+      const paths = Array.isArray(selected) ? selected : [selected];
+
+      for (const filePath of paths) {
+        if (typeof filePath !== "string") continue;
+        const json = await invoke<string>("read_text_file", { path: filePath });
         const project = parseCryptArt(json);
         if (project.program !== "media-mogul") {
-          console.warn("This .CryptArt file is for", project.program);
-          return;
+          toast.warning(`${filePath.split(/[\\/]/).pop()} is for ${project.program}, not Media Mogul`);
+          continue;
         }
+        // Register in workspace manager
+        const wsId = wsCtx.openWorkspace(project, filePath);
+        wsCtx.setActiveWorkspace(wsId);
+        // Apply to local state
         const data = project.data as any;
         if (data.workspace) setWorkspace(data.workspace);
         if (data.currentFrame !== undefined) setCurrentFrame(data.currentFrame);
         if (data.chatMessages) setChatMessages(data.chatMessages);
-        toast.success("Project loaded successfully");
       }
+      toast.success(`Opened ${paths.length} project${paths.length !== 1 ? "s" : ""}`);
     } catch (err) {
       console.error("Open project failed:", err);
       toast.error("Failed to open project");
@@ -233,10 +270,12 @@ export default function MediaMogul() {
       default:
         return (
           <div className="flex flex-col h-full">
-            <div className="flex flex-1 min-h-0">
-              <div className="w-[260px] min-w-[200px] flex flex-col">
-                <MediaBrowser pexelsApiKey={pexelsApiKey} />
-              </div>
+            <div className={`flex flex-1 min-h-0 ${isMobile ? "flex-col" : "flex-row"}`}>
+              {!isMobile && (
+                <div className={`${isTablet ? "w-[200px] min-w-[160px]" : "w-[260px] min-w-[200px]"} flex flex-col`}>
+                  <MediaBrowser pexelsApiKey={pexelsApiKey} />
+                </div>
+              )}
               <div className="flex-1 flex flex-col min-w-0">
                 <PreviewCanvas
                   isPlaying={isPlaying}
@@ -245,11 +284,13 @@ export default function MediaMogul() {
                   setCurrentFrame={setCurrentFrame}
                 />
               </div>
-              <div className="w-[260px] min-w-[200px] flex flex-col">
-                <Inspector />
-              </div>
+              {!isMobile && (
+                <div className={`${isTablet ? "w-[200px] min-w-[160px]" : "w-[260px] min-w-[200px]"} flex flex-col`}>
+                  <Inspector />
+                </div>
+              )}
             </div>
-            <div className="h-[240px] min-h-[160px]">
+            <div className={isMobile ? "h-[160px] min-h-[120px]" : "h-[240px] min-h-[160px]"}>
               <Timeline
                 currentFrame={currentFrame}
                 setCurrentFrame={setCurrentFrame}
@@ -263,9 +304,9 @@ export default function MediaMogul() {
   return (
     <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
       {/* Header */}
-      <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none">
+      <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none safe-area-top">
         {/* Back + Logo */}
-        <div className="flex items-center gap-2 px-4 min-w-[220px]">
+        <div className={`flex items-center gap-2 px-2 sm:px-4 ${isMobile ? "min-w-0" : "min-w-[220px]"}`}>
           <button
             onClick={() => navigate("/")}
             className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
@@ -273,22 +314,24 @@ export default function MediaMogul() {
           >
             {"\u2190"} Suite
           </button>
-          <div className="w-px h-5 bg-studio-border mx-1" />
+          {!isMobile && <div className="w-px h-5 bg-studio-border mx-1" />}
           <span className="text-xl leading-none" role="img" aria-label="Media Mogul logo">
             {"\u{1F4FA}"}
           </span>
-          <div className="flex flex-col">
-            <span className="text-[13px] font-bold tracking-tight text-studio-text leading-none">
-              Media Mogul
-            </span>
-            <span className="text-[9px] font-medium tracking-widest uppercase text-studio-muted leading-none mt-[2px]">
-              MMo
-            </span>
-          </div>
+          {!isMobile && (
+            <div className="flex flex-col">
+              <span className="text-[13px] font-bold tracking-tight text-studio-text leading-none">
+                Media Mogul
+              </span>
+              <span className="text-[9px] font-medium tracking-widest uppercase text-studio-muted leading-none mt-[2px]">
+                MMo
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Workspace Tabs */}
-        <nav className="flex items-center justify-center flex-1 gap-1">
+        <nav className="flex items-center justify-center flex-1 gap-0.5 sm:gap-1 overflow-x-auto scrollbar-none">
           {workspaces.map((ws) => (
             <button
               key={ws.id}
@@ -304,13 +347,13 @@ export default function MediaMogul() {
               `}
             >
               <span className="text-sm">{ws.icon}</span>
-              {ws.label}
+              <span className="hidden xs:inline">{ws.label}</span>
             </button>
           ))}
         </nav>
 
         {/* Right Actions - Improvements 70-71 */}
-        <div className="flex items-center gap-2 px-4 min-w-[260px] justify-end">
+        <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 ${isMobile ? "min-w-0" : "min-w-[260px]"} justify-end`}>
           {/* Improvement 71: Undo/Redo buttons */}
           <button className="btn-ghost rounded-md px-1.5 py-1 text-sm hover:bg-studio-hover transition-colors" title="Undo (Ctrl+Z)" disabled={undoStack.length === 0}>
             {"\u21A9\uFE0F"}
@@ -319,15 +362,19 @@ export default function MediaMogul() {
             {"\u21AA\uFE0F"}
           </button>
           <div className="w-px h-5 bg-studio-border" />
-          <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-2">
-            Open .CryptArt
-          </button>
-          <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-2">
-            Save .CryptArt
-          </button>
+          {!isMobile && (
+            <>
+              <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-2">
+                Open .CryptArt
+              </button>
+              <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-2">
+                Save .CryptArt
+              </button>
+            </>
+          )}
           {/* Improvement 70: Quick export button */}
           <button className="btn btn-cyan text-[10px] py-1 px-2" title="Quick Export">
-            {"\u{1F4E6}"} Export
+            {"\u{1F4E6}"}{!isMobile && " Export"}
           </button>
           <button
             onClick={() => setShowSettings(true)}
@@ -340,7 +387,7 @@ export default function MediaMogul() {
       </header>
 
       {/* Improvement 66: Keyboard shortcut bar */}
-      {showShortcutBar && workspace === "edit" && (
+      {showShortcutBar && workspace === "edit" && !isMobile && (
         <div className="flex items-center gap-3 h-[24px] bg-studio-surface border-b border-studio-border px-4 text-[9px] text-studio-muted animate-fade-in">
           <span><span className="kbd">Space</span> Play/Pause</span>
           <span><span className="kbd">J</span><span className="kbd">K</span><span className="kbd">L</span> Shuttle</span>
@@ -358,7 +405,7 @@ export default function MediaMogul() {
 
       {/* Improvements 156-170: Enhanced controls bar */}
       {workspace === "edit" && (
-        <div className="flex items-center h-[28px] bg-studio-panel border-t border-studio-border px-4 gap-3 text-[10px]">
+        <div className="flex items-center h-[28px] bg-studio-panel border-t border-studio-border px-2 sm:px-4 gap-2 sm:gap-3 text-[10px] overflow-x-auto scrollbar-none">
           {/* Improvement 72: Zoom controls */}
           <span className="text-studio-muted">Zoom:</span>
           <button onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))} className="text-studio-muted hover:text-studio-text">-</button>

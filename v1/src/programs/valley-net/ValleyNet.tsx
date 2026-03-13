@@ -5,6 +5,7 @@ import { save as saveDialog, open as openDialog } from "@tauri-apps/plugin-dialo
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
+import { useWorkspace } from "../../utils/workspace";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -144,7 +145,15 @@ export default function ValleyNet() {
   // Improvement 289: Tool use log
   const [toolLog, setToolLog] = useState<{ tool: string; input: string; output: string; timestamp: number }[]>([]);
   const [showToolLog, setShowToolLog] = useState(false);
-  // Improvement 290: Conversation templates
+  // Improvement 386: Conversation search
+  const [conversationSearch, setConversationSearch] = useState("");
+  // Improvement 387: Pinned messages
+  const [pinnedMessages, setPinnedMessages] = useState<number[]>([]);
+  // Improvement 388: Export format
+  const [exportFormat, setExportFormat] = useState<"txt" | "json" | "md">("txt");
+  // Improvement 389: Message stats
+  const [showStats, setShowStats] = useState(false);
+  // Improvement 390: Conversation templates
   const [conversationTemplates] = useState([
     { name: "Code Review", system: "You are a senior code reviewer. Analyze code for bugs, performance, and best practices." },
     { name: "Creative Writing", system: "You are a creative writing assistant. Help with storytelling, dialogue, and prose." },
@@ -170,6 +179,13 @@ export default function ValleyNet() {
   const [useOpenRouter, setUseOpenRouter] = useState(true);
   // Improvement 293: Cost tracking
   const [costEstimate, setCostEstimate] = useState(0.0);
+  // Improvement 331: System prompt editor
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const [customSystemPrompt, setCustomSystemPrompt] = useState("");
+  // Improvement 332: Response format
+  const [responseFormat, setResponseFormat] = useState<"text" | "json" | "markdown">("text");
+  // Improvement 333: Token budget
+  const [tokenBudget, setTokenBudget] = useState(4096);
 
   // Improvement 190: Session timer
   useEffect(() => {
@@ -302,23 +318,48 @@ User task: ${userMsg.content}`;
   // .CryptArt save/open
   // ---------------------------------------------------------------------------
 
+  const wsCtx = useWorkspace();
+
+  // Load from active workspace on mount or workspace switch
+  useEffect(() => {
+    const active = wsCtx.getActiveWorkspace();
+    if (active && active.program === "valley-net") {
+      const data = active.project.data as any;
+      if (data.skills) setSkills(data.skills);
+      if (data.integrations) setIntegrations(data.integrations);
+      if (data.taskHistory) setTaskHistory(data.taskHistory);
+      if (data.messages) setMessages(data.messages);
+    }
+  }, [wsCtx.activeWorkspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSaveProject = async () => {
     try {
       const projectData = {
         skills, integrations, taskHistory,
-        messages: messages.slice(-50), // Save last 50 messages
+        messages: messages.slice(-50),
       };
       const cryptArt = createCryptArtFile("valley-net", "ValleyNet Session", projectData);
       const json = serializeCryptArt(cryptArt);
+
+      const active = wsCtx.getActiveWorkspace();
+      const defaultPath = active?.filePath || "valleynet-session.CryptArt";
+
       const savePath = await saveDialog({
-        defaultPath: "valleynet-session.CryptArt",
+        defaultPath,
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
       });
       if (savePath) {
         await invoke("write_text_file", { path: savePath, contents: json });
+        if (active) {
+          wsCtx.updateProject(active.id, cryptArt);
+          wsCtx.updateFilePath(active.id, savePath);
+          wsCtx.markClean(active.id);
+        }
+        toast.success("Project saved successfully");
       }
     } catch (err) {
       console.error("Save project failed:", err);
+      toast.error("Failed to save project");
     }
   };
 
@@ -326,19 +367,28 @@ User task: ${userMsg.content}`;
     try {
       const selected = await openDialog({
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
-        multiple: false,
+        multiple: true,
       });
-      if (selected && typeof selected === "string") {
-        const json = await invoke<string>("read_text_file", { path: selected });
+      if (!selected) return;
+      const paths = Array.isArray(selected) ? selected : [selected];
+
+      for (const filePath of paths) {
+        if (typeof filePath !== "string") continue;
+        const json = await invoke<string>("read_text_file", { path: filePath });
         const project = parseCryptArt(json);
-        if (project.program !== "valley-net") return;
+        if (project.program !== "valley-net") {
+          toast.warning(`${filePath.split(/[\\/]/).pop()} is for ${project.program}, not ValleyNet`);
+          continue;
+        }
+        const wsId = wsCtx.openWorkspace(project, filePath);
+        wsCtx.setActiveWorkspace(wsId);
         const data = project.data as any;
         if (data.skills) setSkills(data.skills);
         if (data.integrations) setIntegrations(data.integrations);
         if (data.taskHistory) setTaskHistory(data.taskHistory);
         if (data.messages) setMessages(data.messages);
-        toast.success("Project loaded successfully");
       }
+      toast.success("Project loaded successfully");
     } catch (err) {
       console.error("Open project failed:", err);
       toast.error("Failed to load project");
@@ -454,7 +504,79 @@ User task: ${userMsg.content}`;
           <span className={`w-1.5 h-1.5 rounded-full ${skills.some((s) => s.enabled) ? "bg-studio-cyan" : "bg-studio-muted"}`} />
           {skills.filter((s) => s.enabled).length} skills
         </span>
+        <div className="w-px h-3 bg-studio-border" />
+        {/* Improvement 334: Model picker */}
+        <span className="text-studio-muted">Model:</span>
+        <select
+          value={selectedModel}
+          onChange={(e) => { setSelectedModel(e.target.value); localStorage.setItem("cryptartist_openrouter_model", e.target.value); }}
+          className="bg-transparent text-[10px] text-studio-cyan outline-none cursor-pointer max-w-[160px]"
+        >
+          {availableModels.map((m) => (
+            <option key={m} value={m}>{m.split("/").pop()}</option>
+          ))}
+        </select>
+        <div className="w-px h-3 bg-studio-border" />
+        {/* Improvement 335: Provider toggle */}
+        <button
+          onClick={() => setUseOpenRouter(!useOpenRouter)}
+          className={`px-1.5 py-0.5 rounded text-[9px] transition-colors ${
+            useOpenRouter ? "bg-studio-cyan/15 text-studio-cyan" : "bg-studio-surface text-studio-muted"
+          }`}
+          title={useOpenRouter ? "Using OpenRouter" : "Using OpenAI direct"}
+        >
+          {useOpenRouter ? "OR" : "OAI"}
+        </button>
+        {/* Improvement 336: Response format */}
+        <select
+          value={responseFormat}
+          onChange={(e) => setResponseFormat(e.target.value as any)}
+          className="bg-transparent text-[10px] text-studio-muted outline-none cursor-pointer"
+          title="Response format"
+        >
+          <option value="text">Text</option>
+          <option value="json">JSON</option>
+          <option value="markdown">Markdown</option>
+        </select>
+        {/* Improvement 337: System prompt editor toggle */}
+        <button
+          onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+          className={`px-1.5 py-0.5 rounded text-[9px] transition-colors ${
+            showSystemPrompt ? "bg-purple-500/15 text-purple-400" : "text-studio-muted hover:text-studio-text"
+          }`}
+          title="Custom system prompt"
+        >
+          Sys
+        </button>
       </div>
+
+      {/* Improvement 331: System prompt editor panel */}
+      {showSystemPrompt && (
+        <div className="px-4 py-2 bg-studio-surface border-b border-studio-border">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] text-purple-400 font-semibold">Custom System Prompt</span>
+            <span className="text-[8px] text-studio-muted">(prepended to all AI requests)</span>
+            <div className="flex-1" />
+            <span className="text-[9px] text-studio-muted">Budget: </span>
+            <select
+              value={tokenBudget}
+              onChange={(e) => setTokenBudget(parseInt(e.target.value))}
+              className="bg-transparent text-[9px] text-studio-muted outline-none cursor-pointer"
+            >
+              {[1024, 2048, 4096, 8192, 16384].map((n) => (
+                <option key={n} value={n}>{n} tokens</option>
+              ))}
+            </select>
+            <button onClick={() => setShowSystemPrompt(false)} className="text-[10px] text-studio-muted hover:text-studio-text">x</button>
+          </div>
+          <textarea
+            value={customSystemPrompt}
+            onChange={(e) => setCustomSystemPrompt(e.target.value)}
+            className="w-full h-16 bg-studio-bg border border-studio-border rounded p-2 text-[10px] text-studio-text font-mono resize-none outline-none focus:border-purple-500/40"
+            placeholder="Enter custom instructions for the AI... (e.g., 'Always respond in bullet points' or 'You are a Python expert')"
+          />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex flex-1 min-h-0">
@@ -609,8 +731,47 @@ User task: ${userMsg.content}`;
 
           {/* Chat Interface */}
           <div className="flex-1 flex flex-col min-h-0">
+            {/* Improvement 386: Conversation search + stats bar */}
+            <div className="flex items-center gap-2 px-4 py-1.5 border-b border-studio-border bg-studio-surface">
+              <input
+                type="text"
+                value={conversationSearch}
+                onChange={(e) => setConversationSearch(e.target.value)}
+                className="input text-[10px] py-0.5 flex-1"
+                placeholder="Search messages..."
+              />
+              <span className="text-[9px] text-studio-muted">{messages.length} msgs</span>
+              {pinnedMessages.length > 0 && <span className="text-[9px] text-studio-yellow">{pinnedMessages.length} pinned</span>}
+              <select
+                value={exportFormat}
+                onChange={(e) => setExportFormat(e.target.value as any)}
+                className="bg-transparent text-[9px] text-studio-muted outline-none cursor-pointer"
+              >
+                <option value="txt">TXT</option>
+                <option value="json">JSON</option>
+                <option value="md">Markdown</option>
+              </select>
+              <button
+                onClick={() => {
+                  let text: string;
+                  if (exportFormat === "json") {
+                    text = JSON.stringify(messages, null, 2);
+                  } else if (exportFormat === "md") {
+                    text = messages.map((m) => `### ${m.role === "user" ? "You" : "ValleyNet"}\n${m.content}`).join("\n\n");
+                  } else {
+                    text = messages.map((m) => `[${m.role === "user" ? "You" : "ValleyNet"}] ${m.content}`).join("\n\n");
+                  }
+                  const blob = new Blob([text], { type: "text/plain" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url; a.download = `valleynet-chat.${exportFormat}`; a.click();
+                  URL.revokeObjectURL(url);
+                }}
+                className="text-[9px] text-studio-cyan hover:underline cursor-pointer"
+              >Export</button>
+            </div>
             <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-              {messages.map((msg, i) => (
+              {messages.filter((m) => !conversationSearch || m.content.toLowerCase().includes(conversationSearch.toLowerCase())).map((msg, i) => (
                 <div
                   key={i}
                   className={`ai-message ${msg.role === "user" ? "ai-message-user" : "ai-message-assistant"}`}
@@ -619,10 +780,18 @@ User task: ${userMsg.content}`;
                     <span className="text-[10px] font-semibold text-studio-muted">
                       {msg.role === "user" ? "You" : "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F ValleyNet"}
                     </span>
-                    {/* Improvement 90: Message timestamps */}
-                    <span className="text-[8px] text-studio-muted">
-                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {/* Improvement 387: Pin message */}
+                      <button
+                        onClick={() => setPinnedMessages((prev) => prev.includes(i) ? prev.filter((p) => p !== i) : [...prev, i])}
+                        className={`text-[8px] transition-colors ${pinnedMessages.includes(i) ? "text-studio-yellow" : "text-studio-muted hover:text-studio-yellow opacity-0 group-hover:opacity-100"}`}
+                        title={pinnedMessages.includes(i) ? "Unpin" : "Pin"}
+                      >{pinnedMessages.includes(i) ? "\u{1F4CC}" : "\u{1F4CC}"}</button>
+                      {/* Improvement 90: Message timestamps */}
+                      <span className="text-[8px] text-studio-muted">
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
                   </div>
                   <div className="text-[11px] text-studio-text whitespace-pre-wrap">{msg.content}</div>
                 </div>

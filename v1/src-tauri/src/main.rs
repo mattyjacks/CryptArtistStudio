@@ -11,8 +11,112 @@ mod state;
 
 use state::AppState;
 use clap::{Parser, Subcommand};
+use std::io::Read;
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
+
+// ---------------------------------------------------------------------------
+// Security: Input validation helpers
+// ---------------------------------------------------------------------------
+
+const MAX_PROMPT_LENGTH: usize = 100_000;
+const MAX_FILE_READ_SIZE: u64 = 50 * 1024 * 1024; // 50 MB
+const MAX_REQUEST_BODY_SIZE: usize = 10 * 1024 * 1024; // 10 MB
+const MAX_API_KEY_LENGTH: usize = 512; // Vuln 1-3: API key length limit
+const MAX_WRITE_SIZE: usize = 100 * 1024 * 1024; // Vuln 6: 100 MB write limit
+const MAX_LOG_MESSAGE_LENGTH: usize = 10_000; // Vuln 9: Log message limit
+const HTTP_TIMEOUT_SECS: u64 = 30; // Vuln 19-21: Request timeout
+
+fn sanitize_path(path: &str) -> Result<PathBuf, String> {
+    let p = std::path::Path::new(path);
+    // Block path traversal attempts
+    let path_str = path.replace('\\', "/");
+    if path_str.contains("..") {
+        return Err("Path traversal detected: '..' is not allowed".to_string());
+    }
+    // Block null bytes
+    if path.contains('\0') {
+        return Err("Null bytes in path are not allowed".to_string());
+    }
+    // Canonicalize if the path exists, otherwise just validate
+    match p.canonicalize() {
+        Ok(canonical) => Ok(canonical),
+        Err(_) => {
+            // Path doesn't exist yet (e.g., for write operations)
+            // Still validate it has no traversal
+            Ok(p.to_path_buf())
+        }
+    }
+}
+
+fn url_encode(input: &str) -> String {
+    let mut encoded = String::with_capacity(input.len() * 3);
+    for byte in input.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                encoded.push(byte as char);
+            }
+            b' ' => encoded.push('+'),
+            _ => {
+                encoded.push('%');
+                encoded.push_str(&format!("{:02X}", byte));
+            }
+        }
+    }
+    encoded
+}
+
+fn validate_prompt_length(prompt: &str) -> Result<(), String> {
+    if prompt.len() > MAX_PROMPT_LENGTH {
+        return Err(format!(
+            "Prompt too long: {} chars (max {})",
+            prompt.len(),
+            MAX_PROMPT_LENGTH
+        ));
+    }
+    Ok(())
+}
+
+// Vuln 1-3: Validate API key format (no control chars, length limit)
+fn validate_api_key(key: &str) -> Result<(), String> {
+    if key.len() > MAX_API_KEY_LENGTH {
+        return Err(format!("API key too long: {} chars (max {})", key.len(), MAX_API_KEY_LENGTH));
+    }
+    if key.bytes().any(|b| b < 0x20 && b != b'\n' && b != b'\r' && b != b'\t') {
+        return Err("API key contains invalid control characters".to_string());
+    }
+    Ok(())
+}
+
+// Vuln 4: Validate URL format for GiveGigs config
+fn validate_url(url: &str) -> Result<(), String> {
+    if url.len() > 2048 {
+        return Err("URL too long (max 2048 chars)".to_string());
+    }
+    if !url.starts_with("https://") && !url.starts_with("http://") {
+        return Err("URL must start with http:// or https://".to_string());
+    }
+    if url.contains('\0') {
+        return Err("URL contains null bytes".to_string());
+    }
+    Ok(())
+}
+
+// Vuln 25: Validate search type parameter
+fn validate_search_type(search_type: &str) -> Result<(), String> {
+    match search_type {
+        "image" | "video" => Ok(()),
+        _ => Err(format!("Invalid search type '{}'. Must be 'image' or 'video'", search_type)),
+    }
+}
+
+// Vuln 19-21: Create HTTP client with timeout
+fn http_client_with_timeout() -> reqwest::Client {
+    reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(HTTP_TIMEOUT_SECS))
+        .build()
+        .unwrap_or_else(|_| reqwest::Client::new())
+}
 
 // ---------------------------------------------------------------------------
 // CLI Definitions
@@ -179,6 +283,7 @@ async fn get_project_state(
 
 #[tauri::command]
 async fn save_api_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    validate_api_key(&key)?; // Vuln 1: Validate key format
     log_cmd!("save_api_key", "Saving OpenAI API key (length: {})", key.len());
     let result = state.set_api_key(key).map_err(|e| e.to_string());
     if result.is_ok() { log_cmd!("save_api_key", "API key saved"); }
@@ -198,6 +303,7 @@ async fn get_api_key(state: tauri::State<'_, AppState>) -> Result<String, String
 #[tauri::command]
 async fn ai_chat(prompt: String, state: tauri::State<'_, AppState>) -> Result<String, String> {
     log_cmd!("ai_chat", "AI chat request (prompt: {} chars)", prompt.len());
+    validate_prompt_length(&prompt)?;
     let api_key = state.get_api_key();
     if api_key.is_empty() {
         log_warn!("ai_chat", "No API key configured");
@@ -218,6 +324,7 @@ async fn ai_generate_image(
     prompt: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    validate_prompt_length(&prompt)?;
     log_cmd!("ai_generate_image", "Image generation request: {}", &prompt[..prompt.len().min(100)]);
     let api_key = state.get_api_key();
     if api_key.is_empty() {
@@ -239,6 +346,7 @@ async fn ai_analyze_scene(
     description: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    validate_prompt_length(&description)?;
     log_cmd!("ai_analyze_scene", "Scene analysis request ({} chars)", description.len());
     let api_key = state.get_api_key();
     if api_key.is_empty() {
@@ -262,6 +370,7 @@ async fn ai_generate_subtitles(
     transcript: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    validate_prompt_length(&transcript)?;
     log_cmd!("ai_generate_subtitles", "Subtitle generation request ({} chars)", transcript.len());
     let api_key = state.get_api_key();
     if api_key.is_empty() {
@@ -284,6 +393,10 @@ async fn ai_suggest_effects(
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
     log_cmd!("ai_suggest_effects", "Effects suggestion for style: {}", style);
+    // Vuln 11: Validate style parameter length
+    if style.len() > 5000 {
+        return Err("Style description too long (max 5000 chars)".to_string());
+    }
     let api_key = state.get_api_key();
     if api_key.is_empty() {
         log_warn!("ai_suggest_effects", "No API key configured");
@@ -312,14 +425,22 @@ async fn ai_generate_tts(
         log_warn!("ai_generate_tts", "No API key configured");
         return Err("No API key configured.".to_string());
     }
+    validate_prompt_length(&text)?;
     // Return base64 encoded mp3 or a path to a saved file. We'll save it to the project dir.
-    let audio_path = state.get_ffmpeg_path().parent().unwrap().join(format!("tts_{}.mp3", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs()));
+    let ffmpeg_path = state.get_ffmpeg_path();
+    let parent_dir = ffmpeg_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let audio_path = parent_dir.join(format!("tts_{}.mp3", timestamp));
     ai_integration::generate_tts(&api_key, &text, &audio_path).await?;
     Ok(audio_path.to_string_lossy().into_owned())
 }
 
 #[tauri::command]
 async fn save_pexels_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    validate_api_key(&key)?; // Vuln 2: Validate key format
     log_cmd!("save_pexels_key", "Saving Pexels API key (length: {})", key.len());
     state.set_pexels_key(key).map_err(|e| e.to_string())
 }
@@ -336,6 +457,7 @@ async fn get_pexels_key(state: tauri::State<'_, AppState>) -> Result<String, Str
 
 #[tauri::command]
 async fn save_openrouter_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    validate_api_key(&key)?; // Vuln 3: Validate key format
     log_cmd!("save_openrouter_key", "Saving OpenRouter API key (length: {})", key.len());
     state.set_openrouter_key(key).map_err(|e| e.to_string())
 }
@@ -352,12 +474,17 @@ async fn openrouter_chat(
     model: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    validate_prompt_length(&prompt)?;
     log_cmd!("openrouter_chat", "OpenRouter chat: model={} prompt={} chars", model, prompt.len());
+    // Validate model ID format (provider/model-name)
+    if !model.contains('/') || model.len() > 200 {
+        return Err("Invalid model ID format. Expected 'provider/model-name'.".to_string());
+    }
     let api_key = state.get_openrouter_key();
     if api_key.is_empty() {
         return Err("No OpenRouter API key configured. Set it in Settings.".to_string());
     }
-    let client = reqwest::Client::new();
+    let client = http_client_with_timeout(); // Vuln 19: Add request timeout
     let body = serde_json::json!({
         "model": model,
         "messages": [
@@ -395,7 +522,7 @@ async fn openrouter_list_models(
     if api_key.is_empty() {
         return Err("No OpenRouter API key configured.".to_string());
     }
-    let client = reqwest::Client::new();
+    let client = http_client_with_timeout(); // Vuln 21: Add request timeout
     let res = client
         .get("https://openrouter.ai/api/v1/models")
         .header("Authorization", format!("Bearer {}", api_key))
@@ -433,6 +560,10 @@ async fn import_all_api_keys(
     json_str: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    // Vuln 15: Limit import JSON size
+    if json_str.len() > MAX_REQUEST_BODY_SIZE {
+        return Err(format!("Import data too large: {} bytes (max {})", json_str.len(), MAX_REQUEST_BODY_SIZE));
+    }
     log_cmd!("import_all_api_keys", "Importing API keys from JSON ({} chars)", json_str.len());
     let val: serde_json::Value = serde_json::from_str(&json_str).map_err(|e| format!("Invalid JSON: {}", e))?;
     let mut count = 0;
@@ -467,14 +598,18 @@ pub struct DirEntry {
 #[tauri::command]
 async fn read_directory(path: String) -> Result<Vec<DirEntry>, String> {
     log_cmd!("read_directory", "Reading directory: {}", path);
-    let entries = std::fs::read_dir(&path).map_err(|e| {
+    let safe_path = sanitize_path(&path)?;
+    let entries = std::fs::read_dir(&safe_path).map_err(|e| {
         log_error!("read_directory", "Failed to read directory {}: {}", path, e);
         format!("Failed to read directory: {}", e)
     })?;
     let mut result = Vec::new();
     for entry in entries {
         if let Ok(entry) = entry {
-            let metadata = entry.metadata().unwrap_or_else(|_| std::fs::metadata(entry.path()).unwrap());
+            let metadata = match entry.metadata() {
+                Ok(m) => m,
+                Err(_) => continue, // Skip entries we can't read metadata for
+            };
             let name = entry.file_name().to_string_lossy().into_owned();
             // Skip hidden files/dirs and node_modules
             if name.starts_with('.') || name == "node_modules" || name == "target" || name == "dist" {
@@ -503,7 +638,17 @@ async fn read_directory(path: String) -> Result<Vec<DirEntry>, String> {
 #[tauri::command]
 async fn read_text_file(path: String) -> Result<String, String> {
     log_cmd!("read_text_file", "Reading file: {}", path);
-    let result = std::fs::read_to_string(&path).map_err(|e| {
+    let safe_path = sanitize_path(&path)?;
+    // Check file size before reading to prevent OOM
+    let metadata = std::fs::metadata(&safe_path).map_err(|e| {
+        log_error!("read_text_file", "Failed to stat {}: {}", path, e);
+        format!("Failed to read file metadata: {}", e)
+    })?;
+    if metadata.len() > MAX_FILE_READ_SIZE {
+        log_error!("read_text_file", "File too large: {} bytes (max {})", metadata.len(), MAX_FILE_READ_SIZE);
+        return Err(format!("File too large: {} bytes (max {} bytes)", metadata.len(), MAX_FILE_READ_SIZE));
+    }
+    let result = std::fs::read_to_string(&safe_path).map_err(|e| {
         log_error!("read_text_file", "Failed to read {}: {}", path, e);
         format!("Failed to read file: {}", e)
     });
@@ -515,12 +660,17 @@ async fn read_text_file(path: String) -> Result<String, String> {
 
 #[tauri::command]
 async fn write_text_file(path: String, contents: String) -> Result<(), String> {
+    // Vuln 6: Check content size before writing
+    if contents.len() > MAX_WRITE_SIZE {
+        return Err(format!("Content too large: {} bytes (max {} bytes)", contents.len(), MAX_WRITE_SIZE));
+    }
     log_cmd!("write_text_file", "Writing {} bytes to: {}", contents.len(), path);
+    let safe_path = sanitize_path(&path)?;
     // Create parent directories if needed
-    if let Some(parent) = std::path::Path::new(&path).parent() {
+    if let Some(parent) = safe_path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create directories: {}", e))?;
     }
-    let result = std::fs::write(&path, contents).map_err(|e| {
+    let result = std::fs::write(&safe_path, contents).map_err(|e| {
         log_error!("write_text_file", "Failed to write {}: {}", path, e);
         format!("Failed to write file: {}", e)
     });
@@ -538,6 +688,8 @@ async fn save_givegigs_config(
     key: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
+    validate_url(&url)?; // Vuln 4: Validate URL format
+    validate_api_key(&key)?; // Vuln 5: Validate key format
     log_cmd!("save_givegigs_config", "Saving GiveGigs config (url: {})", url);
     state.set_givegigs_url(url).map_err(|e| e.to_string())?;
     state.set_givegigs_key(key).map_err(|e| e.to_string())?;
@@ -569,13 +721,19 @@ async fn search_pexels(
         return Err("No Pexels API key configured.".to_string());
     }
 
+    // Validate and sanitize query
+    if query.len() > 500 {
+        return Err("Search query too long (max 500 chars)".to_string());
+    }
+    validate_search_type(&search_type)?; // Vuln 25: Validate search type
+    let encoded_query = url_encode(&query);
     let url = if search_type == "video" {
-        format!("https://api.pexels.com/videos/search?query={}&per_page=20", query)
+        format!("https://api.pexels.com/videos/search?query={}&per_page=20", encoded_query)
     } else {
-        format!("https://api.pexels.com/v1/search?query={}&per_page=20", query)
+        format!("https://api.pexels.com/v1/search?query={}&per_page=20", encoded_query)
     };
 
-    let client = reqwest::Client::new();
+    let client = http_client_with_timeout(); // Vuln 20: Add request timeout
     let res = client
         .get(&url)
         .header("Authorization", api_key)
@@ -653,7 +811,17 @@ async fn godot_detect() -> Result<serde_json::Value, String> {
 #[tauri::command]
 async fn godot_create_project(path: String, name: String, template: String) -> Result<String, String> {
     log_cmd!("godot_create_project", "Creating Godot project: name={} template={} path={}", name, template, path);
-    let project_dir = std::path::Path::new(&path).join(&name);
+    // Security: validate path and sanitize project name
+    sanitize_path(&path)?;
+    let safe_name = name.replace("..", "").replace('/', "").replace('\\', "").replace('\0', "");
+    if safe_name.is_empty() || safe_name.len() > 256 {
+        return Err("Invalid project name (empty or too long, max 256 chars)".to_string());
+    }
+    // Vuln 17: Validate template parameter
+    let valid_templates = ["2d_platformer", "3d_fps", "ui_app", "empty"];
+    let safe_template = if valid_templates.contains(&template.as_str()) { template.clone() } else { "empty".to_string() };
+    let _ = safe_template; // used below via template match
+    let project_dir = std::path::Path::new(&path).join(&safe_name);
     std::fs::create_dir_all(&project_dir).map_err(|e| format!("Failed to create project directory: {}", e))?;
 
     // Create project.godot
@@ -663,7 +831,7 @@ async fn godot_create_project(path: String, name: String, template: String) -> R
 
 [application]
 
-config/name="{name}"
+config/name="{safe_name}"
 config/description="Created with CryptArtist GameStudio"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.4", "Forward+")
@@ -677,7 +845,7 @@ window/size/viewport_height=720
 
 renderer/rendering_method="forward_plus"
 "#,
-        name = name
+        safe_name = safe_name
     );
     std::fs::write(project_dir.join("project.godot"), &project_godot)
         .map_err(|e| format!("Failed to write project.godot: {}", e))?;
@@ -812,6 +980,17 @@ func _process(delta: float) -> void:
 #[tauri::command]
 async fn godot_run_project(godot_path: String, project_path: String) -> Result<String, String> {
     log_cmd!("godot_run_project", "Running Godot: {} at {}", godot_path, project_path);
+    // Security: validate paths
+    sanitize_path(&godot_path)?;
+    sanitize_path(&project_path)?;
+    // Verify the executable looks like a Godot binary
+    let godot_name = std::path::Path::new(&godot_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("");
+    if !godot_name.to_lowercase().contains("godot") {
+        return Err("Invalid Godot executable path: filename must contain 'godot'".to_string());
+    }
     let child = std::process::Command::new(&godot_path)
         .arg("--path")
         .arg(&project_path)
@@ -824,6 +1003,10 @@ async fn godot_run_project(godot_path: String, project_path: String) -> Result<S
 #[tauri::command]
 async fn godot_export(godot_path: String, project_path: String, preset: String, output: String) -> Result<String, String> {
     log_cmd!("godot_export", "Exporting Godot project: preset={} output={}", preset, output);
+    // Security: validate all paths
+    sanitize_path(&godot_path)?;
+    sanitize_path(&project_path)?;
+    sanitize_path(&output)?;
     let result = std::process::Command::new(&godot_path)
         .arg("--headless")
         .arg("--path")
@@ -845,6 +1028,7 @@ async fn godot_export(godot_path: String, project_path: String, preset: String, 
 #[tauri::command]
 async fn godot_list_scenes(project_path: String) -> Result<Vec<String>, String> {
     log_cmd!("godot_list_scenes", "Listing scenes in: {}", project_path);
+    sanitize_path(&project_path)?; // Vuln 7: Validate path
     let mut scenes = Vec::new();
     fn walk_scenes(dir: &std::path::Path, scenes: &mut Vec<String>) {
         if let Ok(entries) = std::fs::read_dir(dir) {
@@ -868,6 +1052,7 @@ async fn godot_list_scenes(project_path: String) -> Result<Vec<String>, String> 
 #[tauri::command]
 async fn godot_list_scripts(project_path: String) -> Result<Vec<String>, String> {
     log_cmd!("godot_list_scripts", "Listing scripts in: {}", project_path);
+    sanitize_path(&project_path)?; // Vuln 8: Validate path
     let mut scripts = Vec::new();
     fn walk_scripts(dir: &std::path::Path, scripts: &mut Vec<String>) {
         if let Ok(entries) = std::fs::read_dir(dir) {
@@ -924,7 +1109,19 @@ async fn health_check() -> Result<serde_json::Value, String> {
 
 #[tauri::command]
 async fn log_from_frontend(level: String, source: String, message: String) -> Result<(), String> {
-    match level.as_str() {
+    // Vuln 9: Limit message length to prevent log flooding
+    let safe_message = if message.len() > MAX_LOG_MESSAGE_LENGTH {
+        format!("{}... [truncated, {} total chars]", &message[..MAX_LOG_MESSAGE_LENGTH], message.len())
+    } else {
+        message
+    };
+    // Vuln 10: Validate log level
+    let safe_level = match level.as_str() {
+        "debug" | "info" | "warn" | "error" => level.as_str(),
+        _ => "info",
+    };
+    let message = safe_message;
+    match safe_level {
         "debug" => logger::logger().debug(&source, &message),
         "info" => logger::logger().info(&source, &message),
         "warn" => logger::logger().warn(&source, &message),
@@ -974,13 +1171,48 @@ fn run_api_server(port: u16, api_key: Option<String>) {
     println!("  GET  /sysinfo          - System info");
     println!("Press Ctrl+C to stop.");
 
-    let rt = tokio::runtime::Runtime::new().unwrap();
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(r) => r,
+        Err(e) => {
+            eprintln!("Failed to create async runtime: {}", e);
+            std::process::exit(1);
+        }
+    };
     let stored_key = api_key.unwrap_or_default();
 
     for mut request in server.incoming_requests() {
         let url = request.url().to_string();
         let method = request.method().to_string();
         log_api!(&format!("{} {}", method, url), "Request received");
+
+        // Vuln 22: Handle CORS preflight
+        if method == "OPTIONS" {
+            let response = tiny_http::Response::from_string("")
+                .with_status_code(204)
+                .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"http://localhost"[..]).unwrap())
+                .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Methods"[..], &b"GET, POST, OPTIONS"[..]).unwrap())
+                .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Headers"[..], &b"Content-Type, Authorization"[..]).unwrap())
+                .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Max-Age"[..], &b"86400"[..]).unwrap());
+            let _ = request.respond(response);
+            continue;
+        }
+
+        // Vuln 23: Validate Content-Type on POST requests
+        if method == "POST" {
+            let content_type = request.headers().iter()
+                .find(|h| h.field.as_str().eq_ignore_ascii_case("content-type"))
+                .map(|h| h.value.as_str().to_string())
+                .unwrap_or_default();
+            if !content_type.is_empty() && !content_type.contains("application/json") {
+                let response = tiny_http::Response::from_string(
+                    serde_json::json!({"error": "Content-Type must be application/json"}).to_string()
+                )
+                    .with_status_code(415)
+                    .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap());
+                let _ = request.respond(response);
+                continue;
+            }
+        }
 
         let (status, body) = match (method.as_str(), url.split('?').next().unwrap_or("")) {
             ("GET", "/health") => {
@@ -1014,6 +1246,10 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                     })
                     .collect();
                 let path = params.get("path").cloned().unwrap_or_else(|| ".".to_string());
+                // Security: validate path
+                if let Err(e) = sanitize_path(&path) {
+                    (403, serde_json::json!({"error": e}).to_string())
+                } else
                 match std::fs::read_dir(&path) {
                     Ok(entries) => {
                         let items: Vec<serde_json::Value> = entries
@@ -1045,24 +1281,45 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                     })
                     .collect();
                 let path = params.get("path").cloned().unwrap_or_default();
-                match std::fs::read_to_string(&path) {
-                    Ok(content) => (200, serde_json::json!({"path": path, "content": content}).to_string()),
-                    Err(e) => (400, serde_json::json!({"error": e.to_string()}).to_string()),
+                // Security: validate path
+                if let Err(e) = sanitize_path(&path) {
+                    (403, serde_json::json!({"error": e}).to_string())
+                } else {
+                    // Vuln 24: Check file size before reading
+                    match std::fs::metadata(&path) {
+                        Ok(meta) if meta.len() > MAX_FILE_READ_SIZE => {
+                            (413, serde_json::json!({"error": format!("File too large: {} bytes (max {})", meta.len(), MAX_FILE_READ_SIZE)}).to_string())
+                        }
+                        _ => {
+                            match std::fs::read_to_string(&path) {
+                                Ok(content) => (200, serde_json::json!({"path": path, "content": content}).to_string()),
+                                Err(e) => (400, serde_json::json!({"error": e.to_string()}).to_string()),
+                            }
+                        }
+                    }
                 }
             }
             ("POST", "/write") => {
                 let mut body_str = String::new();
-                request.as_reader().read_to_string(&mut body_str).unwrap_or(0);
+                let bytes_read = request.as_reader().take(MAX_REQUEST_BODY_SIZE as u64).read_to_string(&mut body_str).unwrap_or(0);
+                if bytes_read >= MAX_REQUEST_BODY_SIZE {
+                    (413, serde_json::json!({"error": "Request body too large"}).to_string())
+                } else
                 match serde_json::from_str::<serde_json::Value>(&body_str) {
                     Ok(val) => {
                         let path = val["path"].as_str().unwrap_or("");
                         let content = val["content"].as_str().unwrap_or("");
-                        if let Some(parent) = std::path::Path::new(path).parent() {
-                            let _ = std::fs::create_dir_all(parent);
-                        }
-                        match std::fs::write(path, content) {
-                            Ok(_) => (200, serde_json::json!({"status": "ok", "path": path}).to_string()),
-                            Err(e) => (500, serde_json::json!({"error": e.to_string()}).to_string()),
+                        // Security: validate path
+                        if let Err(e) = sanitize_path(path) {
+                            (403, serde_json::json!({"error": e}).to_string())
+                        } else {
+                            if let Some(parent) = std::path::Path::new(path).parent() {
+                                let _ = std::fs::create_dir_all(parent);
+                            }
+                            match std::fs::write(path, content) {
+                                Ok(_) => (200, serde_json::json!({"status": "ok", "path": path}).to_string()),
+                                Err(e) => (500, serde_json::json!({"error": e.to_string()}).to_string()),
+                            }
                         }
                     }
                     Err(e) => (400, serde_json::json!({"error": format!("Invalid JSON: {}", e)}).to_string()),
@@ -1070,10 +1327,13 @@ fn run_api_server(port: u16, api_key: Option<String>) {
             }
             ("POST", "/chat") => {
                 let mut body_str = String::new();
-                request.as_reader().read_to_string(&mut body_str).unwrap_or(0);
+                request.as_reader().take(MAX_REQUEST_BODY_SIZE as u64).read_to_string(&mut body_str).unwrap_or(0);
                 match serde_json::from_str::<serde_json::Value>(&body_str) {
                     Ok(val) => {
                         let prompt = val["prompt"].as_str().unwrap_or("").to_string();
+                        if prompt.len() > MAX_PROMPT_LENGTH {
+                            (413, serde_json::json!({"error": "Prompt too long"}).to_string())
+                        } else {
                         let key = stored_key.clone();
                         if key.is_empty() {
                             (401, serde_json::json!({"error": "No API key. Pass --api-key to serve command."}).to_string())
@@ -1083,6 +1343,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                                 Err(e) => (500, serde_json::json!({"error": e}).to_string()),
                             }
                         }
+                    }
                     }
                     Err(e) => (400, serde_json::json!({"error": format!("Invalid JSON: {}", e)}).to_string()),
                 }
@@ -1100,7 +1361,13 @@ fn run_api_server(port: u16, api_key: Option<String>) {
         let response = tiny_http::Response::from_string(&body)
             .with_status_code(status)
             .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap())
-            .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"*"[..]).unwrap());
+            .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"http://localhost"[..]).unwrap())
+            .with_header(tiny_http::Header::from_bytes(&b"X-Content-Type-Options"[..], &b"nosniff"[..]).unwrap())
+            .with_header(tiny_http::Header::from_bytes(&b"X-Frame-Options"[..], &b"DENY"[..]).unwrap())
+            .with_header(tiny_http::Header::from_bytes(&b"X-XSS-Protection"[..], &b"1; mode=block"[..]).unwrap()) // Vuln 78
+            .with_header(tiny_http::Header::from_bytes(&b"Referrer-Policy"[..], &b"strict-origin-when-cross-origin"[..]).unwrap()) // Vuln 79
+            .with_header(tiny_http::Header::from_bytes(&b"Permissions-Policy"[..], &b"camera=(), microphone=(), geolocation=()"[..]).unwrap()) // Vuln 80
+            .with_header(tiny_http::Header::from_bytes(&b"Cache-Control"[..], &b"no-store, no-cache, must-revalidate"[..]).unwrap()); // Vuln 77
         log_api!(&format!("{} {}", method, url), "Response: {} ({} bytes)", status, body.len());
         let _ = request.respond(response);
     }

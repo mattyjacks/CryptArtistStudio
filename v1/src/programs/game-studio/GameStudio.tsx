@@ -6,6 +6,7 @@ import Editor from "@monaco-editor/react";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
+import { useWorkspace } from "../../utils/workspace";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -197,8 +198,45 @@ export default function GameStudio() {
     { action: "ui_right", keys: ["D", "Right"] },
     { action: "ui_accept", keys: ["Enter", "Space"] },
     { action: "jump", keys: ["Space"] },
-    { action: "attack", keys: ["Z", "LMB"] },
   ]);
+  // Improvement 401: Scene templates
+  const [sceneTemplates] = useState([
+    { name: "2D Platformer", nodes: "CharacterBody2D, Sprite2D, CollisionShape2D, Camera2D, TileMap" },
+    { name: "Top-Down RPG", nodes: "CharacterBody2D, Sprite2D, NavigationAgent2D, Area2D" },
+    { name: "3D FPS", nodes: "CharacterBody3D, Camera3D, RayCast3D, MeshInstance3D" },
+    { name: "UI Menu", nodes: "Control, VBoxContainer, Button, Label, TextureRect" },
+    { name: "Particle Scene", nodes: "Node2D, GPUParticles2D, PointLight2D" },
+  ]);
+  // Improvement 402: Build log
+  const [buildLog, setBuildLog] = useState<string[]>([]);
+  const [showBuildLog, setShowBuildLog] = useState(false);
+  // Improvement 403: Node count
+  const [totalNodeCount, setTotalNodeCount] = useState(0);
+  // Improvement 404: GDD export
+  const [showGddExport, setShowGddExport] = useState(false);
+  // Improvement 405: Project notes
+  const [projectNotes, setProjectNotes] = useState("");
+  const [showProjectNotes, setShowProjectNotes] = useState(false);
+  // Improvement 406: Play mode
+  const [playMode, setPlayMode] = useState(false);
+  // Improvement 407: Collision layers
+  const [collisionLayers, setCollisionLayers] = useState<{ name: string; enabled: boolean }[]>([
+    { name: "Player", enabled: true },
+    { name: "Enemy", enabled: true },
+    { name: "Environment", enabled: true },
+    { name: "Projectile", enabled: true },
+  ]);
+  // Improvement 408: Animation state machine
+  const [animStates, setAnimStates] = useState<{ name: string; active: boolean }[]>([
+    { name: "Idle", active: true },
+    { name: "Walk", active: false },
+    { name: "Jump", active: false },
+    { name: "Attack", active: false },
+  ]);
+  // Improvement 409: AI scene generator prompt
+  const [aiScenePrompt, setAiScenePrompt] = useState("");
+  // Improvement 410: Quick scene switcher
+  const [sceneList, setSceneList] = useState<string[]>(["main.tscn", "player.tscn", "enemy.tscn", "ui.tscn"]);
   const [showInputMapper, setShowInputMapper] = useState(false);
   // Improvement 97: GDScript snippet library
   const gdscriptSnippets = [
@@ -559,6 +597,24 @@ User: ${currentInput}`;
   };
 
   // .CryptArt save/open for GameStudio
+  const wsCtx = useWorkspace();
+
+  // Load from active workspace on mount or workspace switch
+  useEffect(() => {
+    const active = wsCtx.getActiveWorkspace();
+    if (active && active.program === "game-studio") {
+      const data = active.project.data as any;
+      if (data.projectPath) {
+        setProjectPath(data.projectPath);
+        loadDirectory(data.projectPath).then(setFileTree).catch(() => {});
+      }
+      if (data.projectName) setProjectName(data.projectName);
+      if (data.layout) setLayout(data.layout);
+      if (data.scenes) setScenes(data.scenes);
+      if (data.scripts) setScripts(data.scripts);
+    }
+  }, [wsCtx.activeWorkspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSaveCryptArt = async () => {
     try {
       const projectData = {
@@ -572,12 +628,21 @@ User: ${currentInput}`;
       };
       const cryptArt = createCryptArtFile("game-studio", projectName || "Untitled Game", projectData);
       const json = serializeCryptArt(cryptArt);
+
+      const active = wsCtx.getActiveWorkspace();
+      const defaultPath = active?.filePath || "game-project.CryptArt";
+
       const savePath = await saveDialog({
-        defaultPath: "game-project.CryptArt",
+        defaultPath,
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
       });
       if (savePath) {
         await invoke("write_text_file", { path: savePath, contents: json });
+        if (active) {
+          wsCtx.updateProject(active.id, cryptArt);
+          wsCtx.updateFilePath(active.id, savePath);
+          wsCtx.markClean(active.id);
+        }
         toast.success("Game project saved!");
       }
     } catch (err) {
@@ -589,15 +654,21 @@ User: ${currentInput}`;
     try {
       const selected = await openDialog({
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
-        multiple: false,
+        multiple: true,
       });
-      if (selected && typeof selected === "string") {
-        const json = await invoke<string>("read_text_file", { path: selected });
+      if (!selected) return;
+      const paths = Array.isArray(selected) ? selected : [selected];
+
+      for (const filePath of paths) {
+        if (typeof filePath !== "string") continue;
+        const json = await invoke<string>("read_text_file", { path: filePath });
         const project = parseCryptArt(json);
         if (project.program !== "game-studio") {
-          toast.warning(`This .CryptArt file is for ${project.program}, not GameStudio`);
-          return;
+          toast.warning(`${filePath.split(/[\\/]/).pop()} is for ${project.program}, not GameStudio`);
+          continue;
         }
+        const wsId = wsCtx.openWorkspace(project, filePath);
+        wsCtx.setActiveWorkspace(wsId);
         const data = project.data as any;
         if (data.projectPath) {
           setProjectPath(data.projectPath);
@@ -608,8 +679,8 @@ User: ${currentInput}`;
         if (data.layout) setLayout(data.layout);
         if (data.scenes) setScenes(data.scenes);
         if (data.scripts) setScripts(data.scripts);
-        toast.success("Game project loaded!");
       }
+      toast.success("Game project loaded!");
     } catch (err) {
       toast.error("Failed to open project");
     }
@@ -994,7 +1065,23 @@ User: ${currentInput}`;
             {/* AI GENERATION FULL VIEW */}
             {layout === "ai-gen" && (
               <div className="flex-1 min-w-0 flex flex-col">
-                <div className="panel-header">{"\u{1F916}"} AI Game Generator</div>
+                <div className="panel-header flex items-center gap-3">
+                  <span>{"\u{1F916}"} AI Game Generator</span>
+                  <div className="flex-1" />
+                  {/* Improvement 346: Model selector */}
+                  <select
+                    value={localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o"}
+                    onChange={(e) => localStorage.setItem("cryptartist_openrouter_model", e.target.value)}
+                    className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer"
+                    title="OpenRouter model for AI generation"
+                  >
+                    {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "meta-llama/llama-3.1-70b-instruct", "mistralai/mistral-large"].map((m) => (
+                      <option key={m} value={m}>{m.split("/").pop()}</option>
+                    ))}
+                  </select>
+                  {/* Improvement 347: Provider badge */}
+                  <span className="text-[8px] px-1.5 py-0.5 rounded bg-studio-cyan/10 text-studio-cyan">OpenRouter</span>
+                </div>
                 <div className="p-4 border-b border-studio-border bg-studio-surface">
                   <h3 className="text-sm font-bold text-studio-text mb-2">Quick Generate</h3>
                   <p className="text-[10px] text-studio-muted mb-3">
@@ -1074,6 +1161,14 @@ User: ${currentInput}`;
                     />
                     <button onClick={handleAiSubmit} className="btn btn-cyan text-[11px] px-4 py-2" disabled={aiLoading}>
                       {aiLoading ? "Generating..." : "\u{1F916} Generate"}
+                    </button>
+                    {/* Improvement 348: Clear AI chat */}
+                    <button
+                      onClick={() => { if (aiMessages.length > 0) { setAiMessages([]); } }}
+                      className="btn text-[10px] px-2 py-2 text-studio-muted hover:text-red-400"
+                      title="Clear AI chat"
+                    >
+                      {"\u{1F5D1}"}
                     </button>
                   </div>
                 </div>

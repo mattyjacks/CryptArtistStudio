@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
+import { logSecurityEvent, sanitizeFilePath } from "../../utils/security";
+
+const MAX_CMD_HISTORY = 500; // Vuln 60: Max command history entries
+const MAX_DISPLAY_HISTORY = 200; // Vuln 60: Max display history
+const MAX_SCRIPT_SIZE = 50000; // Vuln 67: Max script content size
+const MAX_ENV_VARS = 100; // Vuln 73: Max environment variables
+const MAX_ALIASES = 50; // Vuln 74: Max command aliases
+const MAX_INPUT_LENGTH = 10000; // Vuln 35: Max command input length
 
 interface CommandHistoryEntry {
   id: string;
@@ -88,6 +96,14 @@ const BUILTIN_COMMANDS = [
   { cmd: "grep <pattern> <path>", desc: "Search in file" },
   { cmd: "head <n> <path>", desc: "First N lines of file" },
   { cmd: "tail <n> <path>", desc: "Last N lines of file" },
+  { cmd: "wc <path>", desc: "Word/line/char count" },
+  { cmd: "sort <path>", desc: "Sort lines of file" },
+  { cmd: "uniq <path>", desc: "Unique lines of file" },
+  { cmd: "date", desc: "Current date and time" },
+  { cmd: "calc <expr>", desc: "Evaluate math expression" },
+  { cmd: "pwd", desc: "Print working directory" },
+  { cmd: "touch <path>", desc: "Create empty file" },
+  { cmd: "export-history", desc: "Export command history" },
 ];
 
 export default function Commander() {
@@ -137,12 +153,22 @@ export default function Commander() {
   useEffect(() => { if (activeTab === "terminal") inputRef.current?.focus(); }, [activeTab]);
 
   const addEntry = useCallback((command: string, result: string, status: "success" | "error" | "info" = "success") => {
-    setHistory((prev) => [...prev, { id: `cmd-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, command, result, status, timestamp: Date.now() }]);
+    setHistory((prev) => {
+      const next = [...prev, { id: `cmd-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, command, result, status, timestamp: Date.now() }];
+      // Vuln 60: Limit display history size
+      if (next.length > MAX_DISPLAY_HISTORY) return next.slice(next.length - MAX_DISPLAY_HISTORY);
+      return next;
+    });
   }, []);
 
   const executeCommand = useCallback(async (raw: string): Promise<void> => {
     const trimmed = raw.trim();
     if (!trimmed) return;
+    // Vuln 35: Limit command input length
+    if (trimmed.length > MAX_INPUT_LENGTH) {
+      addEntry(trimmed.substring(0, 50) + "...", "Command too long (max " + MAX_INPUT_LENGTH + " chars)", "error");
+      return;
+    }
     // Improvement 311: Resolve aliases
     const firstWord = trimmed.split(/\s+/)[0].toLowerCase();
     const resolved = aliases[firstWord] ? aliases[firstWord] + trimmed.slice(firstWord.length) : trimmed;
@@ -198,7 +224,9 @@ export default function Commander() {
         addEntry(trimmed, entries.map((e) => (e.is_dir ? "[DIR]" : String(e.size).padStart(10) + "B") + " " + e.name).join("\n") || "(empty)");
       } else if (cmd === "cat") {
         if (!args) { addEntry(trimmed, "Usage: cat <path>", "error"); return; }
-        const c = await invoke<string>("read_text_file", { path: args });
+        // Vuln 36: Sanitize file path
+        const safeCatPath = sanitizeFilePath(args);
+        const c = await invoke<string>("read_text_file", { path: safeCatPath });
         addEntry(trimmed, c);
       } else if (cmd === "write") {
         const si = args.indexOf(" ");
@@ -341,6 +369,61 @@ export default function Commander() {
         const content = await invoke<string>("read_text_file", { path: tParts.slice(1).join(" ") });
         const lines = content.split("\n");
         addEntry(trimmed, lines.slice(Math.max(0, lines.length - n)).join("\n"));
+      } else if (cmd === "wc") {
+        // Improvement 377: Word count
+        if (!args) { addEntry(trimmed, "Usage: wc <path>", "error"); return; }
+        const content = await invoke<string>("read_text_file", { path: args });
+        const lines = content.split("\n").length;
+        const words = content.split(/\s+/).filter(Boolean).length;
+        const chars = content.length;
+        addEntry(trimmed, `  ${lines} lines  ${words} words  ${chars} chars  ${args}`);
+      } else if (cmd === "sort") {
+        // Improvement 378: Sort lines
+        if (!args) { addEntry(trimmed, "Usage: sort <path>", "error"); return; }
+        const content = await invoke<string>("read_text_file", { path: args });
+        addEntry(trimmed, content.split("\n").sort().join("\n"));
+      } else if (cmd === "uniq") {
+        // Improvement 379: Unique lines
+        if (!args) { addEntry(trimmed, "Usage: uniq <path>", "error"); return; }
+        const content = await invoke<string>("read_text_file", { path: args });
+        addEntry(trimmed, [...new Set(content.split("\n"))].join("\n"));
+      } else if (cmd === "date") {
+        // Improvement 380: Full date info
+        const now = new Date();
+        addEntry(trimmed, [
+          "Date: " + now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+          "Time: " + now.toLocaleTimeString(),
+          "ISO:  " + now.toISOString(),
+          "Unix: " + Math.floor(now.getTime() / 1000),
+        ].join("\n"));
+      } else if (cmd === "calc") {
+        // Improvement 381: Calculator
+        if (!args) { addEntry(trimmed, "Usage: calc <expression>  e.g. calc 2+2", "error"); return; }
+        try {
+          const safe = args.replace(/[^0-9+\-*/().%\s]/g, "");
+          const result = Function('"use strict"; return (' + safe + ')')();
+          addEntry(trimmed, "= " + result);
+        } catch { addEntry(trimmed, "Invalid expression: " + args, "error"); }
+      } else if (cmd === "pwd") {
+        // Improvement 382: Print working directory
+        try {
+          const cwd = await invoke<string>("get_cwd").catch(() => "~");
+          addEntry(trimmed, cwd || "~");
+        } catch { addEntry(trimmed, "~ (CryptArtist Studio home)"); }
+      } else if (cmd === "touch") {
+        // Improvement 383: Create empty file
+        if (!args) { addEntry(trimmed, "Usage: touch <path>", "error"); return; }
+        await invoke("write_text_file", { path: args, contents: "" });
+        addEntry(trimmed, "Created: " + args);
+      } else if (cmd === "export-history") {
+        // Improvement 384: Export command history
+        const text = cmdHistory.map((c, i) => (i + 1) + ". " + c).join("\n");
+        const blob = new Blob([text], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = `commander-history-${Date.now()}.txt`; a.click();
+        URL.revokeObjectURL(url);
+        addEntry(trimmed, "History exported (" + cmdHistory.length + " commands)");
       } else {
         addEntry(trimmed, "Unknown command: " + cmd + ". Type \"help\" for available commands.", "error");
       }

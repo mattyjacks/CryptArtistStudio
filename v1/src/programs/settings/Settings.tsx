@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
+import { safeGetRaw, safeSetRaw, safeGetRawJSON, safeStorageUsage } from "../../utils/storage";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -100,36 +101,38 @@ export default function Settings() {
   const [saving, setSaving] = useState<string | null>(null);
 
   // OpenRouter
-  const [orDefaultModel, setOrDefaultModel] = useState(() => localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o");
+  const [orDefaultModel, setOrDefaultModel] = useState(() => safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o"));
   const [orTestResult, setOrTestResult] = useState<string | null>(null);
   const [orTesting, setOrTesting] = useState(false);
 
   // Import/Export
   const [exportCount, setExportCount] = useState(() => {
-    const c = localStorage.getItem("cryptartist_key_export_count");
+    const c = safeGetRaw("cryptartist_key_export_count");
     return c ? parseInt(c, 10) : 0;
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Appearance
-  const [accentColor, setAccentColor] = useState(() => localStorage.getItem("cryptartist_accent") || "cyan");
-  const [fontFamily, setFontFamily] = useState(() => localStorage.getItem("cryptartist_font_family") || "JetBrains Mono");
-  const [notificationsEnabled, setNotificationsEnabled] = useState(() => localStorage.getItem("cryptartist_notifications") !== "false");
+  const [accentColor, setAccentColor] = useState(() => safeGetRaw("cryptartist_accent", "cyan"));
+  const [fontFamily, setFontFamily] = useState(() => safeGetRaw("cryptartist_font_family", "JetBrains Mono"));
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => safeGetRaw("cryptartist_notifications") !== "false");
 
   // Improvement 305: Data management
   const [storageUsage, setStorageUsage] = useState(0);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  // Improvement 371: Settings profiles
+  const [profileName, setProfileName] = useState("");
+  const [savedProfiles, setSavedProfiles] = useState<string[]>(() => {
+    return safeGetRawJSON<string[]>("cryptartist_settings_profiles_list", []);
+  });
+  // Improvement 372: Auto-backup
+  const [autoBackup, setAutoBackup] = useState(() => safeGetRaw("cryptartist_auto_backup") === "true");
+  // Improvement 373: Theme preview
+  const [themePreview, setThemePreview] = useState<string | null>(null);
 
   // Improvement 306: Calculate localStorage usage
   useEffect(() => {
-    let total = 0;
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith("cryptartist")) {
-        total += (localStorage.getItem(key) || "").length;
-      }
-    }
-    setStorageUsage(total);
+    setStorageUsage(safeStorageUsage());
   }, [activeSection]);
 
   // Load all keys on mount
@@ -165,7 +168,7 @@ export default function Settings() {
       const json = await invoke<string>("export_all_api_keys");
       const newCount = exportCount + 1;
       setExportCount(newCount);
-      localStorage.setItem("cryptartist_key_export_count", String(newCount));
+      safeSetRaw("cryptartist_key_export_count", String(newCount));
       const filename = `Forbidden-Secrets-of-CryptArtist-Keys-${newCount}.txt`;
       const blob = new Blob([json], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
@@ -222,7 +225,7 @@ export default function Settings() {
 
   // Save OpenRouter default model
   useEffect(() => {
-    localStorage.setItem("cryptartist_openrouter_model", orDefaultModel);
+    safeSetRaw("cryptartist_openrouter_model", orDefaultModel);
   }, [orDefaultModel]);
 
   const sections: { id: SettingsSection; label: string; icon: string }[] = [
@@ -459,7 +462,7 @@ export default function Settings() {
                   {accentOptions.map((opt) => (
                     <button
                       key={opt.id}
-                      onClick={() => { setAccentColor(opt.id); localStorage.setItem("cryptartist_accent", opt.id); }}
+                      onClick={() => { setAccentColor(opt.id); safeSetRaw("cryptartist_accent", opt.id); }}
                       className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-all ${
                         accentColor === opt.id ? "ring-2 ring-offset-2 ring-offset-studio-surface" : "opacity-70 hover:opacity-100"
                       }`}
@@ -532,7 +535,7 @@ export default function Settings() {
                     <div className="text-[9px] text-studio-muted mt-1">Show popup notifications for saves, errors, and AI responses.</div>
                   </div>
                   <button
-                    onClick={() => { const v = !notificationsEnabled; setNotificationsEnabled(v); localStorage.setItem("cryptartist_notifications", String(v)); }}
+                    onClick={() => { const v = !notificationsEnabled; setNotificationsEnabled(v); safeSetRaw("cryptartist_notifications", String(v)); }}
                     className={`w-10 h-5 rounded-full transition-colors relative ${notificationsEnabled ? "bg-studio-cyan" : "bg-studio-border"}`}
                   >
                     <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all ${notificationsEnabled ? "left-5" : "left-0.5"}`} />
@@ -545,7 +548,7 @@ export default function Settings() {
                 <div className="text-[12px] font-semibold text-studio-text mb-2">Editor Font Family</div>
                 <select
                   value={fontFamily}
-                  onChange={(e) => { setFontFamily(e.target.value); localStorage.setItem("cryptartist_font_family", e.target.value); }}
+                  onChange={(e) => { setFontFamily(e.target.value); safeSetRaw("cryptartist_font_family", e.target.value); }}
                   className="input text-[11px] py-1.5 w-full"
                 >
                   {["JetBrains Mono", "Fira Code", "Source Code Pro", "Cascadia Code", "Consolas", "Monaco", "Menlo", "monospace"].map((f) => (
@@ -554,6 +557,85 @@ export default function Settings() {
                 </select>
                 <div className="mt-2 p-2 rounded bg-studio-bg border border-studio-border">
                   <pre className="text-[11px]" style={{ fontFamily }}>{"const hello = 'CryptArtist Studio'; // preview"}</pre>
+                </div>
+              </div>
+
+              {/* Improvement 371: Settings profiles */}
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="text-[12px] font-semibold text-studio-text mb-2">Settings Profiles</div>
+                <div className="text-[9px] text-studio-muted mb-3">Save and restore your entire settings configuration.</div>
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="text"
+                    value={profileName}
+                    onChange={(e) => setProfileName(e.target.value)}
+                    className="input text-[10px] py-1 flex-1"
+                    placeholder="Profile name..."
+                  />
+                  <button
+                    onClick={() => {
+                      if (!profileName.trim()) return;
+                      const profile: Record<string, string> = {};
+                      try {
+                        for (let i = 0; i < localStorage.length; i++) {
+                          const k = localStorage.key(i);
+                          if (k?.startsWith("cryptartist")) profile[k] = safeGetRaw(k);
+                        }
+                      } catch { /* ignore iteration errors */ }
+                      safeSetRaw(`cryptartist_profile_${profileName.trim()}`, JSON.stringify(profile));
+                      const list = [...savedProfiles.filter(p => p !== profileName.trim()), profileName.trim()];
+                      setSavedProfiles(list);
+                      safeSetRaw("cryptartist_settings_profiles_list", JSON.stringify(list));
+                      setProfileName("");
+                      toast.success(`Profile "${profileName.trim()}" saved`);
+                    }}
+                    className="btn btn-cyan text-[9px] py-1 px-3"
+                  >Save</button>
+                </div>
+                {savedProfiles.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    {savedProfiles.map((p) => (
+                      <div key={p} className="flex items-center gap-2 p-2 rounded bg-studio-bg border border-studio-border">
+                        <span className="text-[10px] text-studio-text flex-1">{p}</span>
+                        <button
+                          onClick={() => {
+                            try {
+                              const data = JSON.parse(safeGetRaw(`cryptartist_profile_${p}`, "{}"));
+                              Object.entries(data).forEach(([k, v]) => safeSetRaw(k, v as string));
+                              toast.success(`Profile "${p}" loaded - reload to apply`);
+                            } catch { toast.error("Failed to load profile"); }
+                          }}
+                          className="btn text-[8px] py-0.5 px-2"
+                        >Load</button>
+                        <button
+                          onClick={() => {
+                            try { localStorage.removeItem(`cryptartist_profile_${p}`); } catch { /* ignore */ }
+                            const list = savedProfiles.filter(x => x !== p);
+                            setSavedProfiles(list);
+                            safeSetRaw("cryptartist_settings_profiles_list", JSON.stringify(list));
+                            toast.success(`Profile "${p}" deleted`);
+                          }}
+                          className="btn text-[8px] py-0.5 px-2 text-red-400 border-red-500/30"
+                        >Delete</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Improvement 372: Auto-backup toggle */}
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-[12px] font-semibold text-studio-text">Auto-Backup Settings</div>
+                    <div className="text-[9px] text-studio-muted mt-1">Automatically save a backup profile every 30 minutes.</div>
+                  </div>
+                  <button
+                    onClick={() => { const v = !autoBackup; setAutoBackup(v); safeSetRaw("cryptartist_auto_backup", String(v)); }}
+                    className={`w-10 h-5 rounded-full transition-colors relative ${autoBackup ? "bg-studio-cyan" : "bg-studio-border"}`}
+                  >
+                    <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all ${autoBackup ? "left-5" : "left-0.5"}`} />
+                  </button>
                 </div>
               </div>
 
@@ -567,7 +649,7 @@ export default function Settings() {
                       <div className="text-[9px] text-studio-muted">Remove all Commander command history and scripts</div>
                     </div>
                     <button
-                      onClick={() => { localStorage.removeItem("cryptartist_commander_scripts"); toast.success("Commander data cleared"); }}
+                      onClick={() => { try { localStorage.removeItem("cryptartist_commander_scripts"); } catch { /* ignore */ } toast.success("Commander data cleared"); }}
                       className="btn text-[9px] px-3 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
                     >Clear</button>
                   </div>
@@ -577,7 +659,7 @@ export default function Settings() {
                       <div className="text-[9px] text-studio-muted">Reset program favorites and launch statistics</div>
                     </div>
                     <button
-                      onClick={() => { localStorage.removeItem("cryptartist_favorites"); localStorage.removeItem("cryptartist_launch_counts"); toast.success("Launcher data cleared"); }}
+                      onClick={() => { try { localStorage.removeItem("cryptartist_favorites"); localStorage.removeItem("cryptartist_launch_counts"); } catch { /* ignore */ } toast.success("Launcher data cleared"); }}
                       className="btn text-[9px] px-3 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
                     >Clear</button>
                   </div>
@@ -593,11 +675,13 @@ export default function Settings() {
                         <button
                           onClick={() => {
                             const keys: string[] = [];
-                            for (let i = 0; i < localStorage.length; i++) {
-                              const k = localStorage.key(i);
-                              if (k?.startsWith("cryptartist")) keys.push(k);
-                            }
-                            keys.forEach((k) => localStorage.removeItem(k));
+                            try {
+                              for (let i = 0; i < localStorage.length; i++) {
+                                const k = localStorage.key(i);
+                                if (k?.startsWith("cryptartist")) keys.push(k);
+                              }
+                              keys.forEach((k) => localStorage.removeItem(k));
+                            } catch { /* ignore storage errors */ }
                             toast.success(`Cleared ${keys.length} items`);
                             setShowResetConfirm(false);
                           }}

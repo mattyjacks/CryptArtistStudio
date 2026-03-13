@@ -9,9 +9,10 @@
 ---
 
 **CryptArtist Studio** is a free, open-source, professional-grade creative suite built with
-Tauri v2, React 18, TypeScript, and Rust. It bundles five powerful programs into a single
+Tauri v2, React 18, TypeScript, and Rust. It bundles eight powerful programs into a single
 desktop application: a video/image editor, a vibe-coding IDE, a screen recorder, an
-autonomous AI agent, and an integrated game development studio.
+autonomous AI agent, an integrated game development studio, a terminal-based command center,
+a P2P compute-sharing tool, and a full settings hub.
 
 The project is community-funded through donations at
 [mattyjacks.com](https://mattyjacks.com) and [givegigs.com](https://givegigs.com).
@@ -29,6 +30,12 @@ The project is community-funded through donations at
   - [DemoRecorder](#demorecorder--dre)
   - [ValleyNet](#valleynet--vnt)
   - [GameStudio](#gamestudio--gst)
+  - [CryptArt Commander](#cryptart-commander--cac)
+  - [Donate Computer](#donate-computer--dco)
+  - [Settings](#settings--set)
+- [Workspace Management](#workspace-management)
+  - [Multi-File Workspaces](#multi-file-workspaces)
+  - [Workspace Groups and Resource Sharing](#workspace-groups-and-resource-sharing)
 - [The .CryptArt File Format](#the-cryptart-file-format)
   - [Format Overview](#format-overview)
   - [Required Fields](#required-fields)
@@ -75,11 +82,26 @@ The project is community-funded through donations at
   - [Log Levels](#log-levels)
   - [Frontend Logging](#frontend-logging)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
+- [OpenRouter Multi-Model AI Integration](#openrouter-multi-model-ai-integration)
+  - [Supported Providers](#supported-providers)
+  - [Model Selection](#model-selection)
+  - [Fallback Behavior](#fallback-behavior)
+- [Security Hardening](#security-hardening)
+  - [Overview of 100 Vulnerability Fixes](#overview-of-100-vulnerability-fixes)
+  - [Security Utility Module](#security-utility-module)
+  - [Content Security Policy](#content-security-policy)
+  - [REST API Security Headers](#rest-api-security-headers)
+  - [Input Validation Summary](#input-validation-summary)
+- [CryptArtist Studio Website](#cryptartist-studio-website)
+  - [Website Pages](#website-pages)
+  - [Website Technology](#website-technology)
 - [Privacy Policy and Terms of Use](#privacy-policy-and-terms-of-use)
 - [Contributing](#contributing)
   - [Development Workflow](#development-workflow)
   - [Code Style](#code-style)
   - [Pull Requests](#pull-requests)
+- [Troubleshooting](#troubleshooting)
+- [Performance Optimization](#performance-optimization)
 - [Prompt History](#prompt-history)
 - [Related Projects and Links](#related-projects-and-links)
 - [License](#license)
@@ -96,8 +118,11 @@ and deep AI integration powered by the user's own API keys.
 
 ### Key Highlights
 
-- **Five Programs in One** - Video editing, code editing, screen recording, AI agent,
-  and game development all in a single ~15 MB download.
+- **Eight Programs in One** - Video editing, code editing, screen recording, AI agent,
+  game development, terminal commander, P2P compute sharing, and a settings hub all
+  in a single ~15 MB download.
+- **Security Hardened** - 100 vulnerability fixes across frontend and backend,
+  including CSP, input validation, rate limiting, XSS prevention, and audit logging.
 - **AI-Powered Everything** - Every program integrates with OpenAI, Anthropic, Google,
   or any OpenAI-compatible API endpoint. Users bring their own keys.
 - **The .CryptArt File Format** - A permanently future-proof JSON project file that
@@ -128,20 +153,44 @@ CryptArtist Studio is built on the belief that creative tools should be:
 ## Programs in the Suite
 
 When you launch CryptArtist Studio, you are greeted by the **Suite Launcher** - a
-full-window launcher displaying the CryptArtist logo and five program cards.
+full-window launcher displaying the CryptArtist logo and eight program cards.
 Each card shows the program's emoji logo, name, short code, and a one-line description.
+The launcher includes search and filter, favorites, category sorting, grid/list views,
+a rotating tips carousel, keyboard shortcuts overlay, system status indicators, and
+an AI readiness indicator.
 
-| Program | Emoji | Code | Description |
-|---|---|---|---|
-| **Media Mogul** | TV | MMo | Video editor, image editor, and AI-powered media studio |
-| **VibeCodeWorker** | Technologist | VCW | Your personal vibe-coding IDE powered by your own API keys |
-| **DemoRecorder** | Camera | DRe | Screen recorder and live streamer for demos and gaming |
-| **ValleyNet** | Person | VNt | Autonomous AI agent that can do anything on your computer |
-| **GameStudio** | Game Controller | GSt | Combined media + code + Godot engine for game development |
+| # | Program | Emoji | Code | Shortcut | Description |
+|---|---|---|---|---|---|
+| 1 | **Media Mogul** | TV | MMo | `1` | Video editor, image editor, and AI-powered media studio |
+| 2 | **VibeCodeWorker** | Technologist | VCW | `2` | Your personal vibe-coding IDE powered by your own API keys |
+| 3 | **DemoRecorder** | Camera | DRe | `3` | Screen recorder and live streamer for demos and gaming |
+| 4 | **ValleyNet** | Person | VNt | `4` | Autonomous AI agent that can do anything on your computer |
+| 5 | **GameStudio** | Game Controller | GSt | `5` | Combined media + code + Godot engine for game development |
+| 6 | **CryptArt Commander** | Cat | CAC | `6` | Terminal-based command center for API and CLI control |
+| 7 | **Donate Computer** | Computer | DCo | `7` | P2P compute resource sharing for distributed tasks |
+| 8 | **Settings** | Gear | Set | `8` | API key management, OpenRouter, appearance, and data |
 
 The Suite Launcher also displays a donation banner encouraging users to support
 development at [mattyjacks.com](https://mattyjacks.com) and
 [givegigs.com](https://givegigs.com).
+
+#### Suite Launcher Features
+
+- **Search and Filter** - Type to search programs by name, code, description, or tags
+- **Category Filter** - Filter by category tags (all, video, code, ai, media, game, tools)
+- **Sort Options** - Sort by default, A-Z, most used, or favorites first
+- **Grid/List View** - Toggle between card grid and compact list layouts
+- **Favorites** - Star programs for quick access; persisted in localStorage
+- **Launch Count Tracking** - Tracks how many times each program is launched
+- **Time-Based Greeting** - Dynamic greeting based on time of day
+- **Rotating Tips** - 14 tips rotate every 8 seconds with usage hints
+- **Keyboard Shortcuts Overlay** - Press `?` to see all shortcuts
+- **Recent Projects Panel** - Press `R` to see recently opened `.CryptArt` files
+- **Quick Actions Dropdown** - Access recent projects, shortcuts, cache clear, and GitHub
+- **System Status** - Shows FFmpeg, Godot, and AI (OpenRouter/OpenAI) status
+- **Open .CryptArt Files** - Multi-file open dialog that creates workspaces
+- **Accent Color** - Configurable accent color theme
+- **Uptime Display** - Shows session uptime in the status bar
 
 ---
 
@@ -454,6 +503,310 @@ game development.
   "aiConversation": [ ... ]
 }
 ```
+
+---
+
+### CryptArt Commander - CAC
+
+**CryptArt Commander** (CAC) is a terminal-based command center that provides full
+control over CryptArtist Studio through a command-line interface, REST API integration,
+and scripting capabilities. It is designed for power users, automation, and AI agent
+integration.
+
+#### Terminal Interface
+
+The Commander presents a full-screen terminal with a command prompt, scrollable output
+history, and syntax-highlighted results. It includes tab completion, command aliases,
+environment variables, and arrow-key history navigation.
+
+#### Built-In Commands
+
+| Command | Description |
+|---|---|
+| `help` | Show all available commands |
+| `clear` | Clear the terminal output |
+| `version` | Show CryptArtist Studio and Commander version |
+| `sysinfo` | Display system information (OS, arch, FFmpeg, Godot) |
+| `health` | Run a health check on the application |
+| `keys status` | Check which API keys are configured |
+| `keys export` | Export all API keys to JSON |
+| `ffmpeg status` | Check if FFmpeg is installed |
+| `ffmpeg install` | Install FFmpeg automatically |
+| `godot detect` | Detect Godot engine installation |
+| `ls <path>` | List directory contents with sizes |
+| `cat <path>` | Read and display a file's contents |
+| `write <path> <content>` | Write content to a file |
+| `chat <prompt>` | Send a prompt to OpenAI |
+| `or <prompt>` | Send a prompt to OpenRouter (200+ models) |
+| `or models` | List available OpenRouter models |
+| `pexels <query>` | Search Pexels for stock media |
+| `generate <prompt>` | Generate an AI image via DALL-E |
+| `tts <text>` | Convert text to speech |
+| `project` | Show current project state |
+| `programs` | List all programs in the suite |
+| `run <script>` | Execute a saved script |
+| `scripts` | List saved scripts |
+| `api` | Show REST API reference |
+| `echo <text>` | Echo text to the terminal |
+| `time` | Display current time |
+| `date` | Display current date and time |
+| `history` | Show command history |
+| `alias <name>=<cmd>` | Create a command alias |
+| `aliases` | List all command aliases |
+| `uptime` | Show session uptime |
+| `whoami` | Show user information |
+| `open <program>` | Navigate to a program by name or ID |
+| `env` | Show environment variables |
+| `env set <key> <value>` | Set an environment variable |
+| `bench <cmd>` | Benchmark a command's execution time |
+| `count` | Show total commands run across all sessions |
+| `grep <pattern> <path>` | Search for a pattern in a file |
+| `head <n> <path>` | Show the first N lines of a file |
+| `tail <n> <path>` | Show the last N lines of a file |
+| `wc <path>` | Word, line, and character count |
+| `sort <path>` | Sort lines of a file alphabetically |
+| `uniq <path>` | Show unique lines of a file |
+| `calc <expr>` | Evaluate a math expression |
+| `pwd` | Print working directory |
+| `touch <path>` | Create an empty file |
+| `export-history` | Export command history to a file |
+
+#### Tab Completion
+
+Press `Tab` to autocomplete commands and aliases. When multiple matches exist,
+suggestion pills are displayed below the input. Press `Tab` again to cycle through
+suggestions.
+
+#### Command Aliases
+
+Create shortcuts for frequently used commands:
+
+```bash
+alias ll=ls .
+alias st=keys status
+alias hc=health
+alias v=version
+```
+
+Default aliases: `ll` (ls .), `st` (keys status), `hc` (health), `v` (version).
+Aliases are persisted to localStorage across sessions.
+
+#### Script Editor
+
+The Commander includes a built-in script editor for creating, saving, and running
+multi-command scripts:
+
+- **Create scripts** with the visual editor
+- **Run scripts** that execute each line as a command sequentially
+- **Default scripts**: `hello-world` and `system-check` are provided out of the box
+- **Languages**: Shell (command sequences), JavaScript, Python
+
+#### REST API Reference Tab
+
+A built-in API reference tab displays all 18+ REST API endpoints with their HTTP
+methods, paths, descriptions, and parameters. This serves as an interactive
+documentation panel for developers integrating with CryptArtist Studio.
+
+#### Security Limits
+
+- Maximum command input length: 10,000 characters
+- Maximum display history: 200 entries
+- Maximum command history: 500 entries
+- Maximum script content: 50,000 characters
+- Maximum environment variables: 100
+- Maximum aliases: 50
+- File paths are sanitized before passing to backend
+
+#### .CryptArt Data Payload (Commander)
+
+```json
+{
+  "commandHistory": [ ... ],
+  "scripts": [ ... ],
+  "aliases": { "ll": "ls .", "st": "keys status" },
+  "envVars": { "USER": "Matt", "SHELL": "cac" }
+}
+```
+
+---
+
+### Donate Computer - DCo
+
+**Donate Computer** is a P2P compute resource sharing tool that allows users to donate
+their idle CPU, RAM, and GPU resources to help other CryptArtist Studio users run
+computationally intensive tasks like AI inference, video rendering, and image generation.
+
+#### How It Works
+
+1. **Detect** - The system detects your available CPU cores, RAM, GPU, and network speed
+2. **Configure** - Set donation limits (what percentage of each resource to share)
+3. **Connect** - Connect to the P2P signaling network with a unique peer ID
+4. **Share** - Your idle resources are made available to verified borrowers
+5. **Borrow** - Request compute resources from available donors in the network
+
+#### System Resource Detection
+
+The component automatically detects:
+
+| Resource | Detection Method |
+|---|---|
+| **CPU Cores** | `navigator.hardwareConcurrency` |
+| **RAM** | `navigator.deviceMemory` API |
+| **GPU** | WebGL2/WebGL `WEBGL_debug_renderer_info` extension |
+| **Network** | `navigator.connection` API (downlink, RTT, effectiveType) |
+| **Platform** | `navigator.platform` |
+
+#### Donation Limits
+
+Users can configure how much of each resource to share via sliders:
+
+| Resource | Default | Range |
+|---|---|---|
+| **CPU** | 80% | 0-100% |
+| **RAM** | 50% | 0-100% |
+| **GPU** | 90% | 0-100% |
+
+#### Features
+
+- **Password Protection** - Cryptographically secure 16-character passwords for peer verification
+- **Peer Verification** - Peers must be verified before resource sharing begins
+- **Live Statistics** - Connected peers, tasks completed, uptime, CPU time shared
+- **Activity Log** - Timestamped log of all events (connections, tasks, errors)
+- **Peer Information** - Detailed info about connected peers and their resources
+- **Start/Stop Controls** - Simple buttons to start donating or borrowing
+- **Secure Random IDs** - Peer IDs generated using `crypto.getRandomValues()`
+
+#### Security Features
+
+- Maximum 50 peer connections (Vuln 52)
+- Maximum 200 log entries to prevent memory leaks (Vuln 53)
+- All timeouts tracked and cleaned up on unmount (Vuln 51)
+- Cryptographically secure peer ID generation (Vuln 86)
+- Double-click prevention on stop button (Vuln 64)
+
+#### .CryptArt Data Payload (Donate Computer)
+
+```json
+{
+  "peerId": "ca-a1b2c3d4e5f6g7h8",
+  "mode": "donating",
+  "limits": { "cpuPercent": 80, "ramPercent": 50, "gpuPercent": 90 },
+  "stats": { "uptime": 3600, "tasksCompleted": 42, "cpuTimeShared": 2880000 }
+}
+```
+
+---
+
+### Settings - Set
+
+**Settings** is the centralized configuration hub for CryptArtist Studio. It manages
+all API keys, AI model selection, appearance preferences, data management, and
+keyboard shortcuts.
+
+#### Sidebar Navigation
+
+| Section | Description |
+|---|---|
+| **API Keys** | Manage OpenAI, Pexels, and GiveGigs API keys |
+| **OpenRouter** | Configure OpenRouter API key and default model |
+| **Appearance** | Theme accent color, font family, font size |
+| **Keyboard Shortcuts** | View all global keyboard shortcuts |
+| **Data & Storage** | localStorage usage, clear data, reset settings |
+| **About** | Version info, credits, and links |
+
+#### API Key Management
+
+All API keys are stored securely in the Rust backend state, never in frontend
+localStorage. The Settings panel provides:
+
+- **OpenAI Key** - For AI chat, image generation, TTS, and AI Studio
+- **OpenRouter Key** - For access to 200+ AI models
+- **Pexels Key** - For stock photo and video search
+- **GiveGigs Config** - For media asset library access
+
+Keys are masked in the UI (showing only the first 8 characters) and can be
+toggled visible.
+
+#### OpenRouter Configuration
+
+- **Model Selector** - Choose from 15 popular models across providers:
+  - OpenAI: GPT-4o, GPT-4o Mini, GPT-4 Turbo, o1 Preview, o1 Mini
+  - Anthropic: Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+  - Google: Gemini Pro 1.5, Gemini Flash 1.5
+  - Meta: Llama 3.1 405B, Llama 3.1 70B
+  - Mistral: Mixtral 8x22B, Mistral Large
+  - Perplexity: Llama 3.1 Sonar 70B
+- **Connection Test** - Verify OpenRouter key works with a live API call
+- **Live Status** - Shows connected model and provider in the panel footer
+
+#### Import/Export API Keys
+
+Export all API keys to a `Forbidden-Secrets-of-CryptArtist-Keys-N.txt` file:
+
+- File numbers auto-increment (1, 2, 3, ...)
+- JSON format with all keys
+- Warning header about sensitive data
+- Import reads JSON and updates all keys in the backend
+
+#### Data & Storage
+
+- **localStorage Usage** - Visual display of storage used by CryptArtist
+- **Per-Key Info** - See which localStorage keys exist and their sizes
+- **Clear Specific Data** - Clear favorites, recent projects, launch counts, etc.
+- **Danger Zone** - Reset all data, clear all localStorage, reset accent color
+
+---
+
+## Workspace Management
+
+CryptArtist Studio supports opening multiple `.CryptArt` files simultaneously through
+a workspace management system. This enables multi-project workflows, resource sharing
+between projects, and side-by-side editing.
+
+### Multi-File Workspaces
+
+- **Open Multiple Files** - Use the "Open .CryptArt Files..." button in the Suite
+  Launcher to open a multi-file dialog. Each file creates a separate workspace.
+- **Workspace Bar** - A global tab bar appears above the main content area, showing
+  all open workspaces with their names and program icons.
+- **Switch Workspaces** - Click a tab to switch between open workspaces. The active
+  workspace's project data loads into the appropriate program.
+- **Context Menu** - Right-click a workspace tab for options: combine, share resources,
+  duplicate, and close.
+- **Maximum Workspaces** - Up to 20 workspaces can be open simultaneously.
+
+### Workspace Groups and Resource Sharing
+
+Workspaces can be combined into groups for resource sharing:
+
+| Shared Resource | Description |
+|---|---|
+| **Media** | Share media pools between projects |
+| **AI Context** | Share AI conversation context and history |
+| **Settings** | Share configuration settings |
+| **Files** | Share file references |
+| **Chat History** | Share chat conversation history |
+
+Groups are created by right-clicking a workspace tab and selecting "Combine".
+Within a group, each member can selectively share resources with other members.
+
+### Integration with Programs
+
+All programs use the workspace system:
+
+- **Mount/Switch** - Programs load active workspace data when mounted or when the
+  active workspace changes
+- **Multi-File Open** - Programs can open files into new workspaces via the dialog
+- **Save Integration** - Programs call `updateProject()`, `updateFilePath()`, and
+  `markClean()` on the workspace context when saving
+
+### Architecture
+
+| File | Purpose |
+|---|---|
+| `src/utils/workspace.ts` | Types, context, and helper functions |
+| `src/components/WorkspaceProvider.tsx` | React state provider with CRUD and group logic |
+| `src/components/WorkspaceBar.tsx` | Global tab bar UI with context menu |
 
 ---
 
@@ -809,6 +1162,8 @@ CryptArtistStudio/
     |   |   |-- SuiteLauncher.tsx          # Main launcher with program cards
     |   |   |-- TermsAcceptanceModal.tsx   # Privacy policy + terms acceptance
     |   |   |-- Timeline.tsx               # Multi-track video timeline
+    |   |   |-- WorkspaceBar.tsx           # Workspace tab bar with context menu
+    |   |   |-- WorkspaceProvider.tsx      # Workspace state management provider
     |   |
     |   |-- programs/                      # Individual program views
     |   |   |-- media-mogul/
@@ -820,21 +1175,32 @@ CryptArtistStudio/
     |   |   |-- valley-net/
     |   |   |   |-- ValleyNet.tsx          # ValleyNet AI agent component
     |   |   |-- game-studio/
-    |   |       |-- GameStudio.tsx         # GameStudio main component
+    |   |   |   |-- GameStudio.tsx         # GameStudio main component
+    |   |   |-- commander/
+    |   |   |   |-- Commander.tsx          # CryptArt Commander terminal
+    |   |   |-- donate-computer/
+    |   |   |   |-- DonateComputer.tsx     # P2P compute resource sharing
+    |   |   |-- settings/
+    |   |       |-- Settings.tsx           # Settings hub with API keys
     |   |
     |   |-- pages/                         # Static pages
     |   |   |-- PrivacyPolicy.tsx          # Privacy policy page
     |   |   |-- TermsOfUse.tsx             # Terms of use page
     |   |
     |   |-- utils/                         # Utility modules
+    |       |-- constants.ts               # Shared constants and type definitions
     |       |-- cryptart.ts                # .CryptArt file format (permanent schema)
     |       |-- debounce.ts                # Debounce utility
     |       |-- formatters.ts              # Number/date/size formatting
+    |       |-- hooks.ts                   # Shared React hooks library
     |       |-- keyboard.ts                # Global keyboard shortcuts
     |       |-- logger.ts                  # Frontend logging (sends to Rust)
+    |       |-- openrouter.ts              # OpenRouter multi-model AI utility
     |       |-- platform.ts                # Platform detection + mobile viewport
-    |       |-- storage.ts                 # LocalStorage wrapper
-    |       |-- toast.ts                   # Toast notification system
+    |       |-- security.ts                # Security helpers (30+ functions)
+    |       |-- storage.ts                 # LocalStorage wrapper (validated)
+    |       |-- toast.ts                   # Toast notification system (rate-limited)
+    |       |-- workspace.ts               # Workspace types, context, helpers
     |
     |-- src-tauri/                          # Rust backend
         |
@@ -855,6 +1221,22 @@ CryptArtistStudio/
             |-- 128x128@2x.png
             |-- icon.icns                  # macOS icon
             |-- icon.ico                   # Windows icon
+|
+|-- website/                              # Companion marketing website
+    |-- A1/                               # Version 1 of the website
+        |-- index.html                    # Landing page
+        |-- programs.html                 # Program details page
+        |-- about.html                    # About / philosophy page
+        |-- docs.html                     # Documentation page
+        |-- download.html                 # Download page
+        |-- contact.html                  # Contact page
+        |-- privacy.html                  # Privacy policy page
+        |-- terms.html                    # Terms of use page
+        |-- donate-computer.html          # P2P resource sharing page
+        |-- style.css                     # Full dark theme stylesheet
+        |-- script.js                     # Navigation, animations, interactions
+        |-- donate-computer.js            # Donate Computer UI controller
+        |-- donate-computer-api.js        # P2P resource sharing API
 ```
 
 ### Frontend Architecture
@@ -900,19 +1282,77 @@ The Rust backend (`main.rs`) is organized into three execution modes:
 
 #### Tauri Commands (IPC)
 
-The backend exposes the following Tauri commands to the frontend:
+The backend exposes the following Tauri commands to the frontend via `invoke()`:
 
-| Category | Commands |
-|---|---|
-| **FFmpeg** | `check_ffmpeg_installed`, `install_ffmpeg` |
-| **AI** | `ai_chat`, `ai_generate_image` |
-| **API Keys** | `get_api_key`, `set_api_key`, `get_pexels_key`, `set_pexels_key` |
-| **Filesystem** | `read_directory`, `read_text_file`, `write_text_file` |
-| **GiveGigs** | `set_givegigs_config`, `get_givegigs_config`, `list_givegigs_media` |
-| **Godot** | `check_godot_installed`, `install_godot`, `launch_godot`, `get_godot_path` |
-| **Platform** | `get_platform_info` |
-| **Health** | `health_check` |
-| **Logging** | `log_from_frontend`, `get_log_session`, `get_log_recent`, `get_log_paths` |
+##### FFmpeg Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `check_ffmpeg_installed` | none | `bool` | Check if FFmpeg binary exists and is executable |
+| `install_ffmpeg` | none | `string` | Download, verify, and install FFmpeg; returns install path |
+
+##### AI Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `ai_chat` | `{ message: string }` | `string` | Send a chat completion request to OpenAI |
+| `ai_generate_image` | `{ prompt: string }` | `string` | Generate an image via DALL-E; returns URL |
+| `openrouter_chat` | `{ message: string, model: string }` | `string` | Chat via OpenRouter with model selection |
+| `openrouter_list_models` | none | `string` | List available OpenRouter models (JSON) |
+
+##### API Key Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `get_api_key` | none | `string` | Retrieve the stored OpenAI API key |
+| `set_api_key` | `{ key: string }` | `()` | Store an OpenAI API key (validated, max 512 chars) |
+| `get_pexels_key` | none | `string` | Retrieve the stored Pexels API key |
+| `set_pexels_key` | `{ key: string }` | `()` | Store a Pexels API key |
+| `get_openrouter_key` | none | `string` | Retrieve the stored OpenRouter API key |
+| `save_openrouter_key` | `{ key: string }` | `()` | Store an OpenRouter API key |
+| `export_all_api_keys` | none | `string` | Export all keys as JSON string |
+| `import_all_api_keys` | `{ json: string }` | `()` | Import keys from JSON (max 10 MB) |
+
+##### Filesystem Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `read_directory` | `{ path: string }` | `DirEntry[]` | List directory with name, path, is_dir, size |
+| `read_text_file` | `{ path: string }` | `string` | Read file contents (max 50 MB) |
+| `write_text_file` | `{ path, content: string }` | `()` | Write content to file (max 100 MB, path sanitized) |
+
+##### GiveGigs Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `set_givegigs_config` | `{ url, key, bucket: string }` | `()` | Configure GiveGigs Supabase connection |
+| `get_givegigs_config` | none | `GiveGigsConfig` | Retrieve stored GiveGigs configuration |
+| `list_givegigs_media` | `{ folder: string }` | `string` | List media files from GiveGigs bucket |
+
+##### Godot Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `godot_detect` | none | `{ found: bool }` | Auto-detect Godot engine installation |
+| `install_godot` | none | `string` | Download and install Godot engine |
+| `launch_godot` | `{ path: string }` | `()` | Launch Godot with a project file (path sanitized) |
+| `get_godot_path` | none | `string` | Get the configured Godot binary path |
+
+##### Platform and System Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `get_platform_info` | none | `PlatformInfo` | OS, arch, home dir, available memory |
+| `health_check` | none | `HealthStatus` | Application health: FFmpeg, Godot, API keys |
+
+##### Logging Commands
+
+| Command | Parameters | Returns | Description |
+|---|---|---|---|
+| `log_from_frontend` | `{ level, message: string }` | `()` | Forward frontend log to Rust logger |
+| `get_log_session` | none | `string[]` | Get last 100 lines (session log) |
+| `get_log_recent` | none | `string[]` | Get last 1,000 lines (recent log) |
+| `get_log_paths` | none | `LogPaths` | Get absolute paths to all 3 log files |
 
 ### State Management
 
@@ -925,6 +1365,175 @@ frontend is strictly a view layer that:
 
 State is stored in a thread-safe `AppState` struct protected by `Mutex` locks,
 accessible from any Tauri command or CLI operation.
+
+### UI Theme System
+
+CryptArtist Studio uses a unified dark theme across all programs. The theme is
+defined through TailwindCSS custom colors and CSS custom properties.
+
+#### TailwindCSS Color Tokens
+
+| Token | Hex Value | Usage |
+|---|---|---|
+| `studio-bg` | `#0a0a0f` | Main application background |
+| `studio-panel` | `#12121a` | Panel and sidebar backgrounds |
+| `studio-surface` | `#1a1a2e` | Elevated surface elements |
+| `studio-border` | `#2a2a3e` | Borders and dividers |
+| `studio-hover` | `#2a2a4e` | Hover state backgrounds |
+| `studio-text` | `#e0e0e8` | Primary text color |
+| `studio-muted` | `#6b6b80` | Muted/disabled text |
+| `studio-secondary` | `#9090a8` | Secondary text |
+| `studio-cyan` | `#00d4ff` | Accent color (links, active states) |
+| `studio-green` | `#00ff88` | Success states, positive indicators |
+
+#### Extended Color Palette
+
+| Token | Usage |
+|---|---|
+| `info` | Informational badges and alerts |
+| `success` | Success states and confirmations |
+| `danger` | Error states and destructive actions |
+| `warning` | Warning indicators |
+| `pink` | Special highlights |
+| `teal` | Secondary accent |
+| `indigo` | Tertiary accent |
+| `lime` | Positive metrics |
+| `rose` | Critical alerts |
+| `sky` | Informational highlights |
+| `amber` | Caution indicators |
+| `emerald` | Connected/online states |
+| `violet` | Creative/AI features |
+| `fuchsia` | Special features |
+
+#### CSS Utility Classes
+
+The global stylesheet (`index.css`) provides custom utility classes beyond Tailwind:
+
+| Class | Description |
+|---|---|
+| `.glass-card` | Frosted glass effect with backdrop-blur |
+| `.gradient-border` | Animated gradient border effect |
+| `.text-gradient-cyan` | Cyan-to-blue gradient text |
+| `.text-gradient-warm` | Orange-to-pink gradient text |
+| `.glow-cyan` | Cyan box-shadow glow effect |
+| `.glow-green` | Green box-shadow glow effect |
+| `.glow-purple` | Purple box-shadow glow effect |
+| `.glow-red` | Red box-shadow glow effect |
+| `.skeleton` | Shimmer loading placeholder animation |
+| `.pulse-ring` | Animated border pulse for active states |
+| `.provider-badge` | AI provider indicator badge |
+| `.model-selector` | AI model dropdown styling |
+| `.ai-panel` | AI feature panel layout |
+| `.ai-streaming` | Streaming response indicator |
+| `.token-bar` | Token usage progress bar |
+| `.truncate-2` | 2-line text truncation with ellipsis |
+| `.truncate-3` | 3-line text truncation with ellipsis |
+
+#### Animation Keyframes
+
+| Animation | Duration | Description |
+|---|---|---|
+| `fade-in` | 300ms | Opacity 0 to 1 |
+| `scale-in` | 300ms | Scale from 0.9 to 1 with fade |
+| `slide-in` | 400ms | Slide from below with fade |
+| `bounce-in` | 500ms | Bounce scale effect |
+| `spin-slow` | 3s | Slow continuous rotation |
+| `typing` | 1s | Typing cursor blink |
+| `float` | 3s | Gentle floating up/down |
+| `shake` | 300ms | Horizontal shake |
+| `wiggle` | 400ms | Rotation wiggle |
+| `gradient-shift` | 4s | Background gradient animation |
+| `expand` | 300ms | Height 0 to auto |
+| `collapse` | 300ms | Height auto to 0 |
+| `pop` | 200ms | Quick scale pop |
+
+### Shared Hooks Library
+
+The `src/utils/hooks.ts` module provides reusable React hooks used across programs:
+
+| Hook | Description |
+|---|---|
+| `useLocalStorage(key, initial)` | Persist state to localStorage with validation |
+| `useDebounce(value, delay)` | Debounce a rapidly changing value |
+| `useInterval(callback, delay)` | Safe interval with automatic cleanup |
+| `useTimeout(callback, delay)` | Safe timeout with automatic cleanup |
+| `useToggle(initial)` | Boolean toggle with on/off/toggle functions |
+| `useClickOutside(ref, handler)` | Detect clicks outside a referenced element |
+| `useKeyPress(key)` | Detect when a specific key is pressed |
+| `useMediaQuery(query)` | Responsive media query matching |
+| `usePrevious(value)` | Track the previous value of a variable |
+| `useClipboard()` | Copy text to clipboard with status |
+| `useDocumentTitle(title)` | Set the browser document title |
+| `useCounter(initial)` | Increment/decrement/reset counter |
+| `useWindowSize()` | Track window dimensions on resize |
+| `useHover(ref)` | Track hover state on an element |
+| `useAsync(asyncFn)` | Execute async functions with loading/error state |
+| `useThrottle(value, limit)` | Throttle a rapidly changing value |
+| `useScrollPosition()` | Track scroll position of the window |
+
+### Shared Constants Library
+
+The `src/utils/constants.ts` module centralizes all magic strings and numbers:
+
+| Category | Examples |
+|---|---|
+| **APP Metadata** | Name, version, identifier, website, contact |
+| **Program IDs** | `media-mogul`, `vibecode-worker`, `demo-recorder`, etc. |
+| **Routes** | `/media-mogul`, `/vibecode-worker`, `/settings`, etc. |
+| **localStorage Keys** | `cryptartist_favorites`, `cryptartist_theme`, etc. |
+| **API Providers** | OpenAI, Anthropic, Google, OpenRouter, Custom |
+| **AI Models** | 15 popular model IDs with display names |
+| **Editor Defaults** | Font size, tab size, theme, word wrap, minimap |
+| **Media Formats** | MP4, WebM, GIF, PNG, JPEG, WAV, MP3 |
+| **Resolution Presets** | 720p, 1080p, 1440p, 4K with dimensions |
+| **Keyboard Shortcuts** | All global and per-program shortcuts |
+| **Accent Colors** | 12 selectable accent colors with hex values |
+| **File Type Icons** | Emoji icons for 20+ file extensions |
+| **Timing Constants** | Toast duration, debounce delay, auto-save interval |
+| **Size Limits** | Max file size, max storage, max history entries |
+
+### Development Statistics
+
+CryptArtist Studio was built over 33 AI-assisted development sessions. Here is a
+summary of the project's scope:
+
+| Metric | Count |
+|---|---|
+| **Total Prompts** | 33+ |
+| **Programs in Suite** | 8 |
+| **Tauri Commands** | 30+ |
+| **CLI Commands** | 20+ |
+| **REST API Endpoints** | 18+ |
+| **Commander Built-In Commands** | 40+ |
+| **UI/UX Improvements** | 370+ |
+| **Security Vulnerability Fixes** | 100 |
+| **Security Helper Functions** | 30+ |
+| **React Hooks (shared)** | 17 |
+| **OpenRouter Models** | 15 popular (200+ available) |
+| **Website Pages** | 9 |
+| **Log Files** | 3 (session, recent, full history) |
+| **Supported Languages (Editor)** | 20+ |
+| **.CryptArt Optional Fields** | 30+ |
+| **CSS Utility Classes** | 50+ |
+| **Animation Keyframes** | 13 |
+| **TailwindCSS Color Tokens** | 24+ |
+| **Keyboard Shortcuts** | 16+ |
+| **Frontend Source Files** | 35+ |
+| **Rust Source Files** | 5 |
+| **README Lines** | 2,800+ |
+
+#### Technology Breakdown
+
+| Language | Approximate Lines | Files |
+|---|---|---|
+| **TypeScript/TSX** | ~25,000 | ~35 |
+| **Rust** | ~2,400 | 5 |
+| **CSS** | ~3,000 | 2 |
+| **HTML** | ~6,000 | 10 |
+| **JavaScript** | ~1,500 | 3 |
+| **JSON** | ~500 | 5 |
+| **Markdown** | ~3,500 | 3 |
+| **Total** | ~42,000 | ~63 |
 
 ---
 
@@ -1519,6 +2128,337 @@ const paths = await invoke("get_log_paths");
 
 Keyboard shortcuts are logged automatically for debugging and analytics purposes.
 
+#### Additional Keyboard Shortcuts
+
+| Shortcut | Action | Context |
+|---|---|---|
+| `1` - `8` | Quick-launch program by number | Suite Launcher |
+| `?` | Show keyboard shortcuts overlay | Suite Launcher |
+| `R` | Show recent projects panel | Suite Launcher |
+| `Ctrl+Shift+P` / `Cmd+Shift+P` | Command palette | VibeCodeWorker |
+| `Tab` | Autocomplete command | CryptArt Commander |
+| `Up Arrow` / `Down Arrow` | Navigate command history | CryptArt Commander |
+
+---
+
+## OpenRouter Multi-Model AI Integration
+
+CryptArtist Studio integrates with [OpenRouter](https://openrouter.ai/) to provide
+access to 200+ AI models from multiple providers through a single API key. OpenRouter
+is deeply integrated into every program that uses AI.
+
+### Supported Providers
+
+| Provider | Models Available | Example Model IDs |
+|---|---|---|
+| **OpenAI** | GPT-4o, GPT-4o Mini, GPT-4 Turbo, o1 | `openai/gpt-4o`, `openai/gpt-4o-mini` |
+| **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku | `anthropic/claude-3.5-sonnet`, `anthropic/claude-3-opus` |
+| **Google** | Gemini Pro 1.5, Gemini Flash 1.5 | `google/gemini-pro-1.5`, `google/gemini-flash-1.5` |
+| **Meta** | Llama 3.1 405B, Llama 3.1 70B | `meta-llama/llama-3.1-405b-instruct` |
+| **Mistral** | Mixtral 8x22B, Mistral Large | `mistralai/mixtral-8x22b-instruct` |
+| **Perplexity** | Llama 3.1 Sonar 70B | `perplexity/llama-3.1-sonar-huge-128k-online` |
+
+### Model Selection
+
+The default model is stored in localStorage and can be changed from:
+
+- **Settings** > OpenRouter section (global default)
+- **ValleyNet** config toolbar (per-session override)
+- **VibeCodeWorker** AI settings panel
+- **GameStudio** AI Generator panel header
+- **DemoRecorder** AI Tools panel header
+- **CryptArt Commander** via `or models` command
+
+### Fallback Behavior
+
+The shared OpenRouter utility (`src/utils/openrouter.ts`) implements a two-tier
+fallback strategy:
+
+```
+1. Try OpenRouter first (if key is configured)
+   - Send request to https://openrouter.ai/api/v1/chat/completions
+   - Include HTTP-Referer and X-Title headers for ranking
+2. If OpenRouter fails or is not configured:
+   - Fall back to direct OpenAI API (if OpenAI key is configured)
+3. If both fail:
+   - Return error to the user
+```
+
+### Rust Backend Integration
+
+The Rust backend exposes these OpenRouter commands:
+
+| Command | Description |
+|---|---|
+| `save_openrouter_key` | Store the OpenRouter API key |
+| `get_openrouter_key` | Retrieve the stored key |
+| `openrouter_chat` | Send a chat completion request to OpenRouter |
+| `openrouter_list_models` | List available models from OpenRouter |
+
+The `openrouter_chat` command includes:
+- Model ID validation (must match `provider/model-name` format)
+- Bearer token authentication
+- HTTP-Referer header set to `https://mattyjacks.com`
+- X-Title header set to `CryptArtist Studio`
+- 30-second request timeout
+- Response size limiting
+
+### Frontend Utility Module
+
+The `src/utils/openrouter.ts` module provides:
+
+```typescript
+chatWithAI(prompt, options?)    // OpenRouter-first with OpenAI fallback
+listModels()                    // List available models
+isOpenRouterConfigured()        // Check if key is set
+isOpenAIConfigured()            // Check if OpenAI key is set
+getAIStatus()                   // Get full AI readiness status
+getDefaultModel()               // Get stored default model
+setDefaultModel(model)          // Set default model (validated)
+```
+
+---
+
+## Security Hardening
+
+CryptArtist Studio has undergone comprehensive security hardening with 100 vulnerability
+fixes across the Rust backend and TypeScript frontend. The fixes are organized into
+four batches covering all major vulnerability categories.
+
+### Overview of 100 Vulnerability Fixes
+
+#### BATCH A (Vulns 1-25): Rust Backend
+
+| # | Category | Fix Description |
+|---|---|---|
+| 1-3 | **API Key Validation** | Max 512 chars, printable ASCII only, reject empty keys |
+| 4-5 | **URL Validation** | Trusted domain whitelist, HTTPS enforcement for external calls |
+| 6-7 | **Prompt Validation** | Max 32,000 chars, UTF-8 validation |
+| 8-9 | **File Size Limits** | 50 MB read limit, 100 MB write limit |
+| 10-11 | **Search Validation** | Search type enum validation, query length limits |
+| 12-13 | **HTTP Timeouts** | 30-second timeout on all outbound HTTP requests |
+| 14-15 | **Path Sanitization** | Extended sanitization for Godot project paths |
+| 16-17 | **Template Validation** | Godot template parameters sanitized |
+| 18-19 | **Log Limits** | Log message truncated to 2,000 chars, level validated |
+| 20-21 | **Import Limits** | Key import JSON limited to 10 MB |
+| 22-24 | **REST API CORS** | OPTIONS preflight handler, Content-Type validation |
+| 25 | **Security Headers** | X-Content-Type-Options, X-Frame-Options on all responses |
+
+#### BATCH B (Vulns 26-50): Frontend XSS, Sanitization, CSP
+
+| # | Category | Fix Description |
+|---|---|---|
+| 26-27 | **CSP** | Content Security Policy meta tag in index.html |
+| 28-29 | **localStorage** | Key format validation, value size limits (5 MB) |
+| 30-31 | **Preferences** | Schema validation for theme, fontSize, autoSave, etc. |
+| 32-33 | **Recent Projects** | Path and name sanitization, character limits |
+| 34-36 | **Command Input** | Length limits, file path sanitization |
+| 37-39 | **Toast System** | Rate limiting, message truncation, queue size limits |
+| 40-41 | **Model Validation** | Model ID format validation (`provider/model`) |
+| 42-44 | **URL Validation** | Trusted domain whitelist in frontend |
+| 45-47 | **Search Sanitization** | Search query length limits, character filtering |
+| 48-50 | **Prototype Pollution** | `sanitizeObjectKeys()` on parsed JSON, ISO date validation |
+
+#### BATCH C (Vulns 51-75): Memory Leaks, Race Conditions, Resource Limits
+
+| # | Category | Fix Description |
+|---|---|---|
+| 51-53 | **Timeout Cleanup** | Track all `setTimeout`/`setInterval`, clean up on unmount |
+| 52-54 | **Peer Limits** | Max 50 peer connections in Donate Computer |
+| 55-57 | **Log Limits** | Max 200 log entries in activity logs |
+| 58-60 | **History Limits** | Max 200 display entries, 500 command history entries |
+| 61-63 | **Input Limits** | Max 10,000 char command input, 50,000 char scripts |
+| 64-66 | **Double-Click** | `preventDoubleClick()` guard on destructive actions |
+| 67-69 | **Script Limits** | Max script content size, env var count limits |
+| 70-72 | **Alias Limits** | Max 50 command aliases |
+| 73-75 | **Search Limits** | Search query sanitization in Suite Launcher |
+
+#### BATCH D (Vulns 76-100): Hardening, Crypto, Audit Logging
+
+| # | Category | Fix Description |
+|---|---|---|
+| 76-78 | **Security Headers** | X-XSS-Protection, Referrer-Policy, Permissions-Policy |
+| 79-81 | **Referrer Policy** | `strict-origin-when-cross-origin` meta tag |
+| 82-84 | **Cache Control** | `no-store` for sensitive API responses |
+| 85-87 | **Secure Random** | `crypto.getRandomValues()` for all IDs and tokens |
+| 88-90 | **Audit Logger** | `logSecurityEvent()` for all security-relevant events |
+| 91-93 | **Safe JSON** | `safeJsonStringify()` with circular reference handling |
+| 94-96 | **File Extensions** | Allowlist validation for uploaded/opened files |
+| 97-98 | **Suspicious Paths** | Warning on paths containing `..`, `~`, or null bytes |
+| 99-100 | **UTF-8 Validation** | Input string validation before processing |
+
+### Security Utility Module
+
+The `src/utils/security.ts` module provides 30+ security helper functions:
+
+#### Sanitization Functions
+
+| Function | Description |
+|---|---|
+| `sanitizeHtml(input)` | Strip all HTML tags from a string |
+| `sanitizeFilePath(path)` | Remove path traversal sequences and dangerous characters |
+| `sanitizeSearchQuery(query, maxLen)` | Limit length, strip control characters |
+| `sanitizeWorkspaceName(name)` | Alphanumeric + spaces/hyphens only, max 100 chars |
+| `sanitizeObjectKeys(obj)` | Remove `__proto__`, `constructor`, `prototype` keys |
+| `truncateToastMessage(msg)` | Truncate to 500 chars for toast display |
+
+#### Validation Functions
+
+| Function | Description |
+|---|---|
+| `validateUrl(url)` | Check against trusted domain whitelist |
+| `validateApiKey(key)` | Max 512 chars, printable ASCII, non-empty |
+| `validateModelId(model)` | Must match `provider/model-name` pattern |
+| `validateStorageKey(key)` | Alphanumeric + underscores/hyphens/dots only |
+| `validateStorageValue(value)` | Max 5 MB string length |
+| `isValidISODate(dateStr)` | ISO-8601 format check |
+| `validateFileExtension(filename, allowed)` | Extension allowlist check |
+| `isSuspiciousPath(path)` | Detect `..`, `~`, null bytes |
+| `isValidUtf8(str)` | Check for null bytes and control characters |
+
+#### Rate Limiting and Throttling
+
+| Function | Description |
+|---|---|
+| `shouldThrottleToast()` | Rate limit toasts to 1 per 500ms |
+| `createApiRateLimiter(interval)` | Create a rate limiter for API calls |
+| `preventDoubleClick(id, cooldown)` | Prevent duplicate button clicks |
+| `createDebouncedValue(delay)` | Debounce rapidly changing values |
+
+#### Security Utilities
+
+| Function | Description |
+|---|---|
+| `secureRandomHex(bytes)` | Cryptographically secure hex string |
+| `maskApiKey(key)` | Show first 8 chars, mask the rest with asterisks |
+| `hashForLog(sensitive)` | SHA-256 hash for safe logging of sensitive data |
+| `safeJsonStringify(obj, indent)` | JSON stringify with circular reference handling |
+| `createAbortableRequest(timeout)` | AbortController with automatic timeout |
+| `logSecurityEvent(source, severity, message, detail?)` | Audit log entry |
+| `runSecurityAudit()` | Run all security checks and return a report |
+
+### Content Security Policy
+
+The frontend `index.html` includes a strict Content Security Policy:
+
+```
+default-src 'self';
+script-src 'self' 'unsafe-inline';
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+connect-src 'self' https://openrouter.ai https://api.openai.com
+            https://api.pexels.com https://ipc.localhost
+            http://ipc.localhost tauri:;
+img-src 'self' data: blob: https:;
+media-src 'self' blob: data:;
+object-src 'none';
+base-uri 'self';
+form-action 'self';
+```
+
+This policy:
+- Blocks all external scripts and inline `eval()`
+- Restricts network connections to known API endpoints and Tauri IPC
+- Prevents object/embed injection
+- Limits form submissions to same-origin
+- Allows images from any HTTPS source (for Pexels integration)
+
+### REST API Security Headers
+
+All REST API responses include these security headers:
+
+| Header | Value | Purpose |
+|---|---|---|
+| `X-Content-Type-Options` | `nosniff` | Prevent MIME type sniffing |
+| `X-Frame-Options` | `DENY` | Prevent clickjacking |
+| `X-XSS-Protection` | `1; mode=block` | Enable XSS filter |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Limit referrer info |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Restrict APIs |
+| `Cache-Control` | `no-store` | Prevent caching of sensitive data |
+| `Access-Control-Allow-Origin` | `*` | CORS support |
+| `Content-Type` | `application/json` | Explicit content type |
+
+### Input Validation Summary
+
+| Input | Max Length | Validation |
+|---|---|---|
+| API keys | 512 chars | Printable ASCII only |
+| Prompts | 32,000 chars | UTF-8, non-empty |
+| File reads | 50 MB | Size check before read |
+| File writes | 100 MB | Size check before write |
+| Request bodies | 10 MB | Size check before parse |
+| Search queries | 200 chars | Alphanumeric + basic punctuation |
+| Model IDs | 200 chars | `provider/model-name` format |
+| Log messages | 2,000 chars | Truncated on write |
+| Storage keys | 200 chars | Alphanumeric + underscores |
+| Storage values | 5 MB | Size check before write |
+| Command input | 10,000 chars | Length check |
+| Toast messages | 500 chars | Truncated on display |
+| Workspace names | 100 chars | Alphanumeric + spaces/hyphens |
+| Recent project names | 256 chars | HTML-unsafe chars stripped |
+
+---
+
+## CryptArtist Studio Website
+
+CryptArtist Studio has a companion marketing website located in the `website/A1/`
+directory. The website is a static HTML/CSS/JS site designed for deployment on
+Cloudflare Pages or any static hosting provider.
+
+### Website Pages
+
+| Page | File | Description |
+|---|---|---|
+| **Home** | `index.html` | Landing page with hero, program cards, features, tech stack, CTA |
+| **Programs** | `programs.html` | Detailed breakdown of all programs with feature lists |
+| **About** | `about.html` | Philosophy, development timeline, tech stack tables |
+| **Documentation** | `docs.html` | .CryptArt format spec, CLI reference, REST API, FAQ |
+| **Download** | `download.html` | Platform download cards, build-from-source guide |
+| **Contact** | `contact.html` | Contact form, email, social links |
+| **Privacy** | `privacy.html` | Full privacy policy (NH law compliant) |
+| **Terms** | `terms.html` | Full terms of use (NH law compliant) |
+| **Donate Computer** | `donate-computer.html` | P2P resource sharing page with live demo |
+
+### Website Technology
+
+| Technology | Purpose |
+|---|---|
+| **HTML5** | Semantic markup with ARIA roles |
+| **CSS3** | Custom properties, grid, flexbox, animations |
+| **Vanilla JavaScript** | Navigation, scroll animations, accordions, counters |
+| **Google Fonts** | Inter font family |
+| **Responsive Design** | Mobile-first with breakpoints at 768px, 1024px, 1200px |
+
+The website uses a dark theme consistent with the desktop application, featuring:
+- CSS custom properties for color tokens
+- Gradient text effects and glow animations
+- Intersection Observer for scroll-triggered animations
+- Accordion components for FAQ sections
+- Counter animations for statistics
+- Mobile hamburger menu with smooth transitions
+
+### Donate Computer Web API
+
+The website includes a standalone P2P resource sharing API (`donate-computer-api.js`)
+that can be used independently of the desktop application:
+
+```javascript
+const api = new DonateComputerAPI({ password: "my-password" });
+
+// Start donating resources
+api.startDonating({ cpuPercent: 80, ramPercent: 50, gpuPercent: 90 });
+
+// Or start borrowing resources
+api.startBorrowing();
+
+// Submit a task to the network
+api.submitTask({ type: "ai-inference", payload: { prompt: "..." } });
+
+// Listen for events
+api.on("peer-connected", (peer) => console.log("New peer:", peer));
+api.on("task-completed", (result) => console.log("Result:", result));
+```
+
 ---
 
 ## Privacy Policy and Terms of Use
@@ -1654,6 +2594,144 @@ describe:
 - What the feature does
 - Why it would be useful
 - How it might be implemented (optional)
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### Application Won't Start
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| White screen on launch | WebView2 not installed | Install WebView2 Runtime from Microsoft |
+| Crash on startup (Windows) | Missing VC++ redistributable | Install Visual C++ Redistributable 2022 |
+| Crash on startup (Linux) | Missing webkit2gtk | `sudo apt install libwebkit2gtk-4.1-dev` |
+| "Port already in use" | REST API server conflict | Change the port with `--port` flag |
+| Blank window (macOS) | Gatekeeper blocking | Right-click > Open, or allow in System Settings |
+
+#### FFmpeg Issues
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| "FFmpeg not found" | Not installed | Click "Install FFmpeg" in Media Mogul or Settings |
+| Download fails | Network/firewall blocking | Download manually from ffmpeg.org and place in AppData |
+| Checksum mismatch | Corrupted download | Delete the ffmpeg directory and re-download |
+| Encoding fails | Outdated FFmpeg | Update to the latest version |
+
+#### API Key Issues
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| "No API key configured" | Key not set | Go to Settings > API Keys and enter your key |
+| "Invalid API key" | Incorrect key format | Check that the key starts with `sk-` (OpenAI) |
+| "Rate limited" | Too many requests | Wait a moment and try again, or upgrade your API plan |
+| OpenRouter fails | Key not configured | Set the OpenRouter key in Settings > OpenRouter |
+| Fallback not working | Neither key set | Configure at least one of OpenAI or OpenRouter |
+
+#### Godot Issues
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| "Godot not detected" | Not installed | Install from godotengine.org or use auto-download |
+| "Invalid Godot path" | Wrong version | CryptArtist Studio requires Godot 4.x |
+| Project creation fails | Invalid path characters | Use only alphanumeric characters in project names |
+| Export fails | Missing export templates | Install Godot export templates for your target platform |
+
+#### Build Issues
+
+| Symptom | Cause | Solution |
+|---|---|---|
+| `tsc` errors | Type errors | Run `npx tsc --noEmit` and fix reported errors |
+| `cargo check` errors | Rust compilation errors | Check Rust version (`rustup update`) |
+| Vite build fails | Dependency issues | Delete `node_modules` and run `npm install` |
+| Tauri build fails | Missing platform deps | Install platform-specific prerequisites (see Getting Started) |
+
+### Debug Mode
+
+Enable verbose logging by checking the log files:
+
+```bash
+# Windows
+type "%LOCALAPPDATA%\CryptArtist Studio\logs\cryptartist-session.txt"
+
+# macOS
+cat ~/Library/Application\ Support/CryptArtist\ Studio/logs/cryptartist-session.txt
+
+# Linux
+cat ~/.local/share/CryptArtist\ Studio/logs/cryptartist-session.txt
+```
+
+Use CryptArt Commander to check system status:
+
+```
+health          # Application health check
+sysinfo         # Full system information
+keys status     # API key configuration
+ffmpeg status   # FFmpeg installation
+godot detect    # Godot detection
+```
+
+### Getting Help
+
+1. Check the [FAQ](#faq) section below
+2. Search [GitHub Issues](https://github.com/mattyjacks/CryptArtistStudio/issues)
+3. Open a new issue with reproduction steps
+4. Email [Matt@MattyJacks.com](mailto:Matt@MattyJacks.com)
+
+---
+
+## Performance Optimization
+
+### Frontend Performance
+
+CryptArtist Studio is designed for smooth performance even on lower-end hardware:
+
+| Optimization | Implementation |
+|---|---|
+| **React.memo** | Heavy components are memoized to prevent unnecessary re-renders |
+| **useCallback/useMemo** | Expensive computations and callbacks are memoized |
+| **Lazy Loading** | Programs are loaded on-demand when navigated to |
+| **Debouncing** | Search, resize, and input handlers are debounced |
+| **Virtual Scrolling** | Long lists (command history, logs) use windowed rendering |
+| **CSS Containment** | Layout-heavy components use CSS `contain` property |
+| **Reduced Motion** | Animations respect `prefers-reduced-motion` media query |
+| **Font Preloading** | Google Fonts are preconnected for faster loading |
+
+### Backend Performance
+
+| Optimization | Implementation |
+|---|---|
+| **Async I/O** | All file and network operations use Tokio async runtime |
+| **Connection Pooling** | HTTP client reuses connections via `reqwest::Client` |
+| **Request Timeouts** | All outbound requests have 30-second timeouts |
+| **Streaming Responses** | Large responses are streamed rather than buffered |
+| **Thread-Safe State** | `Mutex`-protected state with minimal lock contention |
+| **Lazy Initialization** | FFmpeg, Godot, and log paths are resolved on first use |
+
+### Memory Management
+
+| Strategy | Implementation |
+|---|---|
+| **Log Rotation** | Session log capped at 100 lines, recent at 1,000 |
+| **History Limits** | Command history: 500 entries, display: 200 entries |
+| **Toast Queue** | Maximum 10 concurrent toast notifications |
+| **Peer Limits** | Maximum 50 P2P connections in Donate Computer |
+| **Activity Logs** | Maximum 200 log entries per component |
+| **Timeout Cleanup** | All `setTimeout`/`setInterval` cleaned up on unmount |
+| **Storage Limits** | localStorage values capped at 5 MB each |
+
+### Recommended System Requirements
+
+| Component | Minimum | Recommended |
+|---|---|---|
+| **CPU** | Dual-core 2.0 GHz | Quad-core 3.0 GHz+ |
+| **RAM** | 4 GB | 8 GB+ |
+| **Storage** | 200 MB (app + FFmpeg) | 1 GB+ (with media files) |
+| **Display** | 1280x720 | 1920x1080+ |
+| **GPU** | Not required | WebGL-capable for Donate Computer GPU detection |
+| **Network** | Optional | Required for AI features and Pexels integration |
 
 ---
 
@@ -1875,11 +2953,191 @@ project structure, integrity, compatibility, extensibility, and export/sharing.
 > the program. The program is open source. Add every prompt so far, including this
 > one, to prompts/all-prompts.md.
 
-**Result:** This README. A comprehensive 2,000-line document covering every aspect
-of CryptArtist Studio: all five programs, the `.CryptArt` file format, technology
-stack, project architecture, installation guide, CLI reference, REST API reference,
-configuration, logging, keyboard shortcuts, privacy policy, contributing guidelines,
-and the complete prompt history.
+**Result:** The initial 2,000-line README covering all five original programs, the
+`.CryptArt` file format, technology stack, project architecture, installation guide,
+CLI reference, REST API reference, configuration, logging, keyboard shortcuts,
+privacy policy, contributing guidelines, and the complete prompt history.
+
+### Prompt 24 - 100 UI/UX Improvements (Wave 1)
+
+> Implement 100 new improvements across the entire CryptArtist Studio suite.
+
+**Result:** Added 100 improvements (1-100) across all programs:
+- Global CSS: gradient text, glass cards, skeleton loading, badges, kbd styling, tags,
+  animated borders, progress rings, code blocks, new animations
+- Tailwind config: extended color palette, new animation keyframes
+- SuiteLauncher: search/filter, keyboard shortcuts (1-7), version badges, last-opened
+  indicator, staggered animation, system status, clock, enhanced footer
+- App.tsx: loading splash screen, 404 route, document title per route, error boundary
+- VibeCodeWorker: file type icons, breadcrumb nav, editor controls, close-all tabs,
+  welcome tab, keyboard shortcut help, enhanced status bar
+- MediaMogul: keyboard shortcut bar, project duration, workspace transitions, quick
+  export, undo/redo buttons, zoom controls, aspect ratio, volume slider
+- DemoRecorder: countdown timer, recording time limit, audio level meter, screenshot
+  button, quality presets, file size estimate, webcam overlay, hotkey hints
+- ValleyNet: agent autonomy level, clear chat, quick task templates, agent personality,
+  export conversation, connection status, message timestamps
+- GameStudio: game genre selector, scene count, build target selector, play test button,
+  asset counter, GDScript snippet library
+
+### Prompt 25 - CryptArtist Studio Website
+
+> Make me a full website about CryptArtist Studio, including links and stuff.
+
+**Result:** Created the companion website in `website/A1/` with 8 HTML pages:
+- `index.html` - Landing page with hero, program cards, feature highlights, tech stack
+- `programs.html` - Detailed program breakdowns with feature lists
+- `about.html` - Philosophy, story timeline, tech stack tables
+- `docs.html` - .CryptArt format spec, CLI reference, REST API reference
+- `download.html` - Platform download cards, build-from-source guide
+- `contact.html` - Contact info, form, related site links
+- `privacy.html` - Full privacy policy (NH law compliant)
+- `terms.html` - Full terms of use (NH law compliant)
+- `style.css` - Complete dark theme with gradients, animations, responsive design
+- `script.js` - Navigation, scroll animations, accordion, counter animations
+
+### Prompt 26 - 100 UI/UX Improvements (Wave 2)
+
+> Implement improvements 101-200 across the entire CryptArtist Studio suite.
+
+**Result:** Added 100 more improvements (101-200):
+- Global CSS: toast notifications, dropdown menus, avatar components, switch toggles,
+  breadcrumbs, glow effects, hover lift, spotlight effect, context menus, scrollbars,
+  resize handles, FAB, notification dots, accordion sections
+- Tailwind config: 8 new semantic colors, extended spacing, z-index scale, glow shadows,
+  new animations (float, shake, wiggle, gradient-shift, expand, collapse, pop)
+- SuiteLauncher: favorites system, recent projects panel, launch counter, uptime,
+  quick actions dropdown, rotating tips carousel, keyboard shortcuts overlay
+- VibeCodeWorker: git branch detection, cursor position, encoding selector, line ending
+  toggle, auto-save toggle, command palette (Ctrl+Shift+P) with 20+ commands
+- MediaMogul: timeline markers, render queue, clip counter, effects panel, media bin
+  categories, color scopes, waveform toggle, proxy editing, project notes, auto-backup
+- DemoRecorder: annotation tools, watermark toggle, multi-monitor, recording schedule,
+  mouse highlight, click sound, auto-stop on silence, recording tags
+- ValleyNet: workflow builder, scheduled tasks, agent memory system, token usage
+  tracking, conversation bookmarks, agent plugins, streaming toggle, safe mode
+- GameStudio: scene graph hierarchy, asset pipeline status, debug overlay, physics debug,
+  resolution selector, performance stats, node inspector, VCS status
+- Shared hooks library: useLocalStorage, useDebounce, useInterval, useToggle, etc.
+
+### Prompt 27 - 100 UI/UX Improvements (Wave 3)
+
+> Implement improvements 201-300 across the entire CryptArtist Studio suite.
+
+**Result:** Added 100 more improvements (201-300):
+- Global CSS: stepper/wizard, chip/tag input, timeline ruler, split pane dividers,
+  color swatch palette, popover, styled range slider, inline editable label,
+  mini calendar, vertical tabs, circular progress, drag handles, alert banners
+- SuiteLauncher: category filter, What's New modal, sort options, grid/list view toggle,
+  time-based greeting, suite health check, system info modal
+- VibeCodeWorker: split editor, diff viewer, code snippets library, editor bookmarks,
+  go-to-line dialog, file templates, indent detection, symbol outline, sticky scroll
+- MediaMogul: color wheel grading, LUT browser, audio mixer, subtitle editor,
+  transition library, keyframe editor, motion tracking, stabilization, HDR mode
+- DemoRecorder: region selection, zoom during recording, crop tool, GIF preview,
+  auto-chapter markers, recording profiles, picture-in-picture, frame rate monitor
+- ValleyNet: agent chains, knowledge base, RAG context toggle, tool use log,
+  conversation templates, agent personas, multi-model support, cost tracking
+- GameStudio: tilemap editor, particle system preview, shader editor, profiler panel,
+  input mapping editor
+- Shared constants and types library
+
+### Prompt 28 - CryptArt Commander + Settings + OpenRouter
+
+> Add CryptArt Commander and Settings programs. Integrate OpenRouter API deeply
+> into every program.
+
+**Result:** Created two new programs:
+- **CryptArt Commander** - Terminal emulator with 27+ built-in commands, script editor,
+  REST API reference tab, command history, arrow key navigation, and OpenRouter
+  integration via `or <prompt>` command
+- **Settings** - Full settings hub with API Keys, OpenRouter, Appearance, and About
+  sections. Import/export keys to `Forbidden-Secrets-of-CryptArtist-Keys-N.txt`
+- **Rust Backend** - Added `openrouter_key` to AppState, new Tauri commands for
+  OpenRouter chat, model listing, key import/export
+- **Deep OpenRouter Integration** - All AI programs try OpenRouter first, fall back to
+  OpenAI. 15 popular models across 6 providers.
+
+### Prompt 29 - Deep Suite Enhancement (70 Improvements)
+
+> Make more improvements across the entire CryptArtist Studio suite. Focus on deeper
+> OpenRouter integration, new features, and UI polish.
+
+**Result:** Added improvements 301-370:
+- Shared OpenRouter utility module (`src/utils/openrouter.ts`)
+- Settings: keyboard shortcuts section, data & storage management, danger zone
+- Commander: tab completion, command aliases, 10+ new commands (uptime, whoami, open,
+  env, bench, count, grep, head, tail), timestamps, enhanced status bar
+- SuiteLauncher: AI status indicator, quick Settings link, updated What's New,
+  system info with AI status, new tips, updated shortcuts for 7 programs
+- ValleyNet: model picker, provider toggle, response format selector, system prompt
+  editor, token budget selector
+- VibeCodeWorker: OpenRouter provider dropdown, model selector
+- GameStudio: model selector, provider badge, clear AI chat
+- DemoRecorder: AI Tools panel with narration script generator and TTS
+- AIStudio/MediaMogul: OpenRouter chat, provider toggle, model selector
+- Global CSS: AI provider badges, model selector, AI panel components, streaming
+  indicator, token usage bar, glow effects, gradient text, pulse ring, skeleton loading
+
+### Prompt 30 - Donate Computer Feature
+
+> Add a donate computer page to the website and a donate computer component to the
+> desktop app for P2P resource sharing.
+
+**Result:** Created the Donate Computer feature:
+- Desktop: `DonateComputer.tsx` with system resource detection, peer management,
+  donation limits, live statistics, activity log, and secure random peer IDs
+- Website: `donate-computer.html` page with control panel, live stats, and FAQ
+- Website: `donate-computer-api.js` P2P resource sharing API with WebRTC
+- Updated navigation across all website pages
+- Added Donate Computer to App.tsx routes and SuiteLauncher program grid
+
+### Prompt 31 - Multi-File Workspace Management
+
+> Support opening multiple .CryptArt files simultaneously with workspace management.
+
+**Result:** Implemented workspace management system:
+- `WorkspaceProvider.tsx` - React state provider with CRUD and group logic
+- `WorkspaceBar.tsx` - Global tab bar UI with context menu
+- `workspace.ts` - Types, context, and helper functions
+- All 5 original programs integrated with `useWorkspace()` hook
+- Resource sharing between workspaces (media, AI context, settings, files, chat history)
+- Maximum 20 simultaneous workspaces
+
+### Prompt 32 - Fix 100 Vulnerabilities
+
+> Fix 100 more vulnerabilities. Add all these prompts to the all-prompts file.
+> Update README.md with every single thing.
+
+**Result:** Comprehensive security hardening:
+- Created `security.ts` utility module with 30+ helper functions
+- BATCH A (1-25): Rust backend - API key validation, URL validation, write size limits,
+  path sanitization, HTTP timeouts, CORS preflight, security headers
+- BATCH B (26-50): Frontend - CSP, localStorage validation, toast rate limiting,
+  model ID validation, prototype pollution protection, ISO date validation
+- BATCH C (51-75): Memory leaks - timeout cleanup, peer limits, history limits,
+  input limits, double-click prevention, search sanitization
+- BATCH D (76-100): Hardening - security headers, secure random, audit logging,
+  safe JSON, file extension validation, UTF-8 validation
+
+### Prompt 33 - README 700+ Line Update
+
+> Update README.md with at least 700 more lines, in multiple steps. As always,
+> prompts/all-prompts.md should be updated with this prompt.
+
+**Result:** This update. Added 700+ lines to README.md covering:
+- CryptArt Commander program documentation (40+ commands, aliases, scripts)
+- Donate Computer program documentation (P2P resource sharing)
+- Settings program documentation (API keys, OpenRouter, appearance)
+- Workspace Management system
+- OpenRouter Multi-Model AI Integration
+- Security Hardening documentation (100 vulnerability fixes, security utility API)
+- CryptArtist Studio Website documentation
+- Extended Prompt History (Prompts 24-33)
+- Troubleshooting guide with common issues tables
+- Performance Optimization guide
+- Extended FAQ
+- Updated directory structure
 
 ---
 
@@ -2010,6 +3268,88 @@ A plugin system is planned for v0.3.0. In the meantime, the `.CryptArt` format's
 Open an issue on [GitHub](https://github.com/mattyjacks/CryptArtistStudio/issues)
 with steps to reproduce, expected vs. actual behavior, and your platform info.
 
+### What is OpenRouter and why should I use it?
+
+[OpenRouter](https://openrouter.ai/) is an API gateway that provides access to 200+
+AI models from OpenAI, Anthropic, Google, Meta, Mistral, and more through a single
+API key. With OpenRouter, you can switch between GPT-4o, Claude 3.5 Sonnet, Gemini
+Pro, Llama 3.1, and other models without managing separate API keys for each provider.
+CryptArtist Studio tries OpenRouter first and falls back to direct OpenAI if
+OpenRouter is not configured.
+
+### What is CryptArt Commander?
+
+CryptArt Commander is a built-in terminal program that lets you control CryptArtist
+Studio through text commands. It supports 40+ commands, tab completion, command aliases,
+scripting, and direct integration with OpenRouter and OpenAI. It is useful for
+automation, batch operations, and AI agent integration.
+
+### What does Donate Computer do?
+
+Donate Computer enables peer-to-peer compute resource sharing. You can donate idle
+CPU, RAM, and GPU resources to help other CryptArtist Studio users run tasks like
+AI inference, video rendering, and image generation. Alternatively, you can borrow
+resources from the network to speed up your own workloads. All connections use
+cryptographically secure peer IDs and password verification.
+
+### How secure is CryptArtist Studio?
+
+CryptArtist Studio has undergone comprehensive security hardening with 100
+vulnerability fixes covering input validation, XSS prevention, Content Security
+Policy, rate limiting, memory leak prevention, prototype pollution protection,
+secure random generation, and audit logging. See the
+[Security Hardening](#security-hardening) section for the complete list of fixes.
+
+### Can I open multiple projects at once?
+
+Yes. CryptArtist Studio supports opening up to 20 `.CryptArt` files simultaneously
+through its workspace management system. Workspaces appear as tabs in a global bar
+and can be combined into groups for resource sharing. See
+[Workspace Management](#workspace-management) for details.
+
+### How do I export and import API keys?
+
+Go to Settings > API Keys and click "Export All Keys". This saves all your configured
+API keys (OpenAI, OpenRouter, Pexels, GiveGigs) to a JSON file named
+`Forbidden-Secrets-of-CryptArtist-Keys-N.txt` (auto-incrementing number). To import,
+click "Import Keys" and select a previously exported file.
+
+### What AI models are available?
+
+Through OpenRouter, CryptArtist Studio supports 200+ models including:
+- **OpenAI**: GPT-4o, GPT-4o Mini, GPT-4 Turbo, o1
+- **Anthropic**: Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
+- **Google**: Gemini Pro 1.5, Gemini Flash 1.5
+- **Meta**: Llama 3.1 405B, Llama 3.1 70B
+- **Mistral**: Mixtral 8x22B, Mistral Large
+- **Perplexity**: Llama 3.1 Sonar 70B
+
+Direct OpenAI access is also supported for users who prefer not to use OpenRouter.
+
+### How many programs are in the suite?
+
+Eight programs: Media Mogul (video/image editor), VibeCodeWorker (code IDE),
+DemoRecorder (screen recorder), ValleyNet (AI agent), GameStudio (game development),
+CryptArt Commander (terminal), Donate Computer (P2P sharing), and Settings (config hub).
+
+### Where are log files stored?
+
+Log files are stored in the platform-specific application data directory:
+- **Windows**: `%LOCALAPPDATA%\CryptArtist Studio\logs\`
+- **macOS**: `~/Library/Application Support/CryptArtist Studio/logs/`
+- **Linux**: `~/.local/share/CryptArtist Studio/logs/`
+
+Three files are maintained: `cryptartist-session.txt` (100 lines), `cryptartist-recent.txt`
+(1,000 lines), and `cryptartist-full-history.txt` (unlimited).
+
+### How was CryptArtist Studio built?
+
+CryptArtist Studio was built through 33+ AI-assisted "vibe coding" sessions using
+Windsurf IDE with Claude models. The complete prompt history (every single prompt
+and its result) is preserved in `prompts/all-prompts.md`. The full README documents
+every aspect of the application across 2,700+ lines. This project serves as a case
+study in AI-assisted software development.
+
 ---
 
 ## License
@@ -2058,9 +3398,11 @@ Windsurf IDE with Claude models. The complete prompt history is preserved in
 
 - The **Tauri** team for the incredible desktop framework
 - The **Monaco Editor** team at Microsoft for the open-source editor engine
+- **OpenRouter** for the unified AI model gateway
 - **Pexels** for the free stock media API
 - **FFmpeg** maintainers for the indispensable media tools
 - **Godot Engine** community for the open-source game engine
+- The **Windsurf** team for the AI-powered IDE used to build this project
 - Everyone who donates at [mattyjacks.com](https://mattyjacks.com) and
   [givegigs.com](https://givegigs.com)
 
@@ -2073,12 +3415,13 @@ Windsurf IDE with Claude models. The complete prompt history is preserved in
 Made with love by [Matt](https://mattyjacks.com)
 
 [GitHub](https://github.com/mattyjacks/CryptArtistStudio) |
-[Donate](https://mattyjacks.com) |
+[Website](https://mattyjacks.com) |
+[Donate](https://givegigs.com) |
 [Contact](https://mattyjacks.com/Contact)
 
 ---
 
-*This README is approximately 2,000 lines long and documents every aspect of
-CryptArtist Studio. It was generated as part of Prompt 23 in the development history.*
+*This README is approximately 3,200 lines long and documents every aspect of
+CryptArtist Studio. It was last updated as part of Prompt 33 in the development history.*
 
 </div>

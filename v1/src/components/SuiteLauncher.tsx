@@ -3,7 +3,11 @@ import { useNavigate, Link } from "react-router-dom";
 import { useGlobalShortcuts } from "../utils/keyboard";
 import { logger } from "../utils/logger";
 import { invoke } from "@tauri-apps/api/core";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { toast } from "../utils/toast";
+import { parseCryptArt } from "../utils/cryptart";
+import { useWorkspace, programLabel, programRoute } from "../utils/workspace";
+import { sanitizeSearchQuery } from "../utils/security"; // Vuln 47
 
 const programs = [
   {
@@ -85,6 +89,19 @@ const programs = [
     tags: ["api", "cli", "scripting", "automation", "command"],
   },
   {
+    id: "donate-computer",
+    name: "Donate Computer",
+    code: "DCo",
+    emoji: "\u{1F4BB}",
+    description: "Donate your GPU, CPU, and RAM to the community cloud - free P2P compute for everyone",
+    gradient: "from-green-600/20 to-cyan-600/20",
+    borderHover: "hover:border-green-500/40",
+    accentColor: "text-green-400",
+    version: "v1.0.0",
+    shortcut: "7",
+    tags: ["donate", "compute", "gpu", "cpu", "p2p", "cloud"],
+  },
+  {
     id: "settings",
     name: "Settings",
     code: "Set",
@@ -94,14 +111,14 @@ const programs = [
     borderHover: "hover:border-slate-500/40",
     accentColor: "text-slate-400",
     version: "v0.1.0",
-    shortcut: "7",
+    shortcut: "8",
     tags: ["settings", "config", "keys", "openrouter", "api"],
   },
 ];
 
 // Improvement 138: Tips rotation
 const tips = [
-  "Press 1-7 to quick-launch any program",
+  "Press 1-8 to quick-launch any program",
   "Use Ctrl+S to save your .CryptArt project anytime",
   "Star your favorite programs for quick access",
   "DemoRecorder supports countdown timers before recording",
@@ -111,10 +128,15 @@ const tips = [
   "MediaMogul supports multiple aspect ratios and zoom levels",
   "All programs save state in the universal .CryptArt format",
   "Visit mattyjacks.com to support development",
+  "CryptArt Commander supports tab completion and command aliases",
+  "Configure OpenRouter in Settings to use 200+ AI models",
+  "Export all API keys to a Forbidden-Secrets file from Settings",
+  "Use 'or <prompt>' in Commander for OpenRouter AI chat",
 ];
 
 export default function SuiteLauncher() {
   const navigate = useNavigate();
+  const ws = useWorkspace();
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [clock, setClock] = useState("");
@@ -163,6 +185,8 @@ export default function SuiteLauncher() {
   const [showSystemInfo, setShowSystemInfo] = useState(false);
   // Improvement 239: Milestone celebration
   const [showMilestone, setShowMilestone] = useState(false);
+  // Improvement 321: AI status
+  const [aiStatus, setAiStatus] = useState<{ openai: boolean; openrouter: boolean; model: string }>({ openai: false, openrouter: false, model: "" });
   const quickActionsRef = useRef<HTMLDivElement>(null);
   useGlobalShortcuts(navigate);
 
@@ -210,6 +234,9 @@ export default function SuiteLauncher() {
     invoke<{ found: boolean }>("godot_detect").then((r) => setGodotStatus(r.found)).catch(() => setGodotStatus(false));
     const stored = localStorage.getItem("cryptartist_last_opened");
     if (stored) setLastOpened(stored);
+    // Improvement 321: Check AI key status
+    invoke<string>("get_api_key").then((k) => setAiStatus((prev) => ({ ...prev, openai: k.length > 0 }))).catch(() => {});
+    invoke<string>("get_openrouter_key").then((k) => setAiStatus((prev) => ({ ...prev, openrouter: k.length > 0, model: localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o" }))).catch(() => {});
   }, []);
 
   // Improvement 126: Toggle favorite
@@ -233,6 +260,47 @@ export default function SuiteLauncher() {
     });
     setTimeout(() => navigate(`/${prog.id}`), 300);
   }, [navigate]);
+
+  // Multi-file .CryptArt open handler
+  const handleOpenCryptArtFiles = useCallback(async () => {
+    try {
+      const selected = await openDialog({
+        filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
+        multiple: true,
+      });
+      if (!selected) return;
+      // Normalize to array (single file returns string, multiple returns string[])
+      const paths = Array.isArray(selected) ? selected : [selected];
+      if (paths.length === 0) return;
+
+      let firstWsProgram: string | null = null;
+      let openedCount = 0;
+
+      for (const filePath of paths) {
+        if (typeof filePath !== "string") continue;
+        try {
+          const json = await invoke<string>("read_text_file", { path: filePath });
+          const project = parseCryptArt(json);
+          ws.openWorkspace(project, filePath);
+          openedCount++;
+          if (!firstWsProgram) firstWsProgram = project.program;
+          logger.action("SuiteLauncher", `Opened workspace: ${project.name || filePath} (${project.program})`);
+        } catch (err) {
+          toast.error(`Failed to open ${filePath.split(/[\\/]/).pop()}: ${err}`);
+        }
+      }
+
+      if (openedCount > 0) {
+        toast.success(`Opened ${openedCount} workspace${openedCount !== 1 ? "s" : ""}`);
+        // Navigate to the first opened file's program
+        if (firstWsProgram) {
+          navigate(programRoute(firstWsProgram));
+        }
+      }
+    } catch (err) {
+      toast.error(`Failed to open files: ${err}`);
+    }
+  }, [ws, navigate]);
 
   // Improvement 27: Keyboard number shortcuts to launch programs + Improvement 133: ? for shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -323,9 +391,9 @@ export default function SuiteLauncher() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(sanitizeSearchQuery(e.target.value, 200))}
               className="input w-full pl-9 pr-4 py-2 text-sm rounded-lg bg-studio-surface border-studio-border"
-              placeholder="Search programs... (or press 1-5 to launch)"
+              placeholder="Search programs... (or press 1-7 to launch)"
             />
             {searchQuery && (
               <button
@@ -382,21 +450,84 @@ export default function SuiteLauncher() {
           </div>
         </div>
 
+        {/* Open .CryptArt Files button */}
+        <div className="w-full max-w-6xl mb-3 px-2 sm:px-0 flex items-center gap-3 animate-fade-in">
+          <button
+            onClick={handleOpenCryptArtFiles}
+            className="btn text-[11px] px-4 py-1.5 border-studio-cyan/30 text-studio-cyan hover:bg-studio-cyan/10 transition-all"
+          >
+            {"\u{1F4C2}"} Open .CryptArt Files...
+          </button>
+          {ws.workspaces.length > 0 && (
+            <span className="text-[10px] text-studio-muted">
+              {ws.workspaces.length} workspace{ws.workspaces.length !== 1 ? "s" : ""} open
+              {ws.groups.length > 0 && ` - ${ws.groups.length} group${ws.groups.length !== 1 ? "s" : ""}`}
+            </span>
+          )}
+        </div>
+
+        {/* Active Workspaces Overview */}
+        {ws.workspaces.length > 0 && (
+          <div className="w-full max-w-6xl mb-4 px-2 sm:px-0 animate-fade-in">
+            <div className="p-3 rounded-xl bg-studio-surface/50 border border-studio-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-studio-text">{"\u{1F4CB}"} Open Workspaces</span>
+                {ws.groups.length > 0 && (
+                  <span className="text-[9px] text-studio-cyan">
+                    {ws.groups.map(g => `${g.name} (${g.workspaceIds.length})`).join(", ")}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {ws.workspaces.map((w) => (
+                  <button
+                    key={w.id}
+                    onClick={() => {
+                      ws.setActiveWorkspace(w.id);
+                      navigate(programRoute(w.program));
+                    }}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all text-[11px] ${
+                      w.id === ws.activeWorkspaceId
+                        ? "bg-studio-cyan/10 border-studio-cyan/30 text-studio-cyan"
+                        : "bg-studio-bg border-studio-border text-studio-secondary hover:border-studio-border-bright hover:text-studio-text"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: w.color }} />
+                    <span className="truncate max-w-[120px]">{w.displayName}</span>
+                    <span className="text-[8px] px-1 py-0.5 rounded bg-studio-panel text-studio-muted">
+                      {programLabel(w.program).slice(0, 3)}
+                    </span>
+                    {w.dirty && <span className="text-studio-cyan text-[8px]">{"\u25CF"}</span>}
+                    {w.linkedWorkspaces.length > 0 && <span className="text-[8px] opacity-60">{"\u{1F517}"}</span>}
+                    <span
+                      onClick={(e) => { e.stopPropagation(); ws.closeWorkspace(w.id); }}
+                      className="text-[9px] opacity-40 hover:opacity-100 hover:text-red-400 cursor-pointer"
+                    >
+                      {"\u2715"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Program Cards Grid - Improvement 229: View mode */}
         <div className={viewMode === "grid"
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 max-w-6xl w-full"
-          : "flex flex-col gap-2 max-w-2xl w-full"
+          ? "grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-5 max-w-6xl w-full px-2 sm:px-0"
+          : "flex flex-col gap-2 max-w-2xl w-full px-2 sm:px-0"
         }>
           {filteredPrograms.map((prog, idx) => (
             <button
               key={prog.id}
               onClick={() => launchProgram(prog)}
               className={`
-                group relative flex flex-col items-center text-center p-8 rounded-xl
+                group relative flex flex-col items-center text-center p-5 sm:p-8 rounded-xl
                 bg-gradient-to-br ${prog.gradient}
                 border border-studio-border ${prog.borderHover}
                 transition-all duration-300 ease-out
                 hover:translate-y-[-4px] hover:shadow-2xl hover:shadow-black/40
+                active:scale-[0.97] touch:active:scale-[0.97]
                 focus:outline-none focus:ring-2 focus:ring-studio-cyan/40
                 animate-slide-up stagger-${idx + 1}
                 ${launching === prog.id ? "scale-95 opacity-50" : ""}
@@ -404,7 +535,7 @@ export default function SuiteLauncher() {
               `}
             >
               {/* Improvement 33: Keyboard shortcut hint */}
-              <span className="absolute top-2 left-2 kbd opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="absolute top-2 left-2 kbd opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
                 {prog.shortcut}
               </span>
               {/* Improvement 126: Favorite star */}
@@ -467,8 +598,19 @@ export default function SuiteLauncher() {
           </span>
           <span className="text-studio-muted text-[10px]">|</span>
           <span className="text-[10px] text-studio-muted">
-            {"\u{1F4A1}"} Press 1-5 to quick-launch
+            {"\u{1F4A1}"} Press 1-7 to quick-launch
           </span>
+          <span className="text-studio-muted text-[10px]">|</span>
+          {/* Improvement 321: AI status */}
+          <span className="flex items-center gap-1.5 text-[10px] text-studio-muted">
+            <span className={`w-1.5 h-1.5 rounded-full ${aiStatus.openrouter ? "bg-studio-green" : aiStatus.openai ? "bg-studio-yellow" : "bg-red-400"}`} />
+            {aiStatus.openrouter ? "OpenRouter" : aiStatus.openai ? "OpenAI" : "No AI Key"}
+          </span>
+          <span className="text-studio-muted text-[10px]">|</span>
+          {/* Improvement 322: Quick settings link */}
+          <button onClick={() => navigate("/settings")} className="text-[10px] text-studio-muted hover:text-studio-cyan transition-colors">
+            {"\u2699\uFE0F"} Settings
+          </button>
           <span className="text-studio-muted text-[10px]">|</span>
           {/* Improvement 131: Quick actions */}
           <div className="relative" ref={quickActionsRef}>
@@ -480,6 +622,7 @@ export default function SuiteLauncher() {
             </button>
             {showQuickActions && (
               <div className="dropdown-menu absolute bottom-full mb-2 left-0">
+                <div className="dropdown-item" onClick={async () => { setShowQuickActions(false); await handleOpenCryptArtFiles(); }}>Open .CryptArt Files...</div>
                 <div className="dropdown-item" onClick={() => { setShowRecents(true); setShowQuickActions(false); }}>Recent Projects</div>
                 <div className="dropdown-item" onClick={() => { setShowShortcuts(true); setShowQuickActions(false); }}>Keyboard Shortcuts</div>
                 <div className="dropdown-separator" />
@@ -508,15 +651,19 @@ export default function SuiteLauncher() {
             <div className="modal-body space-y-3">
               {[
                 { ver: "v0.1.0", items: [
-                  "300 UI/UX improvements across all programs",
+                  "350+ UI/UX improvements across all programs",
+                  "NEW: CryptArt Commander - CLI & scripting (press 6)",
+                  "NEW: Settings - API keys, OpenRouter, appearance (press 7)",
+                  "NEW: OpenRouter integration - 200+ AI models in every program",
+                  "NEW: Import/Export API keys to Forbidden-Secrets files",
                   "Favorites, categories, and sorting on launcher",
                   "Command palette in VibeCodeWorker (Ctrl+Shift+P)",
                   "Timeline markers, render queue, and proxy editing in MediaMogul",
                   "Annotation tools and watermarks in DemoRecorder",
                   "Workflow builder and agent memory in ValleyNet",
                   "Scene graph, debug overlay, and physics debug in GameStudio",
-                  "17 shared React hooks library",
-                  "Shared constants and types library",
+                  "Tab completion, aliases, and grep/head/tail in Commander",
+                  "Shared OpenRouter utility module for all programs",
                   "Extended Tailwind theme with 100+ new utilities",
                 ]},
               ].map((release) => (
@@ -560,6 +707,9 @@ export default function SuiteLauncher() {
                 ["Programs", `${programs.length}`],
                 ["Total Launches", `${Object.values(launchCounts).reduce((a, b) => a + b, 0)}`],
                 ["Favorites", `${favorites.length}`],
+                ["OpenAI", aiStatus.openai ? "Configured" : "Not set"],
+                ["OpenRouter", aiStatus.openrouter ? "Configured" : "Not set"],
+                ["AI Model", aiStatus.model ? aiStatus.model.split("/").pop() || "" : "Not set"],
               ].map(([label, val]) => (
                 <div key={label} className="flex items-center justify-between py-1 border-b border-studio-border">
                   <span className="text-[10px] text-studio-muted">{label}</span>
@@ -581,7 +731,7 @@ export default function SuiteLauncher() {
             </div>
             <div className="modal-body space-y-2">
               {[
-                ["1-5", "Launch program by number"],
+                ["1-7", "Launch program by number"],
                 ["?", "Toggle this shortcuts panel"],
                 ["R", "Toggle recent projects"],
                 ["Ctrl+S", "Save project (in programs)"],

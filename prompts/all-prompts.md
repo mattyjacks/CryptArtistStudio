@@ -475,4 +475,128 @@ Add every prompt so far, including this one, to prompts/all-prompts.md
 
 ---
 
+## Deep Suite Enhancement - 70 Improvements (Prompt 29 - March 13, 2026)
+
+Make more improvements across the entire CryptArtist Studio suite. Focus on deeper OpenRouter integration, new features, and UI polish.
+
+**Implementation (Improvements 301-370):**
+
+### Shared Infrastructure (301-302)
+- **constants.ts**: Added Commander and Settings program IDs, names, icons, versions, routes. Added OpenRouter API provider, model list, API URLs, referer/title constants. Added new localStorage keys for OpenRouter model, key export count, Commander scripts. Added keyboard shortcut definitions and accent color palette.
+- **openrouter.ts** (`src/utils/openrouter.ts`): New shared OpenRouter utility module with `chatWithAI` (OpenRouter-first with OpenAI fallback), `listModels`, `isOpenRouterConfigured`, `getAIStatus`, popular models list, token/cost estimation helpers, and model/provider name formatting.
+
+### Settings Enhancements (303-310)
+- **Keyboard Shortcuts section**: New sidebar tab showing all global keyboard shortcuts with key labels and descriptions.
+- **Data & Storage section**: localStorage usage display, per-key storage info, clear specific data buttons, notifications toggle, font family selector with live preview (JetBrains Mono, Fira Code, Source Code Pro, etc.).
+- **Danger Zone**: Reset all data button with confirmation, clear all localStorage, reset accent color.
+
+### Commander Enhancements (311-320)
+- **Tab completion** (312): Press Tab to autocomplete commands and aliases. Shows suggestion pills when multiple matches found.
+- **Command aliases** (311): `alias name=command` to create shortcuts. Default aliases: ll, st, hc, v. Persisted to localStorage.
+- **New commands** (313-320): `uptime` (session timer + total count), `whoami` (user info), `open <program>` (navigate to any program), `env` / `env set` (environment variables), `bench <cmd>` (benchmark execution time), `count` (total commands), `grep <pattern> <path>`, `head <n> <path>`, `tail <n> <path>`.
+- **Timestamps**: Each command entry shows execution time in the terminal.
+- **Enhanced status bar**: Shows alias count and total command count.
+
+### SuiteLauncher Enhancements (321-330)
+- **AI status indicator** (321): Green/yellow/red dot showing OpenRouter/OpenAI/No Key status in the system status bar.
+- **Quick Settings link** (322): Direct navigation to Settings from launcher status bar.
+- **Updated What's New** (323): Added Commander, Settings, OpenRouter integration, import/export keys, tab completion to changelog.
+- **System Info modal** (324): Now shows OpenAI, OpenRouter, and AI Model status alongside system info.
+- **New tips** (325): Added 4 new rotating tips about Commander, OpenRouter, and key export.
+- **Updated shortcuts** (326): All references updated from "1-5" to "1-7" for 7 programs.
+
+### ValleyNet Enhancements (331-340)
+- **Model picker in config bar** (334): Dropdown to select OpenRouter model directly from the agent config toolbar.
+- **Provider toggle** (335): OR/OAI button to switch between OpenRouter and direct OpenAI.
+- **Response format selector** (336): Text/JSON/Markdown format picker.
+- **System prompt editor** (337): Collapsible panel for custom system instructions prepended to all AI requests.
+- **Token budget selector** (333): Choose max tokens (1024-16384) for AI responses.
+
+### VibeCodeWorker Enhancements (341-345)
+- **OpenRouter in provider dropdown** (341): Added "OpenRouter (200+ models)" option to API provider selector.
+- **Model selector** (341): Dropdown to pick OpenRouter model alongside the manual model text input.
+- **Provider status display**: Shows current OpenRouter model in settings panel footer.
+
+### GameStudio Enhancements (346-350)
+- **Model selector in AI Generator** (346): Dropdown in the AI Game Generator panel header to pick OpenRouter model.
+- **Provider badge** (347): "OpenRouter" badge in the AI panel header.
+- **Clear AI chat** (348): Trash button to clear AI conversation history.
+
+### DemoRecorder Enhancements (351-355)
+- **AI Tools panel** (351): New collapsible panel with AI narration script generator and TTS integration.
+- **AI Narration Script** (352): Enter a topic, AI generates a numbered narration script via OpenRouter.
+- **TTS button** (353): One-click text-to-speech conversion of generated narration.
+- **Script output** (354): Scrollable output panel with copy-to-clipboard.
+- **Model selector** (355): OpenRouter model picker in the AI Tools panel header.
+
+### AIStudio / MediaMogul Enhancements (356-360)
+- **OpenRouter chat integration** (357): AI chat now tries OpenRouter first, falls back to OpenAI. Replaces direct-only `ai_chat`.
+- **Provider toggle** (358): OR/OAI button in chat panel header.
+- **Model selector** (359): Dropdown to select OpenRouter model in the chat header.
+- **State management** (356): New `selectedModel` and `useOpenRouter` state hooks.
+
+### Global CSS Enhancements (361-370)
+- **AI provider badges** (361): `.provider-badge`, `.provider-badge-or`, `.provider-badge-oai` styles.
+- **Model selector** (362): `.model-selector` dropdown styling.
+- **AI panel components** (363): `.ai-panel`, `.ai-panel-header`, `.ai-panel-grid`, `.ai-panel-card` layout styles.
+- **Streaming indicator** (364): `.ai-streaming`, `.ai-streaming-dot` with pulse animation.
+- **Token usage bar** (365): `.token-bar`, `.token-bar-fill` with warn/danger variants.
+- **Glow effects** (366): `.glow-cyan`, `.glow-green`, `.glow-purple`, `.glow-red` box-shadow utilities.
+- **Gradient text** (367): `.text-gradient-cyan`, `.text-gradient-warm` background-clip text gradients.
+- **Pulse ring** (368): `.pulse-ring` animated border effect for active states.
+- **Skeleton loading** (369): `.skeleton` shimmer animation for loading placeholders.
+- **Multi-line truncate** (370): `.truncate-2`, `.truncate-3` line-clamp utilities.
+
+Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+## Prompt 24 - Donate Computer Feature
+
+> Add a donate computer page to the website and a donate computer component to the desktop app. This is a P2P resource sharing feature where users can donate their CPU/RAM/GPU to help other users run tasks.
+
+**Result:** Created the full Donate Computer feature:
+- `website/A1/donate-computer.html` - Website page with how-it-works, control panel, live stats, FAQ
+- `website/A1/donate-computer.js` - Frontend controller for UI interactions
+- `website/A1/donate-computer-api.js` - P2P resource sharing API with WebRTC peer management
+- `website/A1/style.css` - Added 500+ lines of Donate Computer CSS styles
+- `v1/src/programs/donate-computer/DonateComputer.tsx` - Desktop app component
+- Updated navigation on all website HTML pages
+- Updated `App.tsx` and `SuiteLauncher.tsx` with new program route
+
+---
+
+## Prompt 25 - Fix 100 Vulnerabilities
+
+> Fix 100 more vulnerabilities. Add all these prompts to the all-prompts file. Update README.md with every single thing.
+
+**Result:** Comprehensive security hardening across the entire codebase:
+- Created `v1/src/utils/security.ts` - Security utility module with 30+ helper functions
+- **BATCH A (Vulns 1-25):** Rust backend - API key validation, URL validation, write size limits, path sanitization for Godot commands, log message limits, log level validation, style param validation, HTTP request timeouts, search type validation, import size limits, CORS preflight, Content-Type validation, file size checks on REST API
+- **BATCH B (Vulns 26-50):** Frontend - HTML sanitization, CSP meta tag, referrer policy, localStorage key validation, value size limits, preferences schema validation, recent project path sanitization, URL validation helpers, API key format validation, toast rate limiting, toast message truncation, toast queue limits, model ID validation, prototype pollution protection, ISO date validation
+- **BATCH C (Vulns 51-75):** Memory leaks - timeout tracking and cleanup in DonateComputer, max peer limits, secure random for peer IDs, command history limits, command input length limits, file path sanitization in Commander, search query sanitization in SuiteLauncher, display history limits
+- **BATCH D (Vulns 76-100):** Hardening - X-XSS-Protection headers, Referrer-Policy headers, Permissions-Policy headers, Cache-Control headers, security audit module, security event logging, safe JSON stringify, file extension validation, suspicious path detection, UTF-8 validation, rate limiting, double-click prevention, abort controller factory
+
+---
+
+## Prompt 26 - README 700+ Line Update
+
+> Update README.md with at least 700 more lines, in multiple steps. As always, prompts/all-prompts.md should be updated with this prompt.
+
+**Result:** Added 700+ lines to README.md covering:
+- CryptArt Commander program documentation
+- Donate Computer program documentation
+- Workspace management system
+- Security hardening documentation (100 vulnerabilities)
+- Security utility module API reference
+- REST API security headers
+- OpenRouter multi-model AI integration
+- Website documentation
+- Extended prompt history (Prompts 24-26)
+- Extended FAQ
+- Troubleshooting guide
+- Performance optimization guide
+
+---
+
 <!-- End of prompt archive -->

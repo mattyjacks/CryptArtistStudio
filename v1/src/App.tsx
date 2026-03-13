@@ -8,11 +8,14 @@ import ValleyNet from "./programs/valley-net/ValleyNet";
 import GameStudio from "./programs/game-studio/GameStudio";
 import Commander from "./programs/commander/Commander";
 import Settings from "./programs/settings/Settings";
+import DonateComputer from "./programs/donate-computer/DonateComputer";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import TermsAcceptanceModal from "./components/TermsAcceptanceModal";
 import MobileNav from "./components/MobileNav";
-import { useIsMobileViewport } from "./utils/platform";
+import WorkspaceProvider from "./components/WorkspaceProvider";
+import WorkspaceBar from "./components/WorkspaceBar";
+import { useIsMobileViewport, useDeviceType } from "./utils/platform";
 import { logger } from "./utils/logger";
 
 // ---------------------------------------------------------------------------
@@ -123,6 +126,7 @@ const routeTitles: Record<string, string> = {
   "/game-studio": "GameStudio - CryptArtist Studio",
   "/commander": "CryptArt Commander - CryptArtist Studio",
   "/settings": "Settings - CryptArtist Studio",
+  "/donate-computer": "Donate Computer - CryptArtist Studio",
   "/privacy": "Privacy Policy - CryptArtist Studio",
   "/terms": "Terms of Use - CryptArtist Studio",
 };
@@ -143,6 +147,8 @@ const TERMS_ACCEPTED_KEY = "cryptartist_terms_accepted";
 export default function App() {
   const [termsAccepted, setTermsAccepted] = useState<boolean | null>(null);
   const isMobileView = useIsMobileViewport();
+  const deviceType = useDeviceType();
+  const showBottomNav = deviceType === "mobile" || deviceType === "tablet";
   useDocumentTitle();
 
   useEffect(() => {
@@ -166,22 +172,26 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className={isMobileView ? "pb-14" : ""}>
-        <Routes>
-          <Route path="/" element={<SuiteLauncher />} />
-          <Route path="/media-mogul" element={<MediaMogul />} />
-          <Route path="/vibecode-worker" element={<VibeCodeWorker />} />
-          <Route path="/demo-recorder" element={<DemoRecorder />} />
-          <Route path="/valley-net" element={<ValleyNet />} />
-          <Route path="/game-studio" element={<GameStudio />} />
-          <Route path="/commander" element={<Commander />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsOfUse />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-      {isMobileView && <MobileNav />}
+      <WorkspaceProvider>
+        <WorkspaceBar />
+        <div className={showBottomNav ? "pb-14" : ""}>
+          <Routes>
+            <Route path="/" element={<SuiteLauncher />} />
+            <Route path="/media-mogul" element={<MediaMogul />} />
+            <Route path="/vibecode-worker" element={<VibeCodeWorker />} />
+            <Route path="/demo-recorder" element={<DemoRecorder />} />
+            <Route path="/valley-net" element={<ValleyNet />} />
+            <Route path="/game-studio" element={<GameStudio />} />
+            <Route path="/commander" element={<Commander />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/donate-computer" element={<DonateComputer />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfUse />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+        {showBottomNav && <MobileNav />}
+      </WorkspaceProvider>
     </ErrorBoundary>
   );
 }

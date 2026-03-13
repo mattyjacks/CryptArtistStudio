@@ -6,6 +6,9 @@ import Editor from "@monaco-editor/react";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
+import { useDeviceType } from "../../utils/platform";
+import { safeGetRaw, safeSetRaw, safeGetRawJSON } from "../../utils/storage";
+import { useWorkspace } from "../../utils/workspace";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -141,6 +144,10 @@ function fileIcon(name: string): string {
 
 export default function VibeCodeWorker() {
   const navigate = useNavigate();
+  const deviceType = useDeviceType();
+  const isMobile = deviceType === "mobile";
+  const isTablet = deviceType === "tablet";
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   useEffect(() => { logger.info("VibeCodeWorker", "Program loaded"); }, []);
   const [rootPath, setRootPath] = useState<string | null>(null);
   const [fileTree, setFileTree] = useState<FileNode[]>([]);
@@ -256,6 +263,19 @@ export default function VibeCodeWorker() {
   const [minimapDecorations, setMinimapDecorations] = useState(true);
   // Improvement 253: Editor ruler columns
   const [rulerColumns, setRulerColumns] = useState<number[]>([80, 120]);
+  // Improvement 391: Recent files
+  const [recentFiles, setRecentFiles] = useState<string[]>(() => {
+    return safeGetRawJSON<string[]>("cryptartist_vcw_recent_files", []);
+  });
+  // Improvement 392: File stats
+  const [fileStats, setFileStats] = useState<{ lines: number; words: number; chars: number } | null>(null);
+  // Improvement 393: Pinned tabs
+  const [pinnedTabs, setPinnedTabs] = useState<string[]>([]);
+  // Improvement 394: AI quick actions
+  const [showAiActions, setShowAiActions] = useState(false);
+  // Improvement 395: File comparison mode
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareFile, setCompareFile] = useState<string | null>(null);
   // Improvement 254: Multiple cursors indicator
   const [cursorCount, setCursorCount] = useState(1);
   // Improvement 255: Inline git blame
@@ -425,12 +445,20 @@ export default function VibeCodeWorker() {
         { path: node.path, name: node.name, content, language: detectLanguage(node.name), dirty: false },
       ]);
       setActiveTabPath(node.path);
+      // Improvement 391: Track recent files
+      setRecentFiles((prev) => {
+        const updated = [node.path, ...prev.filter((p) => p !== node.path)].slice(0, 20);
+        safeSetRaw("cryptartist_vcw_recent_files", JSON.stringify(updated));
+        return updated;
+      });
     } catch (err) {
       setTerminalOutput((prev) => [...prev, `[error] Failed to read: ${node.name} - ${err}`]);
     }
   };
 
   const closeTab = (path: string) => {
+    // Improvement 393: Prevent closing pinned tabs
+    if (pinnedTabs.includes(path)) return;
     setOpenTabs((prev) => prev.filter((t) => t.path !== path));
     if (activeTabPath === path) {
       const remaining = openTabs.filter((t) => t.path !== path);
@@ -451,6 +479,18 @@ export default function VibeCodeWorker() {
   };
 
   const activeTab = openTabs.find((t) => t.path === activeTabPath) || null;
+
+  // Improvement 392: Update file stats when active tab changes
+  useEffect(() => {
+    if (activeTab) {
+      const lines = activeTab.content.split("\n").length;
+      const words = activeTab.content.split(/\s+/).filter(Boolean).length;
+      const chars = activeTab.content.length;
+      setFileStats({ lines, words, chars });
+    } else {
+      setFileStats(null);
+    }
+  }, [activeTab?.content, activeTab?.path]);
 
   // ---------------------------------------------------------------------------
   // Terminal
@@ -514,7 +554,7 @@ export default function VibeCodeWorker() {
       const prompt = `You are a senior software engineer AI assistant in VibeCodeWorker IDE. Help the user with their coding request. Be concise and provide code when appropriate.${context}\n\nUser: ${userMsg.content}`;
 
       // Try OpenRouter first, fall back to OpenAI
-      const orModel = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+      const orModel = safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o");
       let reply: string;
       try {
         reply = await invoke<string>("openrouter_chat", { prompt, model: orModel });
@@ -682,7 +722,7 @@ ${codeSnippet}
 
 Analyze for: null checks, error handling, boundary conditions, type safety, security issues, race conditions. Return 5-15 checks as JSON array only.`;
 
-        const orModel = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+        const orModel = safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o");
         let reply: string;
         try { reply = await invoke<string>("openrouter_chat", { prompt, model: orModel }); }
         catch { reply = await invoke<string>("ai_chat", { prompt }); }
@@ -787,7 +827,7 @@ Return ONLY valid JSON (no markdown) in this exact format:
 
 Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, meta tags, viewport, HTTPS, CSP headers, font loading, CSS specificity, JS bundle size, accessibility contrast, keyboard navigation, heading hierarchy, link text, form labels, mobile responsiveness. Return 15-25 checks.`;
 
-        const orModel2 = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+        const orModel2 = safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o");
         let reply: string;
         try { reply = await invoke<string>("openrouter_chat", { prompt, model: orModel2 }); }
         catch { reply = await invoke<string>("ai_chat", { prompt }); }
@@ -855,6 +895,23 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
   // .CryptArt save/open
   // ---------------------------------------------------------------------------
 
+  const wsCtx = useWorkspace();
+
+  // Load from active workspace on mount or workspace switch
+  useEffect(() => {
+    const active = wsCtx.getActiveWorkspace();
+    if (active && active.program === "vibecode-worker") {
+      const data = active.project.data as { rootPath?: string; openFiles?: { path: string; name: string }[]; activeFile?: string; aiProvider?: string; model?: string };
+      if (data.rootPath) {
+        setRootPath(data.rootPath);
+        loadDirectory(data.rootPath).then(setFileTree).catch(() => {});
+      }
+      if (data.aiProvider) setApiProvider(data.aiProvider);
+      if (data.model) setVcwModel(data.model);
+      setTerminalOutput((prev) => [...prev, `$ Loaded workspace: ${active.displayName}`]);
+    }
+  }, [wsCtx.activeWorkspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSaveProject = async () => {
     try {
       const projectData = {
@@ -867,12 +924,20 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
       const cryptArt = createCryptArtFile("vibecode-worker", rootPath || "Untitled", projectData);
       const json = serializeCryptArt(cryptArt);
 
+      const active = wsCtx.getActiveWorkspace();
+      const defaultPath = active?.filePath || "project.CryptArt";
+
       const savePath = await saveDialog({
-        defaultPath: "project.CryptArt",
+        defaultPath,
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
       });
       if (savePath) {
         await invoke("write_text_file", { path: savePath, contents: json });
+        if (active) {
+          wsCtx.updateProject(active.id, cryptArt);
+          wsCtx.updateFilePath(active.id, savePath);
+          wsCtx.markClean(active.id);
+        }
         setTerminalOutput((prev) => [...prev, `$ Project saved: ${savePath}`]);
       }
     } catch (err) {
@@ -884,15 +949,21 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
     try {
       const selected = await openDialog({
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
-        multiple: false,
+        multiple: true,
       });
-      if (selected && typeof selected === "string") {
-        const json = await invoke<string>("read_text_file", { path: selected });
+      if (!selected) return;
+      const paths = Array.isArray(selected) ? selected : [selected];
+
+      for (const filePath of paths) {
+        if (typeof filePath !== "string") continue;
+        const json = await invoke<string>("read_text_file", { path: filePath });
         const project = parseCryptArt(json);
         if (project.program !== "vibecode-worker") {
-          setTerminalOutput((prev) => [...prev, `[error] This .CryptArt file is for ${project.program}, not VibeCodeWorker`]);
-          return;
+          setTerminalOutput((prev) => [...prev, `[error] ${filePath.split(/[\\/]/).pop()} is for ${project.program}, not VibeCodeWorker`]);
+          continue;
         }
+        const wsId = wsCtx.openWorkspace(project, filePath);
+        wsCtx.setActiveWorkspace(wsId);
         const data = project.data as { rootPath?: string; openFiles?: { path: string; name: string }[]; activeFile?: string; aiProvider?: string; model?: string };
         if (data.rootPath) {
           setRootPath(data.rootPath);
@@ -952,49 +1023,66 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
   return (
     <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
       {/* Header */}
-      <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-4 gap-2">
+      <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-2 sm:px-4 gap-1 sm:gap-2 safe-area-top">
         <button
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
           title="Back to Suite"
         >
-          {"\u2190"} Suite
+          {"\u2190"}{!isMobile && " Suite"}
         </button>
-        <div className="w-px h-5 bg-studio-border" />
+        {isMobile && (
+          <button
+            onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+            className="btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors"
+            title="Toggle File Tree"
+          >
+            {"\u{1F4C1}"}
+          </button>
+        )}
+        {!isMobile && <div className="w-px h-5 bg-studio-border" />}
         <span className="text-xl leading-none">{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"}</span>
-        <div className="flex flex-col">
-          <span className="text-[13px] font-bold tracking-tight text-studio-text leading-none">VibeCodeWorker</span>
-          <span className="text-[9px] font-medium tracking-widest uppercase text-studio-muted leading-none mt-[2px]">VCW</span>
-        </div>
+        {!isMobile && (
+          <div className="flex flex-col">
+            <span className="text-[13px] font-bold tracking-tight text-studio-text leading-none">VibeCodeWorker</span>
+            <span className="text-[9px] font-medium tracking-widest uppercase text-studio-muted leading-none mt-[2px]">VCW</span>
+          </div>
+        )}
         <div className="flex-1" />
-        <button onClick={handleOpenFolder} className="btn text-[10px] py-1 px-3">
-          {"\u{1F4C2}"} Open Folder
+        <button onClick={handleOpenFolder} className="btn text-[10px] py-1 px-2 sm:px-3">
+          {"\u{1F4C2}"}{!isMobile && " Open Folder"}
         </button>
-        <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
-          Open .CryptArt
-        </button>
-        <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
-          Save .CryptArt
-        </button>
-        <button onClick={runTests} className="btn text-[10px] py-1 px-3" title="Run Tests">
-          {testSuite.running ? "Testing..." : "\u{1F9EA} Test"}
-        </button>
-        <button onClick={runWebAudit} className="btn text-[10px] py-1 px-3" title="Web Audit">
-          {webAudit.running ? "Auditing..." : "\u{1F310} Audit"}
-        </button>
+        {!isMobile && (
+          <>
+            <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
+              Open .CryptArt
+            </button>
+            <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
+              Save .CryptArt
+            </button>
+            <button onClick={runTests} className="btn text-[10px] py-1 px-3" title="Run Tests">
+              {testSuite.running ? "Testing..." : "\u{1F9EA} Test"}
+            </button>
+            <button onClick={runWebAudit} className="btn text-[10px] py-1 px-3" title="Web Audit">
+              {webAudit.running ? "Auditing..." : "\u{1F310} Audit"}
+            </button>
+          </>
+        )}
         {activeTab?.dirty && (
-          <button onClick={saveCurrentFileWithTest} className="btn btn-cyan text-[10px] py-1 px-3">
-            Save File
+          <button onClick={saveCurrentFileWithTest} className="btn btn-cyan text-[10px] py-1 px-2 sm:px-3">
+            {isMobile ? "Save" : "Save File"}
           </button>
         )}
         {/* Improvement 56: Keyboard shortcut help */}
-        <button
-          onClick={() => setShowShortcuts(!showShortcuts)}
-          className={`btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors ${showShortcuts ? "bg-studio-hover" : ""}`}
-          title="Keyboard Shortcuts"
-        >
-          {"\u2328\uFE0F"}
-        </button>
+        {!isMobile && (
+          <button
+            onClick={() => setShowShortcuts(!showShortcuts)}
+            className={`btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors ${showShortcuts ? "bg-studio-hover" : ""}`}
+            title="Keyboard Shortcuts"
+          >
+            {"\u2328\uFE0F"}
+          </button>
+        )}
         <button
           onClick={() => setShowSettings(!showSettings)}
           className={`btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors ${showSettings ? "bg-studio-hover" : ""}`}
@@ -1466,6 +1554,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                   className="input text-[11px] py-1"
                 >
                   <option value="openai">OpenAI</option>
+                  <option value="openrouter">OpenRouter (200+ models)</option>
                   <option value="anthropic">Anthropic</option>
                   <option value="google">Google</option>
                   <option value="custom">Custom (OpenAI-compatible)</option>
@@ -1477,15 +1566,29 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                   className="input text-[11px] py-1"
                   placeholder="API Key..."
                 />
-                <input
-                  type="text"
-                  value={vcwModel}
-                  onChange={(e) => setVcwModel(e.target.value)}
-                  className="input text-[11px] py-1"
-                  placeholder="Model name (e.g. gpt-4o)"
-                />
+                {/* Improvement 341: OpenRouter model selector */}
+                <div className="flex gap-1.5">
+                  <input
+                    type="text"
+                    value={vcwModel}
+                    onChange={(e) => setVcwModel(e.target.value)}
+                    className="input text-[11px] py-1 flex-1"
+                    placeholder="Model name (e.g. gpt-4o)"
+                  />
+                  <select
+                    value={safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o")}
+                    onChange={(e) => safeSetRaw("cryptartist_openrouter_model", e.target.value)}
+                    className="input text-[9px] py-1 w-28"
+                    title="OpenRouter model"
+                  >
+                    {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "google/gemini-2.0-flash-001", "meta-llama/llama-3.1-70b-instruct", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "mistralai/mistral-large"].map((m) => (
+                      <option key={m} value={m}>{m.split("/").pop()}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="text-[9px] text-studio-muted">
                   {vcwApiKey ? "\u2705 Key set" : "\u26A0\uFE0F No key - uses shared CryptArtist key if available"}
+                  {" | OR: "}{safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o").split("/").pop()}
                 </div>
               </div>
             </div>

@@ -235,10 +235,16 @@ export default {
       // Improvement 216: Extended screens / breakpoints
       screens: {
         'xs': '475px',
+        'tablet': '768px',
+        'tablet-lg': '1024px',
         '3xl': '1800px',
         '4xl': '2200px',
         'tall': { 'raw': '(min-height: 800px)' },
         'short': { 'raw': '(max-height: 600px)' },
+        'portrait': { 'raw': '(orientation: portrait)' },
+        'landscape': { 'raw': '(orientation: landscape)' },
+        'touch': { 'raw': '(hover: none) and (pointer: coarse)' },
+        'stylus': { 'raw': '(hover: none) and (pointer: fine)' },
       },
       // Improvement 217: Min/Max width extensions
       minWidth: {

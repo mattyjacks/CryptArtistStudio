@@ -79,6 +79,33 @@ export default function AIStudio({
   const [generatedImages, setGeneratedImages] = useState<
     { prompt: string; url: string }[]
   >([]);
+  // Improvement 356: OpenRouter model selector for AI Studio
+  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o");
+  const [useOpenRouter, setUseOpenRouter] = useState(true);
+  // Improvement 421: Subtitle generator input
+  const [subtitleInput, setSubtitleInput] = useState("");
+  const [subtitleOutput, setSubtitleOutput] = useState("");
+  // Improvement 422: Scene tags
+  const [sceneTags, setSceneTags] = useState<string[]>([]);
+  const [newSceneTag, setNewSceneTag] = useState("");
+  // Improvement 423: Render presets
+  const [renderPreset, setRenderPreset] = useState<"youtube" | "instagram" | "tiktok" | "custom">("youtube");
+  // Improvement 424: Conversation title
+  const [conversationTitle, setConversationTitle] = useState("New Conversation");
+  // Improvement 425: Token estimate
+  const [estimatedTokens, setEstimatedTokens] = useState(0);
+  // Improvement 426: Chat search
+  const [chatSearch, setChatSearch] = useState("");
+  // Improvement 427: AI prompt templates
+  const [promptTemplates] = useState([
+    { label: "Analyze Scene", prompt: "Analyze this scene for composition, color, and audio: " },
+    { label: "Generate Subtitles", prompt: "Generate SRT-format subtitles for the following transcript: " },
+    { label: "Write Voiceover", prompt: "Write a professional voiceover script for: " },
+    { label: "Color Grade", prompt: "Suggest color grading settings for a " },
+    { label: "Sound Design", prompt: "Recommend sound design elements for: " },
+  ]);
+  // Improvement 428: Message reactions
+  const [messageReactions, setMessageReactions] = useState<Record<number, string>>({});
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -144,8 +171,18 @@ export default function AIStudio({
         // So we join the previous user interactions for context.
         const contextStr = chatMessages.slice(-5).map(m => `${m.role === "user" ? "User" : "AI"}: ${m.content}`).join("\n");
         const fullPrompt = `${contextStr}\nUser: ${text}\nAI:`;
-        
-        const reply = await invoke<string>("ai_chat", { prompt: fullPrompt });
+
+        // Improvement 357: Try OpenRouter first, fall back to OpenAI
+        let reply: string;
+        if (useOpenRouter) {
+          try {
+            reply = await invoke<string>("openrouter_chat", { prompt: fullPrompt, model: selectedModel });
+          } catch {
+            reply = await invoke<string>("ai_chat", { prompt: fullPrompt });
+          }
+        } else {
+          reply = await invoke<string>("ai_chat", { prompt: fullPrompt });
+        }
 
         setChatMessages((prev) => [
           ...prev,
@@ -407,6 +444,27 @@ export default function AIStudio({
               >
                 {apiKey ? "Connected" : "No Key"}
               </span>
+              {/* Improvement 358: Provider toggle */}
+              <button
+                onClick={() => setUseOpenRouter(!useOpenRouter)}
+                className={`text-[8px] px-1.5 py-0.5 rounded font-semibold transition-colors ${
+                  useOpenRouter ? "bg-studio-cyan/15 text-studio-cyan" : "bg-studio-surface text-studio-muted"
+                }`}
+                title={useOpenRouter ? "Using OpenRouter" : "Using OpenAI direct"}
+              >
+                {useOpenRouter ? "OR" : "OAI"}
+              </button>
+              {/* Improvement 359: Model selector */}
+              <select
+                value={selectedModel}
+                onChange={(e) => { setSelectedModel(e.target.value); localStorage.setItem("cryptartist_openrouter_model", e.target.value); }}
+                className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer"
+                title="AI Model"
+              >
+                {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "meta-llama/llama-3.1-70b-instruct"].map((m) => (
+                  <option key={m} value={m}>{m.split("/").pop()}</option>
+                ))}
+              </select>
             </div>
             <div className="flex gap-4">
           <button

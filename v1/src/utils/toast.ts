@@ -2,7 +2,11 @@
 // Lightweight toast notification system (no dependencies)
 // ---------------------------------------------------------------------------
 
+import { shouldThrottleToast, truncateToastMessage } from "./security";
+
 export type ToastType = "success" | "error" | "info" | "warning";
+
+const MAX_TOAST_QUEUE = 10; // Vuln 39: Limit concurrent toasts
 
 interface ToastOptions {
   message: string;
@@ -37,8 +41,16 @@ const ICONS: Record<ToastType, string> = {
 };
 
 export function showToast(opts: ToastOptions): void {
-  const { message, type = "info", duration = 3500 } = opts;
+  // Vuln 59: Rate limit toasts
+  if (shouldThrottleToast()) return;
+  const { message: rawMessage, type = "info", duration = 3500 } = opts;
+  // Vuln 38: Truncate long messages
+  const message = truncateToastMessage(rawMessage);
   const c = getContainer();
+  // Vuln 39: Limit toast queue size
+  if (c.children.length >= MAX_TOAST_QUEUE) {
+    c.removeChild(c.children[0]);
+  }
   const colors = COLORS[type];
 
   const el = document.createElement("div");
@@ -62,7 +74,13 @@ export function showToast(opts: ToastOptions): void {
     max-width:100%;
     word-break:break-word;
   `;
-  el.innerHTML = `<span style="font-size:14px;flex-shrink:0">${ICONS[type]}</span><span>${message}</span>`;
+  const iconSpan = document.createElement("span");
+  iconSpan.style.cssText = "font-size:14px;flex-shrink:0";
+  iconSpan.textContent = ICONS[type];
+  const msgSpan = document.createElement("span");
+  msgSpan.textContent = message;
+  el.appendChild(iconSpan);
+  el.appendChild(msgSpan);
   el.onclick = () => removeToast(el);
 
   c.appendChild(el);

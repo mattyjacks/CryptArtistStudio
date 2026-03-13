@@ -4,6 +4,7 @@
 // ===========================================================================
 
 import { invoke } from "@tauri-apps/api/core";
+import { validateModelId, logSecurityEvent } from "./security";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -33,11 +34,24 @@ export interface OpenRouterResponse {
 // ---------------------------------------------------------------------------
 
 export function getDefaultModel(): string {
-  return localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+  try {
+    return localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+  } catch {
+    return "openai/gpt-4o";
+  }
 }
 
 export function setDefaultModel(model: string): void {
-  localStorage.setItem("cryptartist_openrouter_model", model);
+  // Vuln 41: Validate model ID format
+  if (!validateModelId(model)) {
+    logSecurityEvent("openrouter", "medium", "Invalid model ID rejected", model);
+    return;
+  }
+  try {
+    localStorage.setItem("cryptartist_openrouter_model", model);
+  } catch {
+    // localStorage full or blocked
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -48,7 +62,9 @@ export async function chatWithAI(
   prompt: string,
   options?: { model?: string; useOpenRouterOnly?: boolean }
 ): Promise<string> {
-  const model = options?.model || getDefaultModel();
+  const rawModel = options?.model || getDefaultModel();
+  // Vuln 41: Validate model before sending to backend
+  const model = validateModelId(rawModel) ? rawModel : "openai/gpt-4o";
 
   // Try OpenRouter first
   try {

@@ -5,6 +5,7 @@ import { save as saveDialog, open as openDialog } from "@tauri-apps/plugin-dialo
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
+import { useWorkspace } from "../../utils/workspace";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -109,6 +110,42 @@ export default function DemoRecorder() {
   const [recordingSearch, setRecordingSearch] = useState("");
   // Improvement 285: Recording file size estimate
   const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
+  // Improvement 411: Recording notes
+  const [recordingNotes, setRecordingNotes] = useState("");
+  const [showRecordingNotes, setShowRecordingNotes] = useState(false);
+  // Improvement 412: Clip trimmer
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
+  const [showTrimmer, setShowTrimmer] = useState(false);
+  // Improvement 413: AI scene detection
+  const [aiSceneDetect, setAiSceneDetect] = useState(false);
+  const [detectedScenes, setDetectedScenes] = useState<{ time: number; description: string }[]>([]);
+  // Improvement 414: Custom hotkeys
+  const [hotkeys, setHotkeys] = useState<Record<string, string>>({
+    startStop: "F9",
+    pause: "F10",
+    screenshot: "F11",
+    marker: "F12",
+  });
+  // Improvement 415: Audio gain
+  const [audioGain, setAudioGain] = useState(100);
+  // Improvement 416: Timer format
+  const [timerFormat, setTimerFormat] = useState<"hms" | "seconds" | "frames">("hms");
+  // Improvement 417: Overlay text
+  const [overlayText, setOverlayText] = useState("");
+  const [showOverlayText, setShowOverlayText] = useState(false);
+  // Improvement 418: Quality indicator
+  const [qualityScore, setQualityScore] = useState(0);
+  // Improvement 419: Auto-title from timestamp
+  const [autoTitle, setAutoTitle] = useState(true);
+  // Improvement 420: Batch export formats
+  const [batchExportFormats, setBatchExportFormats] = useState<string[]>(["webm"]);
+  // Improvement 351: AI narration
+  const [aiNarration, setAiNarration] = useState("");
+  const [aiNarrationLoading, setAiNarrationLoading] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  // Improvement 352: AI description for recordings
+  const [aiDescription, setAiDescription] = useState("");
   const timerRef = useRef<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -408,6 +445,21 @@ export default function DemoRecorder() {
   // .CryptArt save/open
   // ---------------------------------------------------------------------------
 
+  const wsCtx = useWorkspace();
+
+  // Load from active workspace on mount or workspace switch
+  useEffect(() => {
+    const active = wsCtx.getActiveWorkspace();
+    if (active && active.program === "demo-recorder") {
+      const data = active.project.data as any;
+      if (data.resolution) setResolution(data.resolution);
+      if (data.fps) setFps(data.fps);
+      if (data.inputLoggerEnabled !== undefined) setInputLoggerEnabled(data.inputLoggerEnabled);
+      if (data.streamTargets) setStreamTargets(data.streamTargets);
+      if (data.recordings) setRecordings(data.recordings);
+    }
+  }, [wsCtx.activeWorkspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleSaveProject = async () => {
     try {
       const projectData = {
@@ -417,12 +469,22 @@ export default function DemoRecorder() {
       };
       const cryptArt = createCryptArtFile("demo-recorder", "DemoRecorder Session", projectData);
       const json = serializeCryptArt(cryptArt);
+
+      const active = wsCtx.getActiveWorkspace();
+      const defaultPath = active?.filePath || "recording-session.CryptArt";
+
       const savePath = await saveDialog({
-        defaultPath: "recording-session.CryptArt",
+        defaultPath,
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
       });
       if (savePath) {
         await invoke("write_text_file", { path: savePath, contents: json });
+        if (active) {
+          wsCtx.updateProject(active.id, cryptArt);
+          wsCtx.updateFilePath(active.id, savePath);
+          wsCtx.markClean(active.id);
+        }
+        toast.success("Project saved");
       }
     } catch (err) {
       console.error("Save project failed:", err);
@@ -434,12 +496,21 @@ export default function DemoRecorder() {
     try {
       const selected = await openDialog({
         filters: [{ name: "CryptArtist Art", extensions: ["CryptArt"] }],
-        multiple: false,
+        multiple: true,
       });
-      if (selected && typeof selected === "string") {
-        const json = await invoke<string>("read_text_file", { path: selected });
+      if (!selected) return;
+      const paths = Array.isArray(selected) ? selected : [selected];
+
+      for (const filePath of paths) {
+        if (typeof filePath !== "string") continue;
+        const json = await invoke<string>("read_text_file", { path: filePath });
         const project = parseCryptArt(json);
-        if (project.program !== "demo-recorder") return;
+        if (project.program !== "demo-recorder") {
+          toast.warning(`${filePath.split(/[\\/]/).pop()} is for ${project.program}, not DemoRecorder`);
+          continue;
+        }
+        const wsId = wsCtx.openWorkspace(project, filePath);
+        wsCtx.setActiveWorkspace(wsId);
         const data = project.data as any;
         if (data.resolution) setResolution(data.resolution);
         if (data.fps) setFps(data.fps);
@@ -447,6 +518,7 @@ export default function DemoRecorder() {
         if (data.streamTargets) setStreamTargets(data.streamTargets);
         if (data.recordings) setRecordings(data.recordings);
       }
+      toast.success("Project loaded");
     } catch (err) {
       console.error("Open project failed:", err);
       toast.error("Failed to open project");
@@ -483,7 +555,106 @@ export default function DemoRecorder() {
         <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
           Save .CryptArt
         </button>
+        {/* Improvement 351: AI panel toggle */}
+        <button
+          onClick={() => setShowAiPanel(!showAiPanel)}
+          className={`btn text-[10px] py-1 px-3 ${showAiPanel ? "btn-cyan" : ""}`}
+          title="AI Narration & Description"
+        >
+          {"\u{1F916}"} AI Tools
+        </button>
       </header>
+
+      {/* Improvement 351-355: AI Tools Panel */}
+      {showAiPanel && (
+        <div className="px-4 py-3 bg-studio-surface border-b border-studio-border">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="text-[11px] font-semibold text-studio-text">{"\u{1F916}"} AI Recording Tools</span>
+            <span className="text-[8px] px-1.5 py-0.5 rounded bg-studio-cyan/10 text-studio-cyan">OpenRouter</span>
+            <select
+              value={localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o"}
+              onChange={(e) => localStorage.setItem("cryptartist_openrouter_model", e.target.value)}
+              className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer ml-auto"
+            >
+              {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "deepseek/deepseek-chat"].map((m) => (
+                <option key={m} value={m}>{m.split("/").pop()}</option>
+              ))}
+            </select>
+            <button onClick={() => setShowAiPanel(false)} className="text-studio-muted hover:text-studio-text text-[10px]">x</button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {/* AI Narration */}
+            <div className="p-3 rounded-lg bg-studio-bg border border-studio-border">
+              <div className="text-[10px] font-semibold text-studio-text mb-1">{"\u{1F3A4}"} AI Narration Script</div>
+              <div className="text-[8px] text-studio-muted mb-2">Generate a narration script for your recording topic</div>
+              <input
+                type="text"
+                value={aiNarration}
+                onChange={(e) => setAiNarration(e.target.value)}
+                className="input text-[10px] py-1 w-full mb-2"
+                placeholder="Topic: e.g., 'How to use CryptArtist Studio'"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={async () => {
+                    if (!aiNarration.trim()) return;
+                    setAiNarrationLoading(true);
+                    try {
+                      const model = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+                      const prompt = `Write a concise, engaging narration script for a screen recording tutorial about: ${aiNarration}. Format as numbered steps with narration text. Keep it under 500 words.`;
+                      let reply: string;
+                      try { reply = await invoke<string>("openrouter_chat", { prompt, model }); }
+                      catch { reply = await invoke<string>("ai_chat", { prompt }); }
+                      setAiDescription(reply);
+                      toast.success("Narration script generated!");
+                    } catch (err) { toast.error("AI error: " + err); }
+                    setAiNarrationLoading(false);
+                  }}
+                  disabled={aiNarrationLoading}
+                  className="btn btn-cyan text-[9px] py-1 px-3"
+                >
+                  {aiNarrationLoading ? "Generating..." : "Generate Script"}
+                </button>
+                <button
+                  onClick={async () => {
+                    if (!aiDescription) return;
+                    try {
+                      const path = await invoke<string>("ai_generate_tts", { text: aiDescription.slice(0, 500) });
+                      toast.success("TTS audio saved: " + path);
+                    } catch (err) { toast.error("TTS error: " + err); }
+                  }}
+                  disabled={!aiDescription}
+                  className="btn text-[9px] py-1 px-3"
+                  title="Convert narration to speech"
+                >
+                  {"\u{1F50A}"} TTS
+                </button>
+              </div>
+            </div>
+            {/* AI Description Output */}
+            <div className="p-3 rounded-lg bg-studio-bg border border-studio-border">
+              <div className="text-[10px] font-semibold text-studio-text mb-1">{"\u{1F4DD}"} Generated Script</div>
+              <div className="text-[8px] text-studio-muted mb-2">AI-generated narration script output</div>
+              <div className="h-24 overflow-y-auto scrollbar-thin">
+                {aiDescription ? (
+                  <pre className="text-[9px] text-studio-secondary whitespace-pre-wrap">{aiDescription}</pre>
+                ) : (
+                  <div className="text-[9px] text-studio-muted text-center py-4">Enter a topic and click Generate</div>
+                )}
+              </div>
+              {aiDescription && (
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(aiDescription);
+                    toast.success("Copied to clipboard!");
+                  }}
+                  className="btn text-[8px] py-0.5 px-2 mt-1"
+                >{"\u{1F4CB}"} Copy</button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex flex-1 min-h-0">

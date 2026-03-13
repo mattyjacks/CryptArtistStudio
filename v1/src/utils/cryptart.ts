@@ -64,6 +64,8 @@
 // Current known program IDs (not enforced - any string is valid)
 // ---------------------------------------------------------------------------
 
+import { sanitizeObjectKeys, isValidISODate, logSecurityEvent } from "./security";
+
 export const KNOWN_PROGRAMS = [
   "media-mogul",
   "vibecode-worker",
@@ -263,8 +265,28 @@ export function serializeCryptArt(file: CryptArtFile): string {
 // Parse (backward-compatible with ALL past .CryptArt files)
 // ---------------------------------------------------------------------------
 
+const MAX_CRYPTART_SIZE = 50 * 1024 * 1024; // 50 MB
+
 export function parseCryptArt(json: string): CryptArtFile {
-  const raw = JSON.parse(json);
+  // Size guard to prevent parsing extremely large payloads
+  if (json.length > MAX_CRYPTART_SIZE) {
+    throw new Error(`CryptArt file too large: ${json.length} bytes (max ${MAX_CRYPTART_SIZE}).`);
+  }
+
+  let raw: Record<string, unknown>;
+  try {
+    raw = JSON.parse(json);
+  } catch (e) {
+    throw new Error(`Invalid .CryptArt file: malformed JSON. ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // Must be a plain object
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new Error("Invalid .CryptArt file: root must be a JSON object.");
+  }
+
+  // Vuln 50: Protect against prototype pollution
+  raw = sanitizeObjectKeys(raw);
 
   // --- Backward compatibility: upgrade old format files in-memory ---
   // Old files have {program, version, name, createdAt, updatedAt, data} but no $cryptart.
@@ -278,16 +300,38 @@ export function parseCryptArt(json: string): CryptArtFile {
     }
   }
 
+  // Validate $cryptart is a number
+  if (typeof raw.$cryptart !== "number" || raw.$cryptart < 1) {
+    throw new Error("Invalid .CryptArt file: '$cryptart' must be a positive number.");
+  }
+
   // --- Validate minimum required fields ---
-  if (!raw.program) {
-    throw new Error("Invalid .CryptArt file: missing 'program' field.");
+  if (!raw.program || typeof raw.program !== "string") {
+    throw new Error("Invalid .CryptArt file: missing or invalid 'program' field.");
+  }
+  if (typeof raw.program === "string" && raw.program.length > 200) {
+    throw new Error("Invalid .CryptArt file: 'program' field too long.");
   }
   if (raw.data === undefined || raw.data === null) {
     // Tolerate missing data by defaulting to empty object
     raw.data = {};
   }
+  // Ensure data is a plain object
+  if (typeof raw.data !== "object" || Array.isArray(raw.data)) {
+    throw new Error("Invalid .CryptArt file: 'data' must be an object.");
+  }
 
-  return raw as CryptArtFile;
+  // Vuln 49: Validate ISO date strings if present
+  if (raw.createdAt && typeof raw.createdAt === "string" && !isValidISODate(raw.createdAt as string)) {
+    logSecurityEvent("cryptart", "low", "Invalid createdAt date in .CryptArt file", raw.createdAt as string);
+    raw.createdAt = new Date().toISOString();
+  }
+  if (raw.updatedAt && typeof raw.updatedAt === "string" && !isValidISODate(raw.updatedAt as string)) {
+    logSecurityEvent("cryptart", "low", "Invalid updatedAt date in .CryptArt file", raw.updatedAt as string);
+    raw.updatedAt = new Date().toISOString();
+  }
+
+  return raw as unknown as CryptArtFile;
 }
 
 // ---------------------------------------------------------------------------
@@ -299,18 +343,22 @@ export function routeForProgram(program: string): string {
 }
 
 export function isCryptArtFile(json: string): boolean {
+  if (!json || json.length > MAX_CRYPTART_SIZE) return false;
   try {
     const raw = JSON.parse(json);
-    return (raw.$cryptart !== undefined || (raw.program && raw.version)) && true;
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return false;
+    return (raw.$cryptart !== undefined || (typeof raw.program === "string" && raw.version !== undefined));
   } catch {
     return false;
   }
 }
 
 export function getCryptArtProgram(json: string): string | null {
+  if (!json || json.length > MAX_CRYPTART_SIZE) return null;
   try {
     const raw = JSON.parse(json);
-    return raw.program || null;
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+    return typeof raw.program === "string" ? raw.program : null;
   } catch {
     return null;
   }

@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
       navLinks.classList.toggle('open');
       const isOpen = navLinks.classList.contains('open');
       navToggle.setAttribute('aria-expanded', isOpen);
-      navToggle.innerHTML = isOpen ? '&#x2715;' : '&#9776;';
+      navToggle.textContent = isOpen ? '\u2715' : '\u2630';
     });
 
     // Close mobile menu when a link is clicked
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
       link.addEventListener('click', () => {
         navLinks.classList.remove('open');
         navToggle.setAttribute('aria-expanded', 'false');
-        navToggle.innerHTML = '&#9776;';
+        navToggle.textContent = '\u2630';
       });
     });
   }
@@ -92,8 +92,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', (e) => {
       const targetId = anchor.getAttribute('href');
-      if (targetId === '#') return;
-      const target = document.querySelector(targetId);
+      if (targetId === '#' || !targetId) return;
+      // Security: validate that targetId is a simple ID selector to prevent CSS selector injection
+      if (!/^#[a-zA-Z0-9_-]+$/.test(targetId)) return;
+      let target;
+      try { target = document.querySelector(targetId); } catch (e) { return; }
       if (target) {
         e.preventDefault();
         const navHeight = nav ? nav.offsetHeight : 0;
@@ -110,9 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const el = entry.target;
-          const target = parseInt(el.getAttribute('data-count'), 10);
-          const suffix = el.getAttribute('data-suffix') || '';
-          const prefix = el.getAttribute('data-prefix') || '';
+          const target = parseInt(el.getAttribute('data-count') || '0', 10);
+          if (isNaN(target) || target < 0) return;
+          const suffix = (el.getAttribute('data-suffix') || '').slice(0, 10);
+          const prefix = (el.getAttribute('data-prefix') || '').slice(0, 10);
           const duration = 1500;
           const start = performance.now();
 
