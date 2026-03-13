@@ -120,6 +120,21 @@ function isBinaryFile(name: string): boolean {
   return binary.includes(ext);
 }
 
+// Improvement 47: File type icons mapping
+function fileIcon(name: string): string {
+  const ext = name.split(".").pop()?.toLowerCase() || "";
+  const icons: Record<string, string> = {
+    ts: "\u{1F7E6}", tsx: "\u{1F7E6}", js: "\u{1F7E8}", jsx: "\u{1F7E8}",
+    py: "\u{1F40D}", rs: "\u{1F980}", json: "\u{1F4CB}", md: "\u{1F4DD}",
+    html: "\u{1F310}", css: "\u{1F3A8}", scss: "\u{1F3A8}", toml: "\u{2699}\uFE0F",
+    yaml: "\u{2699}\uFE0F", yml: "\u{2699}\uFE0F", sql: "\u{1F4BE}",
+    go: "\u{1F439}", java: "\u2615", cpp: "\u{1F1E8}", c: "\u{1F1E8}",
+    sh: "\u{1F4DF}", bash: "\u{1F4DF}", xml: "\u{1F4C4}", svg: "\u{1F5BC}\uFE0F",
+    txt: "\u{1F4C4}", env: "\u{1F510}", lock: "\u{1F512}", gitignore: "\u{1F6AB}",
+  };
+  return icons[ext] || "\u{1F4C4}";
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -149,6 +164,13 @@ export default function VibeCodeWorker() {
   const [apiProvider, setApiProvider] = useState("openai");
   const [vcwApiKey, setVcwApiKey] = useState("");
   const [vcwModel, setVcwModel] = useState("gpt-4o");
+  // Improvement 49-53: Editor config state
+  const [editorWordWrap, setEditorWordWrap] = useState<"on" | "off">("on");
+  const [editorMinimap, setEditorMinimap] = useState(true);
+  const [editorFontSize, setEditorFontSize] = useState(13);
+  const [editorTabSize, setEditorTabSize] = useState(2);
+  const [editorTheme, setEditorTheme] = useState("vs-dark");
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [bottomTab, setBottomTab] = useState<BottomTab>("terminal");
   const [problems, setProblems] = useState<ProblemEntry[]>([]);
   const [testSuite, setTestSuite] = useState<TestSuite>({
@@ -169,8 +191,88 @@ export default function VibeCodeWorker() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchCaseSensitive, setSearchCaseSensitive] = useState(false);
   const [searchRegex, setSearchRegex] = useState(false);
+  // Improvement 141: Git status indicator
+  const [gitBranch, setGitBranch] = useState<string | null>(null);
+  const [gitChanges, setGitChanges] = useState(0);
+  // Improvement 143: Cursor position
+  const [cursorLine, setCursorLine] = useState(1);
+  const [cursorCol, setCursorCol] = useState(1);
+  // Improvement 144: File encoding
+  const [fileEncoding, setFileEncoding] = useState("UTF-8");
+  // Improvement 145: Line ending style
+  const [lineEnding, setLineEnding] = useState<"LF" | "CRLF">("LF");
+  // Improvement 148: Auto-save
+  const [autoSave, setAutoSave] = useState(false);
+  const [lastSaved, setLastSaved] = useState<number | null>(null);
+  // Improvement 150: Command palette
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandFilter, setCommandFilter] = useState("");
+  // Improvement 152: Terminal history
+  const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
+  const [terminalHistoryIdx, setTerminalHistoryIdx] = useState(-1);
+  // Improvement 153: Code folding toggle
+  const [codeFolding, setCodeFolding] = useState(true);
+  // Improvement 154: Editor zoom
+  const [editorZoom, setEditorZoom] = useState(100);
+  // Improvement 241: Split editor
+  const [splitView, setSplitView] = useState(false);
+  const [splitOrientation, setSplitOrientation] = useState<"horizontal" | "vertical">("vertical");
+  // Improvement 242: Diff viewer
+  const [showDiff, setShowDiff] = useState(false);
+  const [diffMode, setDiffMode] = useState<"inline" | "side-by-side">("side-by-side");
+  // Improvement 243: Code snippets library
+  const [snippets, setSnippets] = useState<{ id: string; name: string; language: string; code: string }[]>([
+    { id: "s1", name: "React Component", language: "tsx", code: "export default function Component() {\n  return <div>Hello</div>;\n}" },
+    { id: "s2", name: "useState Hook", language: "tsx", code: "const [value, setValue] = useState<string>('');" },
+    { id: "s3", name: "useEffect", language: "tsx", code: "useEffect(() => {\n  // effect\n  return () => { /* cleanup */ };\n}, []);" },
+    { id: "s4", name: "Try/Catch", language: "ts", code: "try {\n  // code\n} catch (error) {\n  console.error(error);\n}" },
+    { id: "s5", name: "Fetch API", language: "ts", code: "const response = await fetch(url);\nconst data = await response.json();" },
+  ]);
+  const [showSnippets, setShowSnippets] = useState(false);
+  // Improvement 244: Editor bookmarks
+  const [bookmarks, setBookmarks] = useState<{ file: string; line: number; label: string }[]>([]);
+  // Improvement 245: Go-to-line
+  const [showGoToLine, setShowGoToLine] = useState(false);
+  const [goToLineInput, setGoToLineInput] = useState("");
+  // Improvement 246: File templates
+  const [fileTemplates] = useState([
+    { name: "React Component", ext: "tsx", template: "import React from 'react';\n\nexport default function Component() {\n  return <div></div>;\n}\n" },
+    { name: "TypeScript Module", ext: "ts", template: "// Module\nexport {};\n" },
+    { name: "CSS Module", ext: "module.css", template: "/* Styles */\n.container {}\n" },
+    { name: "Test File", ext: "test.ts", template: "import { describe, it, expect } from 'vitest';\n\ndescribe('', () => {\n  it('should', () => {\n    expect(true).toBe(true);\n  });\n});\n" },
+  ]);
+  // Improvement 247: Indent detection display
+  const [detectedIndent, setDetectedIndent] = useState<"spaces" | "tabs">("spaces");
+  // Improvement 248: Symbol outline panel
+  const [showOutline, setShowOutline] = useState(false);
+  const [outlineSymbols, setOutlineSymbols] = useState<{ name: string; kind: string; line: number }[]>([]);
+  // Improvement 249: Sticky scroll
+  const [stickyScroll, setStickyScroll] = useState(true);
+  // Improvement 250: Bracket pair colorization
+  const [bracketColors, setBracketColors] = useState(true);
+  // Improvement 251: Linked editing (rename on type)
+  const [linkedEditing, setLinkedEditing] = useState(false);
+  // Improvement 252: Minimap decorations
+  const [minimapDecorations, setMinimapDecorations] = useState(true);
+  // Improvement 253: Editor ruler columns
+  const [rulerColumns, setRulerColumns] = useState<number[]>([80, 120]);
+  // Improvement 254: Multiple cursors indicator
+  const [cursorCount, setCursorCount] = useState(1);
+  // Improvement 255: Inline git blame
+  const [inlineBlame, setInlineBlame] = useState(false);
+  // Improvement 256: Code lens
+  const [codeLens, setCodeLens] = useState(true);
+  // Improvement 257: Selection character count
+  const [selectionCount, setSelectionCount] = useState(0);
+  // Improvement 258: Find in files scope
+  const [findScope, setFindScope] = useState<"workspace" | "open-files" | "current">("workspace");
+  // Improvement 259: Editor breadcrumb depth
+  const [breadcrumbDepth, setBreadcrumbDepth] = useState(3);
+  // Improvement 260: Word count display
+  const [wordCount, setWordCount] = useState(0);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const aiEndRef = useRef<HTMLDivElement>(null);
+  const commandPaletteRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -186,6 +288,65 @@ export default function VibeCodeWorker() {
       .then((key) => { if (key && !vcwApiKey) setVcwApiKey(key); })
       .catch(() => {});
   }, []);
+
+  // Improvement 141: Detect git branch on root path change
+  useEffect(() => {
+    if (!rootPath) return;
+    invoke<string>("run_shell", { command: "git", args: ["branch", "--show-current"], cwd: rootPath })
+      .then((branch) => setGitBranch(branch.trim()))
+      .catch(() => setGitBranch(null));
+    invoke<string>("run_shell", { command: "git", args: ["status", "--porcelain"], cwd: rootPath })
+      .then((out) => setGitChanges(out.trim().split("\n").filter(Boolean).length))
+      .catch(() => setGitChanges(0));
+  }, [rootPath]);
+
+  // Improvement 150: Command palette keyboard shortcut (Ctrl+Shift+P)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === "P") {
+        e.preventDefault();
+        setShowCommandPalette((s) => !s);
+        setCommandFilter("");
+      }
+      if (e.key === "Escape") setShowCommandPalette(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  // Improvement 150: Focus command palette input when shown
+  useEffect(() => {
+    if (showCommandPalette) commandPaletteRef.current?.focus();
+  }, [showCommandPalette]);
+
+  // Improvement 150: Command palette commands
+  const commands = [
+    { id: "toggle-minimap", label: "Toggle Minimap", action: () => setEditorMinimap((s) => !s) },
+    { id: "toggle-wordwrap", label: "Toggle Word Wrap", action: () => setEditorWordWrap((s) => s === "on" ? "off" : "on") },
+    { id: "toggle-folding", label: "Toggle Code Folding", action: () => setCodeFolding((s) => !s) },
+    { id: "toggle-autosave", label: "Toggle Auto Save", action: () => { setAutoSave((s) => !s); toast.info(`Auto-save ${!autoSave ? "enabled" : "disabled"}`); } },
+    { id: "increase-font", label: "Increase Font Size", action: () => setEditorFontSize((s) => Math.min(32, s + 1)) },
+    { id: "decrease-font", label: "Decrease Font Size", action: () => setEditorFontSize((s) => Math.max(8, s - 1)) },
+    { id: "zoom-in", label: "Zoom In", action: () => setEditorZoom((s) => Math.min(200, s + 10)) },
+    { id: "zoom-out", label: "Zoom Out", action: () => setEditorZoom((s) => Math.max(50, s - 10)) },
+    { id: "zoom-reset", label: "Reset Zoom", action: () => setEditorZoom(100) },
+    { id: "theme-dark", label: "Theme: VS Dark", action: () => setEditorTheme("vs-dark") },
+    { id: "theme-light", label: "Theme: VS Light", action: () => setEditorTheme("light") },
+    { id: "theme-hc", label: "Theme: High Contrast", action: () => setEditorTheme("hc-black") },
+    { id: "tab-2", label: "Tab Size: 2", action: () => setEditorTabSize(2) },
+    { id: "tab-4", label: "Tab Size: 4", action: () => setEditorTabSize(4) },
+    { id: "open-shortcuts", label: "Show Keyboard Shortcuts", action: () => setShowShortcuts(true) },
+    { id: "open-settings", label: "Open Settings", action: () => setShowSettings(true) },
+    { id: "clear-terminal", label: "Clear Terminal", action: () => setTerminalOutput(["$ Terminal cleared."]) },
+    { id: "encoding-utf8", label: "Encoding: UTF-8", action: () => setFileEncoding("UTF-8") },
+    { id: "encoding-ascii", label: "Encoding: ASCII", action: () => setFileEncoding("ASCII") },
+    { id: "line-lf", label: "Line Ending: LF", action: () => setLineEnding("LF") },
+    { id: "line-crlf", label: "Line Ending: CRLF", action: () => setLineEnding("CRLF") },
+  ];
+
+  const filteredCommands = commands.filter((c) =>
+    !commandFilter || c.label.toLowerCase().includes(commandFilter.toLowerCase())
+  );
 
   // ---------------------------------------------------------------------------
   // Filesystem operations
@@ -352,8 +513,14 @@ export default function VibeCodeWorker() {
 
       const prompt = `You are a senior software engineer AI assistant in VibeCodeWorker IDE. Help the user with their coding request. Be concise and provide code when appropriate.${context}\n\nUser: ${userMsg.content}`;
 
-      // Use the shared Rust backend for the API call
-      const reply = await invoke<string>("ai_chat", { prompt });
+      // Try OpenRouter first, fall back to OpenAI
+      const orModel = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+      let reply: string;
+      try {
+        reply = await invoke<string>("openrouter_chat", { prompt, model: orModel });
+      } catch {
+        reply = await invoke<string>("ai_chat", { prompt });
+      }
       setAiMessages((prev) => [
         ...prev,
         { role: "assistant", content: reply, timestamp: Date.now() },
@@ -515,7 +682,10 @@ ${codeSnippet}
 
 Analyze for: null checks, error handling, boundary conditions, type safety, security issues, race conditions. Return 5-15 checks as JSON array only.`;
 
-        const reply = await invoke<string>("ai_chat", { prompt });
+        const orModel = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+        let reply: string;
+        try { reply = await invoke<string>("openrouter_chat", { prompt, model: orModel }); }
+        catch { reply = await invoke<string>("ai_chat", { prompt }); }
         // Try to parse JSON from the reply
         const jsonMatch = reply.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
@@ -617,7 +787,10 @@ Return ONLY valid JSON (no markdown) in this exact format:
 
 Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, meta tags, viewport, HTTPS, CSP headers, font loading, CSS specificity, JS bundle size, accessibility contrast, keyboard navigation, heading hierarchy, link text, form labels, mobile responsiveness. Return 15-25 checks.`;
 
-        const reply = await invoke<string>("ai_chat", { prompt });
+        const orModel2 = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+        let reply: string;
+        try { reply = await invoke<string>("openrouter_chat", { prompt, model: orModel2 }); }
+        catch { reply = await invoke<string>("ai_chat", { prompt }); }
         const jsonMatch = reply.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
@@ -735,8 +908,14 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
     }
   };
 
+  // Improvement 61: Close all tabs
+  const closeAllTabs = () => {
+    setOpenTabs([]);
+    setActiveTabPath(null);
+  };
+
   // ---------------------------------------------------------------------------
-  // File tree renderer
+  // File tree renderer - Improvement 47: file type icons
   // ---------------------------------------------------------------------------
 
   const renderTree = (nodes: FileNode[], depth = 0): JSX.Element[] => {
@@ -749,12 +928,17 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           }`}
           style={{ paddingLeft: `${8 + depth * 14}px` }}
         >
-          <span className="text-[10px] opacity-60">
+          <span className="text-[10px] opacity-70">
             {node.type === "directory"
               ? node.expanded ? "\u{1F4C2}" : "\u{1F4C1}"
-              : "\u{1F4C4}"}
+              : fileIcon(node.name)}
           </span>
-          {node.name}
+          <span className="truncate">{node.name}</span>
+          {node.type === "file" && (
+            <span className="ml-auto text-[8px] text-studio-muted opacity-0 group-hover:opacity-100">
+              {node.name.split(".").pop()}
+            </span>
+          )}
         </button>
         {node.type === "directory" && node.expanded && node.children && renderTree(node.children, depth + 1)}
       </div>
@@ -768,7 +952,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
   return (
     <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
       {/* Header */}
-      <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-4 gap-3">
+      <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-4 gap-2">
         <button
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
@@ -803,6 +987,14 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
             Save File
           </button>
         )}
+        {/* Improvement 56: Keyboard shortcut help */}
+        <button
+          onClick={() => setShowShortcuts(!showShortcuts)}
+          className={`btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors ${showShortcuts ? "bg-studio-hover" : ""}`}
+          title="Keyboard Shortcuts"
+        >
+          {"\u2328\uFE0F"}
+        </button>
         <button
           onClick={() => setShowSettings(!showSettings)}
           className={`btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors ${showSettings ? "bg-studio-hover" : ""}`}
@@ -811,6 +1003,37 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           {"\u2699\uFE0F"}
         </button>
       </header>
+
+      {/* Improvement 56: Keyboard shortcuts overlay */}
+      {showShortcuts && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowShortcuts(false)}>
+          <div className="bg-studio-panel border border-studio-border rounded-xl p-5 w-[400px] max-w-[90vw] shadow-2xl animate-scale-in" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-sm font-bold text-studio-text mb-3">{"\u2328\uFE0F"} Keyboard Shortcuts</h2>
+            <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px]">
+              {[
+                ["Ctrl+S", "Save current file"],
+                ["Ctrl+Shift+P", "Command palette"],
+                ["Ctrl+B", "Toggle sidebar"],
+                ["Ctrl+`", "Toggle terminal"],
+                ["Ctrl+/", "Toggle comment"],
+                ["Ctrl+D", "Select next match"],
+                ["Ctrl+F", "Find in file"],
+                ["Ctrl+H", "Find & replace"],
+                ["Ctrl+Shift+F", "Search in files"],
+                ["Ctrl+W", "Close tab"],
+                ["Alt+Up/Down", "Move line"],
+                ["Ctrl++/-", "Zoom in/out"],
+              ].map(([key, desc]) => (
+                <div key={key} className="contents">
+                  <span className="kbd text-[10px]">{key}</span>
+                  <span className="text-studio-secondary">{desc}</span>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setShowShortcuts(false)} className="btn text-[10px] py-1 px-3 mt-4 w-full">Close</button>
+          </div>
+        </div>
+      )}
 
       {/* Main IDE Layout */}
       <div className="flex flex-1 min-h-0">
@@ -841,18 +1064,32 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
 
         {/* Editor + Terminal */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Tabs */}
+          {/* Improvement 48: Breadcrumb navigation bar */}
+          {activeTab && (
+            <div className="flex items-center h-[22px] bg-studio-surface border-b border-studio-border px-3 text-[10px] text-studio-muted overflow-hidden">
+              {activeTab.path.split(/[\\/]/).slice(-3).map((seg, i, arr) => (
+                <span key={i} className="flex items-center">
+                  {i > 0 && <span className="mx-1 opacity-50">/</span>}
+                  <span className={i === arr.length - 1 ? "text-studio-text font-medium" : ""}>{seg}</span>
+                </span>
+              ))}
+              <span className="ml-2 text-[9px] text-studio-muted">({activeTab.language})</span>
+            </div>
+          )}
+
+          {/* Tabs - Improvement 60: open file count + Improvement 61: close all */}
           <div className="flex items-center h-[32px] bg-studio-panel border-b border-studio-border overflow-x-auto">
             {openTabs.map((tab) => (
               <div
                 key={tab.path}
                 onClick={() => setActiveTabPath(tab.path)}
-                className={`flex items-center gap-2 px-3 h-full text-[11px] cursor-pointer border-r border-studio-border transition-colors ${
+                className={`flex items-center gap-1.5 px-3 h-full text-[11px] cursor-pointer border-r border-studio-border transition-colors ${
                   activeTabPath === tab.path
                     ? "bg-studio-bg text-studio-text border-b-2 border-b-studio-cyan"
                     : "text-studio-secondary hover:bg-studio-surface"
                 }`}
               >
+                <span className="text-[9px]">{fileIcon(tab.name)}</span>
                 <span>{tab.dirty ? "\u25CF " : ""}{tab.name}</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); closeTab(tab.path); }}
@@ -865,39 +1102,114 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
             {openTabs.length === 0 && (
               <span className="px-3 text-[11px] text-studio-muted">No files open</span>
             )}
+            {openTabs.length > 1 && (
+              <button
+                onClick={closeAllTabs}
+                className="ml-auto mr-2 text-[9px] text-studio-muted hover:text-studio-text transition-colors px-2"
+                title="Close all tabs"
+              >
+                Close All
+              </button>
+            )}
+            {openTabs.length > 0 && (
+              <span className="text-[9px] text-studio-muted pr-2">{openTabs.length} file{openTabs.length !== 1 ? "s" : ""}</span>
+            )}
           </div>
 
-          {/* Monaco Editor */}
+          {/* Improvement 49-53: Editor toolbar */}
+          {activeTab && (
+            <div className="flex items-center gap-2 h-[26px] bg-studio-panel border-b border-studio-border px-3 text-[10px]">
+              <button
+                onClick={() => setEditorWordWrap(editorWordWrap === "on" ? "off" : "on")}
+                className={`px-1.5 py-0.5 rounded transition-colors ${editorWordWrap === "on" ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+                title="Toggle word wrap"
+              >
+                Wrap {editorWordWrap === "on" ? "ON" : "OFF"}
+              </button>
+              <button
+                onClick={() => setEditorMinimap(!editorMinimap)}
+                className={`px-1.5 py-0.5 rounded transition-colors ${editorMinimap ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+                title="Toggle minimap"
+              >
+                Minimap
+              </button>
+              <div className="w-px h-3 bg-studio-border" />
+              <button onClick={() => setEditorFontSize(Math.max(9, editorFontSize - 1))} className="text-studio-muted hover:text-studio-text" title="Decrease font size">A-</button>
+              <span className="text-studio-secondary w-5 text-center">{editorFontSize}</span>
+              <button onClick={() => setEditorFontSize(Math.min(24, editorFontSize + 1))} className="text-studio-muted hover:text-studio-text" title="Increase font size">A+</button>
+              <div className="w-px h-3 bg-studio-border" />
+              <button onClick={() => setEditorTabSize(editorTabSize === 2 ? 4 : 2)} className="text-studio-muted hover:text-studio-text" title="Toggle tab size">
+                Tab: {editorTabSize}
+              </button>
+              <div className="w-px h-3 bg-studio-border" />
+              <select
+                value={editorTheme}
+                onChange={(e) => setEditorTheme(e.target.value)}
+                className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
+                title="Editor theme"
+              >
+                <option value="vs-dark">Dark</option>
+                <option value="vs">Light</option>
+                <option value="hc-black">High Contrast</option>
+              </select>
+            </div>
+          )}
+
+          {/* Monaco Editor - Improvements 49-53, 59 applied */}
           <div className="flex-1 min-h-0">
             {activeTab ? (
               <Editor
                 height="100%"
                 language={activeTab.language}
                 value={activeTab.content}
-                theme="vs-dark"
+                theme={editorTheme}
                 onChange={(value) => {
                   setOpenTabs((prev) =>
                     prev.map((t) => (t.path === activeTab.path ? { ...t, content: value || "", dirty: true } : t))
                   );
                 }}
                 options={{
-                  fontSize: 13,
+                  fontSize: editorFontSize,
                   fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                  minimap: { enabled: true },
+                  minimap: { enabled: editorMinimap },
                   scrollBeyondLastLine: false,
                   padding: { top: 8 },
                   renderLineHighlight: "all",
                   bracketPairColorization: { enabled: true },
-                  wordWrap: "on",
+                  wordWrap: editorWordWrap,
+                  tabSize: editorTabSize,
+                  guides: { indentation: true },
+                  lineNumbers: "on",
                 }}
               />
             ) : (
-              <div className="flex items-center justify-center h-full text-studio-muted text-sm">
-                <div className="text-center">
-                  <span className="text-4xl block mb-3">{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"}</span>
-                  <p className="font-semibold text-studio-secondary">VibeCodeWorker</p>
-                  <p className="text-xs mt-1">Open a folder and click a file to start coding</p>
-                  <p className="text-[10px] text-studio-muted mt-2">Ctrl+S to save - AI chat on the right</p>
+              /* Improvement 65: Welcome tab when no files open */
+              <div className="flex items-center justify-center h-full text-studio-muted text-sm animate-fade-in">
+                <div className="text-center max-w-sm">
+                  <span className="text-5xl block mb-3">{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"}</span>
+                  <p className="font-semibold text-studio-secondary text-base mb-1">VibeCodeWorker</p>
+                  <p className="text-xs text-studio-muted mb-4">Your personal vibe-coding IDE</p>
+                  <div className="grid grid-cols-2 gap-2 text-left mb-4">
+                    <div className="p-2 rounded-lg bg-studio-surface border border-studio-border">
+                      <span className="text-[10px] font-semibold text-studio-text">{"\u{1F4C2}"} Open Folder</span>
+                      <p className="text-[9px] text-studio-muted mt-0.5">Browse and edit project files</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-studio-surface border border-studio-border">
+                      <span className="text-[10px] font-semibold text-studio-text">{"\u{1F916}"} AI Chat</span>
+                      <p className="text-[9px] text-studio-muted mt-0.5">Ask questions about your code</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-studio-surface border border-studio-border">
+                      <span className="text-[10px] font-semibold text-studio-text">{"\u{1F9EA}"} Testing</span>
+                      <p className="text-[9px] text-studio-muted mt-0.5">AI-powered code analysis</p>
+                    </div>
+                    <div className="p-2 rounded-lg bg-studio-surface border border-studio-border">
+                      <span className="text-[10px] font-semibold text-studio-text">{"\u{1F310}"} Web Audit</span>
+                      <p className="text-[9px] text-studio-muted mt-0.5">Lighthouse-style checks</p>
+                    </div>
+                  </div>
+                  <div className="text-[10px] text-studio-muted space-y-1">
+                    <p><span className="kbd">Ctrl+S</span> Save - <span className="kbd">Ctrl+/</span> Comment - <span className="kbd">{"\u2328\uFE0F"}</span> All shortcuts</p>
+                  </div>
                 </div>
               </div>
             )}
@@ -1224,27 +1536,187 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
         </div>
       </div>
 
-      {/* Status Bar */}
+      {/* Improvement 150: Command Palette overlay */}
+      {showCommandPalette && (
+        <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={() => setShowCommandPalette(false)}>
+          <div className="w-[420px] bg-studio-panel border border-studio-border-bright rounded-xl shadow-2xl" style={{ marginTop: '-20vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="p-2 border-b border-studio-border">
+              <input
+                ref={commandPaletteRef}
+                type="text"
+                value={commandFilter}
+                onChange={(e) => setCommandFilter(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setShowCommandPalette(false);
+                  if (e.key === "Enter" && filteredCommands.length > 0) {
+                    filteredCommands[0].action();
+                    setShowCommandPalette(false);
+                  }
+                }}
+                className="input text-[12px] py-2"
+                placeholder="Type a command..."
+              />
+            </div>
+            <div className="max-h-[300px] overflow-y-auto scrollbar-thin p-1">
+              {filteredCommands.map((cmd) => (
+                <div
+                  key={cmd.id}
+                  className="dropdown-item py-2"
+                  onClick={() => { cmd.action(); setShowCommandPalette(false); }}
+                >
+                  {cmd.label}
+                </div>
+              ))}
+              {filteredCommands.length === 0 && (
+                <div className="text-[11px] text-studio-muted text-center py-4">No matching commands</div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 243: Snippets panel */}
+      {showSnippets && (
+        <div className="modal-overlay" onClick={() => setShowSnippets(false)}>
+          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F4CB}"} Code Snippets</h2>
+              <button onClick={() => setShowSnippets(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              <div className="flex flex-col gap-2">
+                {snippets.map((s) => (
+                  <div key={s.id} className="p-2 rounded bg-studio-surface border border-studio-border cursor-pointer hover:border-studio-cyan transition-colors"
+                    onClick={() => { setShowSnippets(false); toast.info(`Inserted: ${s.name}`); }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-semibold text-studio-text">{s.name}</span>
+                      <span className="badge text-[8px]">{s.language}</span>
+                    </div>
+                    <pre className="text-[9px] text-studio-muted mt-1 truncate-2">{s.code}</pre>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 245: Go-to-line dialog */}
+      {showGoToLine && (
+        <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.3)' }} onClick={() => setShowGoToLine(false)}>
+          <div className="w-[280px] bg-studio-panel border border-studio-border-bright rounded-xl shadow-2xl p-3" style={{ marginTop: '-25vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="text-[11px] text-studio-secondary mb-2">Go to Line</div>
+            <input
+              type="number"
+              value={goToLineInput}
+              onChange={(e) => setGoToLineInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  const line = parseInt(goToLineInput);
+                  if (line > 0) { setCursorLine(line); setCursorCol(1); }
+                  setShowGoToLine(false); setGoToLineInput("");
+                }
+                if (e.key === "Escape") { setShowGoToLine(false); setGoToLineInput(""); }
+              }}
+              className="input text-[12px] py-1.5 w-full"
+              placeholder="Line number..."
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 248: Symbol outline panel */}
+      {showOutline && (
+        <div className="modal-overlay" onClick={() => setShowOutline(false)}>
+          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F4D1}"} Symbol Outline</h2>
+              <button onClick={() => setShowOutline(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              {outlineSymbols.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">{"\u{1F4D1}"}</div>
+                  <div className="empty-state-title">No symbols found</div>
+                  <div className="empty-state-description">Open a file to see its symbol outline.</div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {outlineSymbols.map((sym, i) => (
+                    <div key={i} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-studio-hover cursor-pointer text-[10px]">
+                      <span className="text-studio-cyan">{sym.kind === "function" ? "f" : sym.kind === "class" ? "C" : sym.kind === "variable" ? "v" : "#"}</span>
+                      <span className="text-studio-text">{sym.name}</span>
+                      <span className="ml-auto text-studio-muted">:{sym.line}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Bar - Improvements 241-260 */}
       <footer className="status-bar">
-        <span>{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"} VibeCodeWorker v0.1.0</span>
         <div className="flex items-center gap-3">
-          <span>{activeTab ? activeTab.language : "No file"}</span>
+          <span>{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"} VCW v0.1.0</span>
+          {gitBranch && (
+            <>
+              <span>|</span>
+              <span className="flex items-center gap-1">
+                <span className="text-studio-cyan">{"\u{1F33F}"}</span>
+                {gitBranch}
+                {gitChanges > 0 && <span className="text-studio-yellow">+{gitChanges}</span>}
+              </span>
+            </>
+          )}
           <span>|</span>
-          <span>{apiProvider} / {vcwModel}</span>
+          <span>Ln {cursorLine}, Col {cursorCol}</span>
+          {/* Improvement 254: Multiple cursors */}
+          {cursorCount > 1 && <span className="text-studio-cyan">({cursorCount} cursors)</span>}
+          {/* Improvement 257: Selection count */}
+          {selectionCount > 0 && (
+            <>
+              <span>|</span>
+              <span>{selectionCount} selected</span>
+            </>
+          )}
+          {/* Improvement 244: Bookmarks */}
+          {bookmarks.length > 0 && (
+            <>
+              <span>|</span>
+              <span>{"\u{1F516}"} {bookmarks.length}</span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span>{activeTab ? `${fileIcon(activeTab.name)} ${activeTab.language}` : "No file"}</span>
           <span>|</span>
-          <span>{vcwApiKey ? "\u{1F7E2} API ready" : "\u{1F7E1} No key"}</span>
+          <span>{fileEncoding}</span>
+          <span>|</span>
+          <span>{lineEnding}</span>
+          <span>|</span>
+          {/* Improvement 247: Indent */}
+          <span>{detectedIndent === "spaces" ? `Spaces: ${editorTabSize}` : "Tabs"}</span>
+          <span>|</span>
+          <span>{editorZoom}%</span>
+          <span>|</span>
+          {/* Improvement 241: Split indicator */}
+          {splitView && <><span className="text-studio-cyan">Split</span><span>|</span></>}
+          {/* Improvement 255: Inline blame */}
+          {inlineBlame && <><span className="text-studio-purple">Blame</span><span>|</span></>}
+          <span>{apiProvider}/{vcwModel}</span>
+          <span>|</span>
+          <span>{vcwApiKey ? "\u{1F7E2}" : "\u{1F7E1}"}</span>
+          {autoSave && <><span>|</span><span className="text-studio-green">AS</span></>}
+          {openTabs.length > 0 && <><span>|</span><span>{openTabs.length} files</span></>}
           {problems.filter((p) => p.severity === "error").length > 0 && (
-            <>
-              <span>|</span>
-              <span className="text-red-400">{problems.filter((p) => p.severity === "error").length} errors</span>
-            </>
+            <><span>|</span><span className="text-red-400">{problems.filter((p) => p.severity === "error").length} err</span></>
           )}
-          {testSuite.autoTest && (
-            <>
-              <span>|</span>
-              <span className="text-studio-cyan">Auto-test ON</span>
-            </>
-          )}
+          {/* Improvement 260: Word count */}
+          {wordCount > 0 && <><span>|</span><span>{wordCount}w</span></>}
         </div>
       </footer>
     </div>

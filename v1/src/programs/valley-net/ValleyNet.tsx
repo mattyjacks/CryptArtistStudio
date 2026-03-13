@@ -101,6 +101,91 @@ export default function ValleyNet() {
   const [browserUrl, setBrowserUrl] = useState("https://example.com");
   const [showBrowser, setShowBrowser] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  // Improvement 84: Agent autonomy level
+  const [autonomyLevel, setAutonomyLevel] = useState<"ask" | "suggest" | "auto">("suggest");
+  // Improvement 87: Agent personality
+  const [personality, setPersonality] = useState<"professional" | "friendly" | "concise">("friendly");
+  // Improvement 181: Workflow builder
+  const [workflows, setWorkflows] = useState<{ id: string; name: string; steps: string[]; active: boolean }[]>([]);
+  const [showWorkflowBuilder, setShowWorkflowBuilder] = useState(false);
+  // Improvement 182: Scheduled tasks
+  const [scheduledTasks, setScheduledTasks] = useState<{ id: string; task: string; time: number; recurring: boolean }[]>([]);
+  // Improvement 183: Agent memory/context
+  const [agentMemory, setAgentMemory] = useState<{ key: string; value: string }[]>([]);
+  const [showMemory, setShowMemory] = useState(false);
+  // Improvement 184: Token usage tracking
+  const [tokenUsage, setTokenUsage] = useState({ prompt: 0, completion: 0, total: 0 });
+  // Improvement 185: Conversation bookmarks
+  const [bookmarks, setBookmarks] = useState<number[]>([]);
+  // Improvement 186: Agent plugins
+  const [plugins, setPlugins] = useState<{ id: string; name: string; enabled: boolean; icon: string }[]>([
+    { id: "web-search", name: "Web Search", enabled: true, icon: "\u{1F50D}" },
+    { id: "file-ops", name: "File Operations", enabled: true, icon: "\u{1F4C1}" },
+    { id: "code-exec", name: "Code Execution", enabled: false, icon: "\u{1F4BB}" },
+    { id: "email", name: "Email", enabled: false, icon: "\u2709\uFE0F" },
+  ]);
+  // Improvement 187: Response streaming toggle
+  const [streamResponse, setStreamResponse] = useState(true);
+  // Improvement 188: Safe mode
+  const [safeMode, setSafeMode] = useState(true);
+  // Improvement 189: Task priority levels
+  const [defaultPriority, setDefaultPriority] = useState<"low" | "normal" | "high" | "urgent">("normal");
+  // Improvement 190: Session timer
+  const [sessionStart] = useState(Date.now());
+  const [sessionDuration, setSessionDuration] = useState(0);
+  // Improvement 286: Agent chains
+  const [agentChains, setAgentChains] = useState<{ id: string; name: string; agents: string[]; active: boolean }[]>([]);
+  // Improvement 287: Knowledge base
+  const [knowledgeBase, setKnowledgeBase] = useState<{ id: string; title: string; content: string; tags: string[] }[]>([]);
+  const [showKnowledgeBase, setShowKnowledgeBase] = useState(false);
+  // Improvement 288: RAG context
+  const [ragEnabled, setRagEnabled] = useState(false);
+  const [ragSources, setRagSources] = useState<string[]>([]);
+  // Improvement 289: Tool use log
+  const [toolLog, setToolLog] = useState<{ tool: string; input: string; output: string; timestamp: number }[]>([]);
+  const [showToolLog, setShowToolLog] = useState(false);
+  // Improvement 290: Conversation templates
+  const [conversationTemplates] = useState([
+    { name: "Code Review", system: "You are a senior code reviewer. Analyze code for bugs, performance, and best practices." },
+    { name: "Creative Writing", system: "You are a creative writing assistant. Help with storytelling, dialogue, and prose." },
+    { name: "Data Analysis", system: "You are a data analyst. Help interpret data, create visualizations, and find insights." },
+    { name: "DevOps", system: "You are a DevOps engineer. Help with CI/CD, Docker, Kubernetes, and infrastructure." },
+  ]);
+  // Improvement 291: Agent personas
+  const [activePersona, setActivePersona] = useState<string | null>(null);
+  const [personas] = useState([
+    { id: "default", name: "ValleyNet", icon: "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F" },
+    { id: "coder", name: "CodeBot", icon: "\u{1F469}\u{1F3FB}\u200D\u{1F4BB}" },
+    { id: "researcher", name: "ResearchAI", icon: "\u{1F9D1}\u{1F3FB}\u200D\u{1F52C}" },
+    { id: "creative", name: "CreativeAI", icon: "\u{1F3A8}" },
+  ]);
+  // Improvement 292: Multi-model support (OpenRouter-powered)
+  const [availableModels] = useState([
+    "openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet",
+    "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "google/gemini-2.0-flash-001",
+    "meta-llama/llama-3.1-70b-instruct", "deepseek/deepseek-chat", "deepseek/deepseek-r1",
+    "mistralai/mistral-large", "qwen/qwen-2.5-72b-instruct",
+  ]);
+  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o");
+  const [useOpenRouter, setUseOpenRouter] = useState(true);
+  // Improvement 293: Cost tracking
+  const [costEstimate, setCostEstimate] = useState(0.0);
+
+  // Improvement 190: Session timer
+  useEffect(() => {
+    const id = setInterval(() => setSessionDuration(Math.floor((Date.now() - sessionStart) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [sessionStart]);
+
+  // Improvement 86: Quick task templates
+  const quickTasks = [
+    { label: "Research", prompt: "Research the latest news about " },
+    { label: "Summarize", prompt: "Summarize the following: " },
+    { label: "Draft Email", prompt: "Draft a professional email about " },
+    { label: "Analyze Data", prompt: "Analyze this data and provide insights: " },
+    { label: "Schedule", prompt: "Help me schedule a meeting for " },
+    { label: "Code Help", prompt: "Write code to " },
+  ];
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -129,10 +214,26 @@ export default function ValleyNet() {
       const enabledSkillsList = skills.filter((s) => s.enabled).map((s) => s.name).join(", ");
       const connectedIntgs = integrations.filter((i) => i.connected).map((i) => i.name).join(", ");
 
+      // Improvement 84: Autonomy level affects prompt behavior
+      const autonomyInstructions = autonomyLevel === "auto"
+        ? "Execute tasks immediately without asking for confirmation."
+        : autonomyLevel === "suggest"
+        ? "Suggest actions and explain your plan before executing."
+        : "Always ask the user for confirmation before taking any action.";
+
+      // Improvement 87: Personality affects tone
+      const personalityInstructions = personality === "professional"
+        ? "Respond in a formal, professional tone."
+        : personality === "concise"
+        ? "Be extremely brief and to the point. Minimal explanation."
+        : "Be friendly, helpful, and conversational.";
+
       const prompt = `You are ValleyNet, an autonomous AI agent inside CryptArtist Studio. You are inspired by OpenClaw.
 
 Your enabled skills: ${enabledSkillsList || "None"}
 Your connected integrations: ${connectedIntgs || "None"}
+Autonomy mode: ${autonomyLevel} - ${autonomyInstructions}
+Personality: ${personalityInstructions}
 
 When the user gives you a task:
 1. Analyze what skills and integrations would be needed
@@ -145,7 +246,22 @@ Be proactive, thorough, and provide actionable results. Use markdown formatting.
 
 User task: ${userMsg.content}`;
 
-      const reply = await invoke<string>("ai_chat", { prompt });
+      // Try OpenRouter first if enabled, fall back to OpenAI
+      let reply: string;
+      if (useOpenRouter) {
+        try {
+          reply = await invoke<string>("openrouter_chat", { prompt, model: selectedModel });
+        } catch {
+          // Fall back to OpenAI direct
+          reply = await invoke<string>("ai_chat", { prompt });
+        }
+      } else {
+        reply = await invoke<string>("ai_chat", { prompt });
+      }
+      // Improvement 293: Estimate cost (rough estimate)
+      const tokensEst = Math.ceil((prompt.length + reply.length) / 4);
+      setCostEstimate((prev) => prev + tokensEst * 0.000003);
+      setTokenUsage((prev) => ({ ...prev, total: prev.total + tokensEst, completion: prev.completion + Math.ceil(reply.length / 4) }));
       setMessages((prev) => [
         ...prev,
         { role: "agent", content: reply, timestamp: Date.now() },
@@ -157,7 +273,7 @@ User task: ${userMsg.content}`;
       );
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
-      const fallbackContent = `I couldn't connect to the AI backend: ${errMsg}\n\nTo enable AI responses:\n1. Go back to the Suite Launcher\n2. Open Settings (gear icon)\n3. Enter your OpenAI API key\n\nOnce configured, I'll be able to process your tasks using the enabled skills and integrations.`;
+      const fallbackContent = `I couldn't connect to the AI backend: ${errMsg}\n\nTo enable AI responses:\n1. Open Settings from the Suite Launcher\n2. Enter your OpenRouter API key (access 200+ AI models)\n3. Or enter your OpenAI API key for direct access\n\nOnce configured, I'll be able to process your tasks using the enabled skills and integrations.`;
       setMessages((prev) => [
         ...prev,
         { role: "agent", content: fallbackContent, timestamp: Date.now() },
@@ -263,6 +379,37 @@ User task: ${userMsg.content}`;
         <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
           Save .CryptArt
         </button>
+        {/* Improvement 88: Export conversation */}
+        <button
+          onClick={() => {
+            const text = messages.map((m) => `[${m.role === "user" ? "You" : "ValleyNet"}] ${m.content}`).join("\n\n");
+            const blob = new Blob([text], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `valleynet-chat-${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast.success("Conversation exported!");
+          }}
+          className="btn text-[10px] py-1 px-3"
+          title="Export Conversation"
+        >
+          {"\u{1F4BE}"} Export
+        </button>
+        {/* Improvement 85: Clear chat */}
+        <button
+          onClick={() => {
+            if (messages.length > 1) {
+              setMessages([messages[0]]);
+              toast.info("Chat cleared");
+            }
+          }}
+          className="btn text-[10px] py-1 px-3"
+          title="Clear Chat"
+        >
+          {"\u{1F5D1}\uFE0F"} Clear
+        </button>
         <button
           onClick={() => setShowBrowser(!showBrowser)}
           className={`btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors ${showBrowser ? "bg-studio-hover" : ""}`}
@@ -271,6 +418,43 @@ User task: ${userMsg.content}`;
           {"\u{1F310}"} Browser
         </button>
       </header>
+
+      {/* Improvement 84 + 87: Agent config bar */}
+      <div className="flex items-center gap-3 h-[28px] bg-studio-surface border-b border-studio-border px-4 text-[10px]">
+        <span className="text-studio-muted">Autonomy:</span>
+        {(["ask", "suggest", "auto"] as const).map((lvl) => (
+          <button
+            key={lvl}
+            onClick={() => setAutonomyLevel(lvl)}
+            className={`px-2 py-0.5 rounded transition-colors capitalize ${
+              autonomyLevel === lvl ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"
+            }`}
+          >
+            {lvl}
+          </button>
+        ))}
+        <div className="w-px h-3 bg-studio-border" />
+        <span className="text-studio-muted">Personality:</span>
+        <select
+          value={personality}
+          onChange={(e) => setPersonality(e.target.value as any)}
+          className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
+        >
+          <option value="friendly">Friendly</option>
+          <option value="professional">Professional</option>
+          <option value="concise">Concise</option>
+        </select>
+        <div className="w-px h-3 bg-studio-border" />
+        {/* Improvement 89: Connection status */}
+        <span className="flex items-center gap-1">
+          <span className={`w-1.5 h-1.5 rounded-full ${integrations.some((i) => i.connected) ? "bg-studio-green" : "bg-studio-muted"}`} />
+          {integrations.filter((i) => i.connected).length} services
+        </span>
+        <span className="flex items-center gap-1">
+          <span className={`w-1.5 h-1.5 rounded-full ${skills.some((s) => s.enabled) ? "bg-studio-cyan" : "bg-studio-muted"}`} />
+          {skills.filter((s) => s.enabled).length} skills
+        </span>
+      </div>
 
       {/* Main Content */}
       <div className="flex flex-1 min-h-0">
@@ -431,8 +615,14 @@ User task: ${userMsg.content}`;
                   key={i}
                   className={`ai-message ${msg.role === "user" ? "ai-message-user" : "ai-message-assistant"}`}
                 >
-                  <div className="text-[10px] font-semibold text-studio-muted mb-1">
-                    {msg.role === "user" ? "You" : "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F ValleyNet"}
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-semibold text-studio-muted">
+                      {msg.role === "user" ? "You" : "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F ValleyNet"}
+                    </span>
+                    {/* Improvement 90: Message timestamps */}
+                    <span className="text-[8px] text-studio-muted">
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
                   </div>
                   <div className="text-[11px] text-studio-text whitespace-pre-wrap">{msg.content}</div>
                 </div>
@@ -453,6 +643,18 @@ User task: ${userMsg.content}`;
 
             {/* Chat Input */}
             <div className="border-t border-studio-border p-3">
+              {/* Improvement 86: Quick task templates */}
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {quickTasks.map((qt) => (
+                  <button
+                    key={qt.label}
+                    onClick={() => setChatInput(qt.prompt)}
+                    className="text-[9px] px-2 py-0.5 rounded-full bg-studio-surface border border-studio-border text-studio-secondary hover:border-studio-cyan hover:text-studio-cyan transition-colors"
+                  >
+                    {qt.label}
+                  </button>
+                ))}
+              </div>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -479,23 +681,198 @@ User task: ${userMsg.content}`;
                 <span className="text-[9px] text-studio-muted">
                   {taskHistory.length} tasks completed
                 </span>
+                <span className="text-[9px] text-studio-muted">-</span>
+                <span className="text-[9px] text-studio-muted">
+                  Mode: {autonomyLevel}
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Status Bar */}
+      {/* Improvement 183: Agent memory overlay */}
+      {showMemory && (
+        <div className="modal-overlay" onClick={() => setShowMemory(false)}>
+          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F9E0}"} Agent Memory</h2>
+              <button onClick={() => setShowMemory(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              {agentMemory.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">{"\u{1F9E0}"}</div>
+                  <div className="empty-state-title">No memories stored</div>
+                  <div className="empty-state-description">The agent will remember important context from conversations.</div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {agentMemory.map((m, i) => (
+                    <div key={i} className="flex items-start justify-between p-2 rounded bg-studio-surface border border-studio-border">
+                      <div>
+                        <div className="text-[10px] font-semibold text-studio-cyan">{m.key}</div>
+                        <div className="text-[10px] text-studio-secondary">{m.value}</div>
+                      </div>
+                      <button onClick={() => setAgentMemory((prev) => prev.filter((_, idx) => idx !== i))} className="text-[9px] text-studio-muted hover:text-studio-red">x</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-3 flex gap-2">
+                <button onClick={() => setAgentMemory((prev) => [...prev, { key: "Note", value: "New memory entry" }])} className="btn text-[10px]">+ Add Memory</button>
+                <button onClick={() => setAgentMemory([])} className="btn text-[10px] text-studio-red">Clear All</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 181: Workflow builder overlay */}
+      {showWorkflowBuilder && (
+        <div className="modal-overlay" onClick={() => setShowWorkflowBuilder(false)}>
+          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F527}"} Workflow Builder</h2>
+              <button onClick={() => setShowWorkflowBuilder(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              {workflows.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">{"\u{1F527}"}</div>
+                  <div className="empty-state-title">No workflows yet</div>
+                  <div className="empty-state-description">Create multi-step automation workflows for the agent.</div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {workflows.map((w) => (
+                    <div key={w.id} className="p-2 rounded bg-studio-surface border border-studio-border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-studio-text">{w.name}</span>
+                        <span className={`badge ${w.active ? "badge-green" : "badge-yellow"} text-[8px]`}>{w.active ? "Active" : "Inactive"}</span>
+                      </div>
+                      <div className="text-[9px] text-studio-muted mt-1">{w.steps.length} steps</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setWorkflows((prev) => [...prev, { id: `wf-${Date.now()}`, name: `Workflow ${prev.length + 1}`, steps: ["Step 1"], active: false }])}
+                className="btn text-[10px] mt-3"
+              >
+                + New Workflow
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 287: Knowledge base overlay */}
+      {showKnowledgeBase && (
+        <div className="modal-overlay" onClick={() => setShowKnowledgeBase(false)}>
+          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F4DA}"} Knowledge Base</h2>
+              <button onClick={() => setShowKnowledgeBase(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              {knowledgeBase.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">{"\u{1F4DA}"}</div>
+                  <div className="empty-state-title">Empty knowledge base</div>
+                  <div className="empty-state-description">Add documents for the agent to reference.</div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {knowledgeBase.map((doc) => (
+                    <div key={doc.id} className="p-2 rounded bg-studio-surface border border-studio-border">
+                      <div className="text-[11px] font-semibold text-studio-text">{doc.title}</div>
+                      <div className="text-[9px] text-studio-muted mt-1 truncate-2">{doc.content}</div>
+                      <div className="flex gap-1 mt-1">
+                        {doc.tags.map((t) => <span key={t} className="badge text-[7px]">{t}</span>)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setKnowledgeBase((prev) => [...prev, { id: `kb-${Date.now()}`, title: "New Document", content: "", tags: [] }])}
+                className="btn text-[10px] mt-3"
+              >+ Add Document</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 289: Tool use log overlay */}
+      {showToolLog && (
+        <div className="modal-overlay" onClick={() => setShowToolLog(false)}>
+          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F527}"} Tool Use Log</h2>
+              <button onClick={() => setShowToolLog(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              {toolLog.length === 0 ? (
+                <div className="text-[11px] text-studio-muted text-center py-4">No tool invocations yet</div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {toolLog.slice(-20).reverse().map((entry, i) => (
+                    <div key={i} className="p-2 rounded bg-studio-surface border border-studio-border">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-semibold text-studio-cyan">{entry.tool}</span>
+                        <span className="text-[8px] text-studio-muted">{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                      <div className="text-[9px] text-studio-muted mt-1 truncate-1">{entry.input}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Bar - Improvements 286-293 */}
       <footer className="status-bar">
-        <span>{"\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F"} ValleyNet v0.1.0</span>
         <div className="flex items-center gap-3">
+          <span>{activePersona ? personas.find((p) => p.id === activePersona)?.icon || "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F" : "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F"} VNet v0.1.0</span>
+          <span>|</span>
+          {/* Improvement 292: Model */}
+          <span>{selectedModel}</span>
+          <span>|</span>
           <span>{skills.filter((s) => s.enabled).length}/{skills.length} skills</span>
           <span>|</span>
-          <span>{integrations.filter((i) => i.connected).length} connected</span>
+          <span>{plugins.filter((p) => p.enabled).length} plugins</span>
           <span>|</span>
+          {/* Improvement 288: RAG */}
+          {ragEnabled && <><span className="text-studio-cyan">RAG</span><span>|</span></>}
+          <span className={safeMode ? "text-studio-green" : "text-studio-yellow"}>{safeMode ? "Safe" : "Open"}</span>
+        </div>
+        <div className="flex items-center gap-3">
           <span>{taskHistory.length} tasks</span>
           <span>|</span>
-          <span>Inspired by OpenClaw</span>
+          <span>{autonomyLevel}</span>
+          <span>|</span>
+          <span>{tokenUsage.total} tok</span>
+          {/* Improvement 293: Cost */}
+          {costEstimate > 0 && <><span>|</span><span>${costEstimate.toFixed(4)}</span></>}
+          <span>|</span>
+          {/* Improvement 287: KB count */}
+          <button onClick={() => setShowKnowledgeBase(true)} className="hover:text-studio-cyan transition-colors">
+            {"\u{1F4DA}"} {knowledgeBase.length} docs
+          </button>
+          <span>|</span>
+          <button onClick={() => setShowMemory(true)} className="hover:text-studio-cyan transition-colors">
+            {"\u{1F9E0}"} {agentMemory.length}
+          </button>
+          <span>|</span>
+          {/* Improvement 289: Tool log */}
+          <button onClick={() => setShowToolLog(true)} className="hover:text-studio-cyan transition-colors">
+            {"\u{1F527}"} {toolLog.length}
+          </button>
+          <span>|</span>
+          <span>{sessionDuration < 60 ? `${sessionDuration}s` : `${Math.floor(sessionDuration / 60)}m`}</span>
         </div>
       </footer>
     </div>

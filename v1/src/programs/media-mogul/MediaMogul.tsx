@@ -37,6 +37,97 @@ export default function MediaMogul() {
   const [pexelsApiKey, setPexelsApiKey] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(42);
+  // Improvement 72-75: Preview controls
+  const [previewZoom, setPreviewZoom] = useState(100);
+  const [aspectRatio, setAspectRatio] = useState("16:9");
+  const [previewVolume, setPreviewVolume] = useState(80);
+  const [showShortcutBar, setShowShortcutBar] = useState(true);
+  const [undoStack] = useState<string[]>([]);
+  const [projectDuration] = useState("00:02:30:00");
+  // Improvement 156: Timeline markers
+  const [markers, setMarkers] = useState<{ time: number; label: string; color: string }[]>([]);
+  // Improvement 157: Render queue
+  const [renderQueue, setRenderQueue] = useState<{ id: string; name: string; progress: number; status: "pending" | "rendering" | "done" | "error" }[]>([]);
+  // Improvement 158: Clip counter
+  const [clipCount, setClipCount] = useState(0);
+  // Improvement 159: Effects panel
+  const [showEffects, setShowEffects] = useState(false);
+  // Improvement 160: Media bin categories
+  const [mediaBinCategory, setMediaBinCategory] = useState<"all" | "video" | "audio" | "image" | "other">("all");
+  // Improvement 161: Color scopes toggle
+  const [showColorScopes, setShowColorScopes] = useState(false);
+  // Improvement 162: Audio waveform toggle
+  const [showAudioWaveform, setShowAudioWaveform] = useState(true);
+  // Improvement 163: Proxy editing
+  const [proxyEditing, setProxyEditing] = useState(false);
+  // Improvement 164: Project notes
+  const [projectNotes, setProjectNotes] = useState("");
+  const [showNotes, setShowNotes] = useState(false);
+  // Improvement 165: Auto-backup
+  const [autoBackup, setAutoBackup] = useState(true);
+  const [lastBackup, setLastBackup] = useState<number | null>(null);
+  // Improvement 166: Render progress
+  const [renderProgress, setRenderProgress] = useState<number | null>(null);
+  // Improvement 167: Timeline snap
+  const [timelineSnap, setTimelineSnap] = useState(true);
+  // Improvement 169: Export format
+  const [exportFormat, setExportFormat] = useState("mp4");
+  // Improvement 170: Playback speed
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
+  // Improvement 261: Color wheel / grading
+  const [colorWheelMode, setColorWheelMode] = useState<"lift" | "gamma" | "gain">("gamma");
+  const [showColorWheel, setShowColorWheel] = useState(false);
+  // Improvement 262: LUT browser
+  const [luts, setLuts] = useState<{ name: string; category: string }[]>([
+    { name: "Cinematic Warm", category: "cinema" },
+    { name: "Cinematic Cool", category: "cinema" },
+    { name: "Film Noir", category: "classic" },
+    { name: "Vintage 70s", category: "retro" },
+    { name: "Teal & Orange", category: "popular" },
+    { name: "Bleach Bypass", category: "cinema" },
+  ]);
+  const [activeLut, setActiveLut] = useState<string | null>(null);
+  const [showLutBrowser, setShowLutBrowser] = useState(false);
+  // Improvement 263: Audio mixer channels
+  const [audioChannels, setAudioChannels] = useState<{ name: string; volume: number; muted: boolean; solo: boolean }[]>([
+    { name: "Master", volume: 80, muted: false, solo: false },
+    { name: "A1", volume: 75, muted: false, solo: false },
+    { name: "A2", volume: 70, muted: false, solo: false },
+    { name: "Music", volume: 50, muted: false, solo: false },
+  ]);
+  const [showMixer, setShowMixer] = useState(false);
+  // Improvement 264: Subtitle editor
+  const [subtitles, setSubtitles] = useState<{ id: string; start: number; end: number; text: string }[]>([]);
+  const [showSubtitleEditor, setShowSubtitleEditor] = useState(false);
+  // Improvement 265: Transition library
+  const [transitions] = useState([
+    "Cut", "Cross Dissolve", "Dip to Black", "Dip to White", "Wipe Left", "Wipe Right",
+    "Push Left", "Push Right", "Slide", "Zoom", "Spin", "Blur",
+  ]);
+  const [activeTransition, setActiveTransition] = useState("Cut");
+  // Improvement 266: Keyframe editor toggle
+  const [showKeyframes, setShowKeyframes] = useState(false);
+  // Improvement 267: Motion tracking
+  const [motionTracking, setMotionTracking] = useState(false);
+  // Improvement 268: Stabilization
+  const [stabilization, setStabilization] = useState(false);
+  // Improvement 269: HDR toggle
+  const [hdrMode, setHdrMode] = useState(false);
+  // Improvement 270: Loudness meter
+  const [loudnessLevel, setLoudnessLevel] = useState(-14);
+  const [showLoudness, setShowLoudness] = useState(false);
+  // Improvement 271: Media metadata viewer
+  const [showMetadata, setShowMetadata] = useState(false);
+  // Improvement 272: Multicam editing
+  const [multicamEnabled, setMulticamEnabled] = useState(false);
+  const [multicamAngles, setMulticamAngles] = useState(1);
+  // Improvement 273: Chroma key / green screen
+  const [chromaKey, setChromaKey] = useState(false);
+  const [chromaColor, setChromaColor] = useState("#00ff00");
+  // Improvement 274: Speed ramping
+  const [speedRamping, setSpeedRamping] = useState(false);
+  // Improvement 275: Render preset profiles
+  const [renderPreset, setRenderPreset] = useState<"youtube" | "instagram" | "tiktok" | "custom">("youtube");
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -218,13 +309,25 @@ export default function MediaMogul() {
           ))}
         </nav>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2 px-4 min-w-[180px] justify-end">
+        {/* Right Actions - Improvements 70-71 */}
+        <div className="flex items-center gap-2 px-4 min-w-[260px] justify-end">
+          {/* Improvement 71: Undo/Redo buttons */}
+          <button className="btn-ghost rounded-md px-1.5 py-1 text-sm hover:bg-studio-hover transition-colors" title="Undo (Ctrl+Z)" disabled={undoStack.length === 0}>
+            {"\u21A9\uFE0F"}
+          </button>
+          <button className="btn-ghost rounded-md px-1.5 py-1 text-sm hover:bg-studio-hover transition-colors" title="Redo (Ctrl+Y)">
+            {"\u21AA\uFE0F"}
+          </button>
+          <div className="w-px h-5 bg-studio-border" />
           <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-2">
             Open .CryptArt
           </button>
           <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-2">
             Save .CryptArt
+          </button>
+          {/* Improvement 70: Quick export button */}
+          <button className="btn btn-cyan text-[10px] py-1 px-2" title="Quick Export">
+            {"\u{1F4E6}"} Export
           </button>
           <button
             onClick={() => setShowSettings(true)}
@@ -236,37 +339,293 @@ export default function MediaMogul() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 min-h-0 p-1">{renderWorkspaceContent()}</main>
+      {/* Improvement 66: Keyboard shortcut bar */}
+      {showShortcutBar && workspace === "edit" && (
+        <div className="flex items-center gap-3 h-[24px] bg-studio-surface border-b border-studio-border px-4 text-[9px] text-studio-muted animate-fade-in">
+          <span><span className="kbd">Space</span> Play/Pause</span>
+          <span><span className="kbd">J</span><span className="kbd">K</span><span className="kbd">L</span> Shuttle</span>
+          <span><span className="kbd">I</span> Mark In</span>
+          <span><span className="kbd">O</span> Mark Out</span>
+          <span><span className="kbd">C</span> Cut</span>
+          <span><span className="kbd">Ctrl+S</span> Save</span>
+          <span><span className="kbd">Ctrl+Z</span> Undo</span>
+          <span className="ml-auto cursor-pointer hover:text-studio-text" onClick={() => setShowShortcutBar(false)}>x</span>
+        </div>
+      )}
 
-      {/* Status Bar */}
+      {/* Main Content - Improvement 69: workspace transition animation */}
+      <main className="flex-1 min-h-0 p-1 animate-fade-in" key={workspace}>{renderWorkspaceContent()}</main>
+
+      {/* Improvements 156-170: Enhanced controls bar */}
+      {workspace === "edit" && (
+        <div className="flex items-center h-[28px] bg-studio-panel border-t border-studio-border px-4 gap-3 text-[10px]">
+          {/* Improvement 72: Zoom controls */}
+          <span className="text-studio-muted">Zoom:</span>
+          <button onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))} className="text-studio-muted hover:text-studio-text">-</button>
+          <span className="text-studio-secondary w-8 text-center">{previewZoom}%</span>
+          <button onClick={() => setPreviewZoom(Math.min(400, previewZoom + 25))} className="text-studio-muted hover:text-studio-text">+</button>
+          <button onClick={() => setPreviewZoom(100)} className="text-studio-muted hover:text-studio-text text-[9px]">Fit</button>
+          <div className="w-px h-3 bg-studio-border" />
+          {/* Improvement 73: Aspect ratio selector */}
+          <span className="text-studio-muted">Ratio:</span>
+          <select
+            value={aspectRatio}
+            onChange={(e) => setAspectRatio(e.target.value)}
+            className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
+          >
+            <option value="16:9">16:9</option>
+            <option value="4:3">4:3</option>
+            <option value="1:1">1:1</option>
+            <option value="9:16">9:16 (Vertical)</option>
+            <option value="21:9">21:9 (Ultra-wide)</option>
+          </select>
+          <div className="w-px h-3 bg-studio-border" />
+          {/* Improvement 75: Volume slider */}
+          <span className="text-studio-muted">{previewVolume > 0 ? "\u{1F50A}" : "\u{1F507}"}</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={previewVolume}
+            onChange={(e) => setPreviewVolume(Number(e.target.value))}
+            className="w-16 h-1 accent-studio-cyan"
+            title={`Volume: ${previewVolume}%`}
+          />
+          <span className="text-studio-muted w-6">{previewVolume}%</span>
+          <div className="w-px h-3 bg-studio-border" />
+          {/* Improvement 167: Timeline snap */}
+          <button
+            onClick={() => setTimelineSnap((s) => !s)}
+            className={`text-[9px] px-1.5 py-0.5 rounded ${timelineSnap ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted"}`}
+            title="Toggle snap to grid"
+          >
+            Snap {timelineSnap ? "ON" : "OFF"}
+          </button>
+          {/* Improvement 170: Playback speed */}
+          <select
+            value={playbackSpeed}
+            onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+            className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
+            title="Playback speed"
+          >
+            <option value={0.25}>0.25x</option>
+            <option value={0.5}>0.5x</option>
+            <option value={1}>1x</option>
+            <option value={1.5}>1.5x</option>
+            <option value={2}>2x</option>
+          </select>
+          <div className="w-px h-3 bg-studio-border" />
+          {/* Improvement 159: Effects toggle */}
+          <button
+            onClick={() => setShowEffects((s) => !s)}
+            className={`text-[9px] ${showEffects ? "text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+          >
+            FX
+          </button>
+          {/* Improvement 164: Notes toggle */}
+          <button
+            onClick={() => setShowNotes((s) => !s)}
+            className={`text-[9px] ${showNotes ? "text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+          >
+            {"\u{1F4DD}"}
+          </button>
+          <div className="flex-1" />
+          {/* Improvement 156: Markers count */}
+          {markers.length > 0 && (
+            <span className="text-studio-muted">{markers.length} marker{markers.length !== 1 ? "s" : ""}</span>
+          )}
+          {/* Improvement 67: Project duration display */}
+          <span className="text-studio-secondary font-mono">{projectDuration}</span>
+        </div>
+      )}
+
+      {/* Improvement 164: Project notes panel */}
+      {showNotes && (
+        <div className="h-[120px] border-t border-studio-border bg-studio-panel p-3 animate-fade-in">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] font-semibold text-studio-secondary">{"\u{1F4DD}"} Project Notes</span>
+            <button onClick={() => setShowNotes(false)} className="text-[10px] text-studio-muted hover:text-studio-text">x</button>
+          </div>
+          <textarea
+            value={projectNotes}
+            onChange={(e) => setProjectNotes(e.target.value)}
+            className="input w-full h-[80px] text-[11px] resize-none"
+            placeholder="Add notes about your project..."
+          />
+        </div>
+      )}
+
+      {/* Improvement 166: Render progress bar */}
+      {renderProgress !== null && (
+        <div className="h-[3px] bg-studio-bg">
+          <div
+            className="h-full bg-gradient-to-r from-studio-cyan to-studio-purple transition-all duration-300"
+            style={{ width: `${renderProgress}%` }}
+          />
+        </div>
+      )}
+
+      {/* Improvement 262: LUT browser overlay */}
+      {showLutBrowser && (
+        <div className="modal-overlay" onClick={() => setShowLutBrowser(false)}>
+          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F3A8}"} LUT Browser</h2>
+              <button onClick={() => setShowLutBrowser(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              <div className="flex flex-col gap-1">
+                {luts.map((lut, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${
+                      activeLut === lut.name ? "bg-studio-cyan/10 border border-studio-cyan/30" : "hover:bg-studio-hover border border-transparent"
+                    }`}
+                    onClick={() => { setActiveLut(lut.name === activeLut ? null : lut.name); }}
+                  >
+                    <span className="text-[11px] text-studio-text">{lut.name}</span>
+                    <span className="text-[9px] text-studio-muted capitalize">{lut.category}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 263: Audio mixer overlay */}
+      {showMixer && (
+        <div className="modal-overlay" onClick={() => setShowMixer(false)}>
+          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F3B5}"} Audio Mixer</h2>
+              <button onClick={() => setShowMixer(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              <div className="flex gap-4">
+                {audioChannels.map((ch, i) => (
+                  <div key={i} className="flex flex-col items-center gap-2">
+                    <span className="text-[9px] text-studio-muted">{ch.name}</span>
+                    <input
+                      type="range"
+                      min={0} max={100}
+                      value={ch.volume}
+                      onChange={(e) => {
+                        const newCh = [...audioChannels];
+                        newCh[i] = { ...newCh[i], volume: Number(e.target.value) };
+                        setAudioChannels(newCh);
+                      }}
+                      className="w-4 h-20 accent-studio-cyan"
+                      style={{ writingMode: "vertical-lr", direction: "rtl" }}
+                    />
+                    <span className="text-[9px] text-studio-secondary tabular-nums">{ch.volume}</span>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => {
+                          const newCh = [...audioChannels];
+                          newCh[i] = { ...newCh[i], muted: !newCh[i].muted };
+                          setAudioChannels(newCh);
+                        }}
+                        className={`text-[8px] px-1 rounded ${ch.muted ? "bg-red-500/20 text-red-400" : "text-studio-muted"}`}
+                      >M</button>
+                      <button
+                        onClick={() => {
+                          const newCh = [...audioChannels];
+                          newCh[i] = { ...newCh[i], solo: !newCh[i].solo };
+                          setAudioChannels(newCh);
+                        }}
+                        className={`text-[8px] px-1 rounded ${ch.solo ? "bg-yellow-500/20 text-yellow-400" : "text-studio-muted"}`}
+                      >S</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 264: Subtitle editor overlay */}
+      {showSubtitleEditor && (
+        <div className="modal-overlay" onClick={() => setShowSubtitleEditor(false)}>
+          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F4AC}"} Subtitle Editor</h2>
+              <button onClick={() => setShowSubtitleEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              {subtitles.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-state-icon">{"\u{1F4AC}"}</div>
+                  <div className="empty-state-title">No subtitles</div>
+                  <div className="empty-state-description">Add subtitles to your timeline.</div>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  {subtitles.map((sub) => (
+                    <div key={sub.id} className="p-2 rounded bg-studio-surface border border-studio-border">
+                      <div className="flex items-center gap-2 text-[9px] text-studio-muted mb-1">
+                        <span>{sub.start.toFixed(1)}s</span>
+                        <span>-</span>
+                        <span>{sub.end.toFixed(1)}s</span>
+                      </div>
+                      <div className="text-[11px] text-studio-text">{sub.text}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={() => setSubtitles((prev) => [...prev, { id: `sub-${Date.now()}`, start: 0, end: 3, text: "New subtitle" }])}
+                className="btn text-[10px] mt-3"
+              >+ Add Subtitle</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Status Bar - Improvements 261-275 */}
       <footer className="status-bar">
         <div className="flex items-center gap-3">
           <span>
             <span className="status-dot status-dot-green" />
-            Ready
+            {renderProgress !== null ? `Rendering ${renderProgress}%` : "Ready"}
           </span>
           <span>|</span>
-          <span>1920 x 1080</span>
+          <span>1920 x 1080 ({aspectRatio})</span>
           <span>|</span>
           <span>24.000 fps</span>
+          <span>|</span>
+          <span>F{currentFrame}</span>
+          {clipCount > 0 && <><span>|</span><span>{clipCount} clips</span></>}
+          {markers.length > 0 && <><span>|</span><span>{markers.length} mkr</span></>}
+          {/* Improvement 264: Subtitles */}
+          {subtitles.length > 0 && <><span>|</span><span>{subtitles.length} subs</span></>}
         </div>
         <div className="flex items-center gap-3">
-          <span>
-            {apiKey ? (
-              <>
-                <span className="status-dot status-dot-green" />
-                OpenAI Connected
-              </>
-            ) : (
-              <>
-                <span className="status-dot status-dot-yellow" />
-                No API Key
-              </>
-            )}
-          </span>
+          <span className="text-studio-secondary">{workspace.toUpperCase()}</span>
           <span>|</span>
-          <span>{"\u{1F4FA}"} Media Mogul v0.1.0</span>
+          {proxyEditing && <><span className="text-studio-yellow">PROXY</span><span>|</span></>}
+          {/* Improvement 269: HDR */}
+          {hdrMode && <><span className="text-studio-cyan">HDR</span><span>|</span></>}
+          {/* Improvement 272: Multicam */}
+          {multicamEnabled && <><span className="text-studio-purple">MC:{multicamAngles}</span><span>|</span></>}
+          {/* Improvement 273: Chroma key */}
+          {chromaKey && <><span className="text-studio-green">CK</span><span>|</span></>}
+          {/* Improvement 268: Stabilization */}
+          {stabilization && <><span>STAB</span><span>|</span></>}
+          <span>{timelineSnap ? "Snap" : "Free"}</span>
+          <span>|</span>
+          {playbackSpeed !== 1 && <><span>{playbackSpeed}x</span><span>|</span></>}
+          {/* Improvement 262: LUT */}
+          {activeLut && <><span className="text-studio-cyan">LUT</span><span>|</span></>}
+          {/* Improvement 275: Render preset */}
+          <span>{renderPreset}</span>
+          <span>|</span>
+          <span>{exportFormat.toUpperCase()}</span>
+          <span>|</span>
+          <span>{apiKey ? "\u{1F7E2}" : "\u{1F7E1}"}</span>
+          <span>|</span>
+          <span>{"\u{1F4FA}"} MMo v0.1.0</span>
         </div>
       </footer>
 

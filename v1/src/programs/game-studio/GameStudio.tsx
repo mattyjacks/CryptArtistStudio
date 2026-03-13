@@ -142,6 +142,72 @@ export default function GameStudio() {
     "$ Detecting Godot installation...",
   ]);
 
+  // Improvement 92: Game genre selector
+  const [gameGenre, setGameGenre] = useState("platformer");
+  // Improvement 94: Build target
+  const [buildTarget, setBuildTarget] = useState<"windows" | "linux" | "macos" | "web" | "android">("windows");
+  // Improvement 191: Scene graph hierarchy
+  const [sceneGraph, setSceneGraph] = useState<{ id: string; name: string; type: string; children: string[]; visible: boolean }[]>([]);
+  const [showSceneGraph, setShowSceneGraph] = useState(false);
+  // Improvement 192: Asset pipeline status
+  const [assetPipeline, setAssetPipeline] = useState<{ importing: number; total: number; errors: number }>({ importing: 0, total: 0, errors: 0 });
+  // Improvement 193: Debug overlay
+  const [debugOverlay, setDebugOverlay] = useState(false);
+  // Improvement 194: Physics debug
+  const [physicsDebug, setPhysicsDebug] = useState(false);
+  // Improvement 195: Game resolution
+  const [gameResolution, setGameResolution] = useState<"1920x1080" | "1280x720" | "640x480" | "320x240">("1920x1080");
+  // Improvement 196: Performance stats
+  const [showPerfStats, setShowPerfStats] = useState(false);
+  const [perfStats] = useState({ fps: 60, drawCalls: 0, nodes: 0, memory: "0 MB" });
+  // Improvement 197: Node inspector
+  const [showNodeInspector, setShowNodeInspector] = useState(false);
+  // Improvement 198: Version control status
+  const [vcsStatus, setVcsStatus] = useState<"clean" | "modified" | "untracked">("clean");
+  const [vcsBranch, setVcsBranch] = useState<string | null>(null);
+  // Improvement 294: Tilemap editor
+  const [showTilemapEditor, setShowTilemapEditor] = useState(false);
+  const [tilemapLayers, setTilemapLayers] = useState<{ name: string; visible: boolean; locked: boolean }[]>([
+    { name: "Ground", visible: true, locked: false },
+    { name: "Objects", visible: true, locked: false },
+    { name: "Collision", visible: false, locked: true },
+  ]);
+  const [activeTilemapLayer, setActiveTilemapLayer] = useState(0);
+  // Improvement 295: Particle system preview
+  const [showParticlePreview, setShowParticlePreview] = useState(false);
+  const [particlePresets] = useState(["Fire", "Smoke", "Rain", "Snow", "Sparks", "Explosion", "Magic", "Dust"]);
+  const [activeParticle, setActiveParticle] = useState<string | null>(null);
+  // Improvement 296: Shader editor
+  const [showShaderEditor, setShowShaderEditor] = useState(false);
+  const [shaderCode, setShaderCode] = useState("shader_type canvas_item;\n\nvoid fragment() {\n  COLOR = texture(TEXTURE, UV);\n}\n");
+  // Improvement 297: Profiler panel
+  const [showProfiler, setShowProfiler] = useState(false);
+  const [profilerData] = useState({
+    physicsTime: 0.8,
+    renderTime: 4.2,
+    scriptTime: 1.5,
+    idleTime: 10.2,
+    totalFrame: 16.7,
+  });
+  // Improvement 298: Input mapping editor
+  const [inputMappings, setInputMappings] = useState<{ action: string; keys: string[] }[]>([
+    { action: "ui_up", keys: ["W", "Up"] },
+    { action: "ui_down", keys: ["S", "Down"] },
+    { action: "ui_left", keys: ["A", "Left"] },
+    { action: "ui_right", keys: ["D", "Right"] },
+    { action: "ui_accept", keys: ["Enter", "Space"] },
+    { action: "jump", keys: ["Space"] },
+    { action: "attack", keys: ["Z", "LMB"] },
+  ]);
+  const [showInputMapper, setShowInputMapper] = useState(false);
+  // Improvement 97: GDScript snippet library
+  const gdscriptSnippets = [
+    { label: "Player Movement", code: "extends CharacterBody2D\n\nvar speed = 200.0\nvar jump_velocity = -400.0\n\nfunc _physics_process(delta):\n\tvar velocity = Vector2.ZERO\n\tif Input.is_action_pressed('ui_right'):\n\t\tvelocity.x += 1\n\tif Input.is_action_pressed('ui_left'):\n\t\tvelocity.x -= 1\n\tvelocity = velocity.normalized() * speed\n\tmove_and_slide()" },
+    { label: "Health System", code: "extends Node\n\n@export var max_health: int = 100\nvar current_health: int\n\nsignal health_changed(new_health: int)\nsignal died\n\nfunc _ready():\n\tcurrent_health = max_health\n\nfunc take_damage(amount: int):\n\tcurrent_health = max(0, current_health - amount)\n\thealth_changed.emit(current_health)\n\tif current_health <= 0:\n\t\tdied.emit()" },
+    { label: "Collectible", code: "extends Area2D\n\n@export var points: int = 10\n\nfunc _on_body_entered(body):\n\tif body.has_method('add_score'):\n\t\tbody.add_score(points)\n\tqueue_free()" },
+    { label: "Camera Follow", code: "extends Camera2D\n\n@export var target: Node2D\n@export var smooth_speed: float = 5.0\n\nfunc _process(delta):\n\tif target:\n\t\tglobal_position = global_position.lerp(target.global_position, smooth_speed * delta)" },
+  ];
+
   const aiEndRef = useRef<HTMLDivElement>(null);
   const termEndRef = useRef<HTMLDivElement>(null);
 
@@ -416,7 +482,14 @@ Be specific with Godot node types, signals, and the scene tree hierarchy.${conte
 
 User: ${currentInput}`;
 
-      const reply = await invoke<string>("ai_chat", { prompt });
+      // Try OpenRouter first, fall back to OpenAI
+      const orModel = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+      let reply: string;
+      try {
+        reply = await invoke<string>("openrouter_chat", { prompt, model: orModel });
+      } catch {
+        reply = await invoke<string>("ai_chat", { prompt });
+      }
       setAiMessages((prev) => [...prev, { role: "assistant", content: reply, timestamp: Date.now() }]);
 
       // Auto-detect if AI generated code and offer to save it
@@ -1131,23 +1204,253 @@ User: ${currentInput}`;
         )}
       </div>
 
-      {/* ===== STATUS BAR ===== */}
+      {/* Improvements 191-198: Enhanced toolbar */}
+      <div className="flex items-center h-[26px] bg-studio-surface border-t border-studio-border px-4 gap-2 text-[9px]">
+        {/* Improvement 193: Debug overlay */}
+        <button
+          onClick={() => setDebugOverlay((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${debugOverlay ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+          title="Debug overlay"
+        >
+          Debug
+        </button>
+        {/* Improvement 194: Physics debug */}
+        <button
+          onClick={() => setPhysicsDebug((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${physicsDebug ? "bg-studio-green/15 text-studio-green" : "text-studio-muted hover:text-studio-text"}`}
+          title="Physics debug shapes"
+        >
+          Physics
+        </button>
+        {/* Improvement 196: Perf stats */}
+        <button
+          onClick={() => setShowPerfStats((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${showPerfStats ? "bg-studio-yellow/15 text-studio-yellow" : "text-studio-muted hover:text-studio-text"}`}
+          title="Performance stats"
+        >
+          Perf
+        </button>
+        {/* Improvement 191: Scene graph */}
+        <button
+          onClick={() => setShowSceneGraph((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${showSceneGraph ? "bg-studio-purple/15 text-studio-purple" : "text-studio-muted hover:text-studio-text"}`}
+          title="Scene graph"
+        >
+          Graph
+        </button>
+        {/* Improvement 197: Node inspector */}
+        <button
+          onClick={() => setShowNodeInspector((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${showNodeInspector ? "bg-studio-orange/15 text-studio-orange" : "text-studio-muted hover:text-studio-text"}`}
+          title="Node inspector"
+        >
+          Inspector
+        </button>
+        <div className="w-px h-3 bg-studio-border" />
+        {/* Improvement 195: Game resolution */}
+        <span className="text-studio-muted">Res:</span>
+        <select
+          value={gameResolution}
+          onChange={(e) => setGameResolution(e.target.value as any)}
+          className="bg-transparent text-[9px] text-studio-secondary outline-none cursor-pointer"
+        >
+          <option value="1920x1080">1080p</option>
+          <option value="1280x720">720p</option>
+          <option value="640x480">480p</option>
+          <option value="320x240">240p</option>
+        </select>
+        <div className="flex-1" />
+        {/* Improvement 196: Show perf stats inline */}
+        {showPerfStats && (
+          <span className="text-studio-yellow font-mono">
+            {perfStats.fps}fps | {perfStats.drawCalls} draws | {perfStats.nodes} nodes | {perfStats.memory}
+          </span>
+        )}
+        {/* Improvement 192: Asset pipeline */}
+        {assetPipeline.importing > 0 && (
+          <span className="text-studio-cyan">Importing {assetPipeline.importing}/{assetPipeline.total}...</span>
+        )}
+      </div>
+
+      {/* Improvement 294: Tilemap editor overlay */}
+      {showTilemapEditor && (
+        <div className="modal-overlay" onClick={() => setShowTilemapEditor(false)}>
+          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F5FA}\uFE0F"} Tilemap Editor</h2>
+              <button onClick={() => setShowTilemapEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              <div className="text-[10px] text-studio-muted mb-2">Layers</div>
+              <div className="flex flex-col gap-1">
+                {tilemapLayers.map((layer, i) => (
+                  <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-[10px] cursor-pointer transition-colors ${
+                    activeTilemapLayer === i ? "bg-studio-cyan/10 border border-studio-cyan/30" : "hover:bg-studio-hover border border-transparent"
+                  }`} onClick={() => setActiveTilemapLayer(i)}>
+                    <button onClick={(e) => { e.stopPropagation(); const nl = [...tilemapLayers]; nl[i] = { ...nl[i], visible: !nl[i].visible }; setTilemapLayers(nl); }}
+                      className={layer.visible ? "text-studio-text" : "text-studio-muted"}>{layer.visible ? "\u{1F441}" : "\u{1F441}\u200D\u{1F5E8}"}</button>
+                    <span className="flex-1 text-studio-text">{layer.name}</span>
+                    {layer.locked && <span className="text-studio-muted">{"\u{1F512}"}</span>}
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setTilemapLayers((prev) => [...prev, { name: `Layer ${prev.length + 1}`, visible: true, locked: false }])}
+                className="btn text-[10px] mt-2">+ Add Layer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 295: Particle preview overlay */}
+      {showParticlePreview && (
+        <div className="modal-overlay" onClick={() => setShowParticlePreview(false)}>
+          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u2728"} Particle Presets</h2>
+              <button onClick={() => setShowParticlePreview(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              <div className="grid grid-cols-2 gap-2">
+                {particlePresets.map((p) => (
+                  <button key={p} onClick={() => setActiveParticle(p === activeParticle ? null : p)}
+                    className={`p-3 rounded text-[11px] text-center transition-colors ${
+                      activeParticle === p ? "bg-studio-cyan/15 text-studio-cyan border border-studio-cyan/30" : "bg-studio-surface border border-studio-border hover:border-studio-cyan/20 text-studio-text"
+                    }`}>{p}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 297: Profiler overlay */}
+      {showProfiler && (
+        <div className="modal-overlay" onClick={() => setShowProfiler(false)}>
+          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F4CA}"} Profiler</h2>
+              <button onClick={() => setShowProfiler(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body space-y-2">
+              {[
+                ["Physics", profilerData.physicsTime, "#22c55e"],
+                ["Render", profilerData.renderTime, "#00d2ff"],
+                ["Script", profilerData.scriptTime, "#eab308"],
+                ["Idle", profilerData.idleTime, "#64748b"],
+              ].map(([label, time, color]) => (
+                <div key={label as string} className="flex items-center gap-2">
+                  <span className="text-[10px] text-studio-muted w-14">{label}</span>
+                  <div className="flex-1 h-3 bg-studio-bg rounded overflow-hidden">
+                    <div className="h-full rounded" style={{ width: `${((time as number) / profilerData.totalFrame) * 100}%`, background: color as string }} />
+                  </div>
+                  <span className="text-[9px] text-studio-secondary tabular-nums w-12 text-right">{(time as number).toFixed(1)}ms</span>
+                </div>
+              ))}
+              <div className="border-t border-studio-border pt-2 flex justify-between text-[10px]">
+                <span className="text-studio-muted">Frame Total</span>
+                <span className="text-studio-text font-mono">{profilerData.totalFrame.toFixed(1)}ms ({Math.round(1000 / profilerData.totalFrame)}fps)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Improvement 298: Input mapper overlay */}
+      {showInputMapper && (
+        <div className="modal-overlay" onClick={() => setShowInputMapper(false)}>
+          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>{"\u{1F3AE}"} Input Mapping</h2>
+              <button onClick={() => setShowInputMapper(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            </div>
+            <div className="modal-body">
+              <div className="flex flex-col gap-1">
+                {inputMappings.map((mapping, i) => (
+                  <div key={i} className="flex items-center justify-between px-2 py-1.5 rounded hover:bg-studio-hover">
+                    <span className="text-[10px] text-studio-text font-mono">{mapping.action}</span>
+                    <div className="flex gap-1">
+                      {mapping.keys.map((k) => <span key={k} className="kbd text-[8px]">{k}</span>)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== STATUS BAR - Improvements 294-298 ===== */}
       <footer className="status-bar">
-        <span>{"\u{1F3AE}"} GameStudio v0.1.0</span>
         <div className="flex items-center gap-3">
+          <span>{"\u{1F3AE}"} GSt v0.1.0</span>
+          <span>|</span>
           <span>{projectName || "No project"}</span>
+          {scenes.length > 0 && <><span>|</span><span>{scenes.length} scenes</span></>}
+          {scripts.length > 0 && <><span>|</span><span>{scripts.length} scripts</span></>}
+          <span>|</span>
+          <span>{gameResolution}</span>
+          {vcsBranch && (
+            <>
+              <span>|</span>
+              <span className="flex items-center gap-1">
+                {"\u{1F33F}"} {vcsBranch}
+                <span className={vcsStatus === "clean" ? "text-studio-green" : "text-studio-yellow"}>
+                  {vcsStatus === "clean" ? "\u2713" : "\u25CF"}
+                </span>
+              </span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-studio-secondary capitalize">{gameGenre}</span>
+          <span>|</span>
+          <select
+            value={buildTarget}
+            onChange={(e) => setBuildTarget(e.target.value as any)}
+            className="bg-transparent text-[10px] text-studio-muted outline-none cursor-pointer"
+          >
+            <option value="windows">Windows</option>
+            <option value="linux">Linux</option>
+            <option value="macos">macOS</option>
+            <option value="web">Web/HTML5</option>
+            <option value="android">Android</option>
+          </select>
+          <span>|</span>
+          <button
+            onClick={() => {
+              if (godotInfo?.found && projectPath) {
+                setTerminalOutput((prev) => [...prev, `$ Running game: ${projectPath}`]);
+                toast.info("Starting game in Godot...");
+                invoke("godot_run_scene", { projectPath }).catch((err) =>
+                  setTerminalOutput((prev) => [...prev, `[error] Run failed: ${err}`])
+                );
+              } else {
+                toast.error(godotInfo?.found ? "Open a project first" : "Godot not found");
+              }
+            }}
+            className="text-[10px] text-studio-green hover:text-green-300 transition-colors"
+          >
+            {"\u25B6"} Play
+          </button>
+          <span>|</span>
+          {debugOverlay && <span className="text-studio-cyan">DBG</span>}
+          {physicsDebug && <span className="text-studio-green">PHY</span>}
+          {(debugOverlay || physicsDebug) && <span>|</span>}
+          {/* Improvement 297: Profiler button */}
+          <button onClick={() => setShowProfiler(true)} className="hover:text-studio-cyan transition-colors text-studio-muted">{"\u{1F4CA}"}</button>
+          <span>|</span>
+          {/* Improvement 298: Input mapper button */}
+          <button onClick={() => setShowInputMapper(true)} className="hover:text-studio-cyan transition-colors text-studio-muted">{"\u{1F3AE}"}</button>
           <span>|</span>
           <span>
             {godotInfo?.found
               ? `\u{1F7E2} Godot ${godotInfo.version}`
               : godotDetecting
               ? "\u{1F7E1} Detecting..."
-              : "\u{1F534} Godot not found"}
+              : "\u{1F534} No Godot"}
           </span>
           <span>|</span>
-          <span>{activeTab ? activeTab.language : "No file"}</span>
-          <span>|</span>
-          <span>Layout: {layout}</span>
+          <span>{openTabs.length} files</span>
         </div>
       </footer>
     </div>

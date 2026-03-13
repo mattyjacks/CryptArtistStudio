@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentation - CryptArtist Studio</title>
+  <meta name="description" content="Documentation for CryptArtist Studio including the .CryptArt file format, CLI reference, REST API, and configuration guides.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">
+        <span class="nav-logo-emoji" aria-hidden="true">&#x1F480;&#x1F3A8;</span>
+        <span class="nav-logo-text">CryptArtist</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html" class="nav-link">Home</a>
+        <a href="programs.html" class="nav-link">Programs</a>
+        <a href="about.html" class="nav-link">About</a>
+        <a href="docs.html" class="nav-link active">Docs</a>
+        <a href="contact.html" class="nav-link">Contact</a>
+        <a href="download.html" class="nav-cta">Download Free</a>
+      </div>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <span class="page-header-emoji">&#x1F4D6;</span>
+    <h1 class="page-header-title"><span class="gradient-text">Documentation</span></h1>
+    <p class="page-header-subtitle">
+      Everything you need to know about CryptArtist Studio - from the file format to the CLI to the REST API.
+    </p>
+  </header>
+
+  <!-- Quick Nav -->
+  <section class="section-sm" style="padding-top: 20px;">
+    <div class="container-narrow">
+      <div class="reveal" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+        <a href="#cryptart-format" class="btn btn-ghost btn-sm">&#x1F4C4; .CryptArt Format</a>
+        <a href="#cli" class="btn btn-ghost btn-sm">&#x1F4BB; CLI Reference</a>
+        <a href="#api" class="btn btn-ghost btn-sm">&#x1F310; REST API</a>
+        <a href="#configuration" class="btn btn-ghost btn-sm">&#x2699;&#xFE0F; Configuration</a>
+        <a href="#logging" class="btn btn-ghost btn-sm">&#x1F4DD; Logging</a>
+        <a href="#shortcuts" class="btn btn-ghost btn-sm">&#x2328;&#xFE0F; Shortcuts</a>
+        <a href="#faq" class="btn btn-ghost btn-sm">&#x2753; FAQ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- .CryptArt Format -->
+  <section class="content-section" id="cryptart-format">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x1F4C4; The .CryptArt File Format</h2>
+        <p class="content-text">
+          The <code>.CryptArt</code> file format is the universal project file for all CryptArtist Studio programs.
+          It is a JSON file with the extension <code>.CryptArt</code> and the registered type name
+          <strong>"CryptArtist Art"</strong>.
+        </p>
+        <p class="content-text">
+          The format was designed with one overriding goal: <strong>it must never need a base format upgrade</strong>.
+          The envelope schema is stable forever. Any <code>.CryptArt</code> file ever created will always be
+          readable by any version of CryptArtist Studio.
+        </p>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Required Fields</h3>
+        <p class="content-text">Only three fields are required in every <code>.CryptArt</code> file:</p>
+
+        <table class="docs-table">
+          <thead>
+            <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>$cryptart</code></td><td><code>1</code> (number)</td><td>Magic key. Identifies the file and its envelope version. Always <code>1</code>.</td></tr>
+            <tr><td><code>program</code></td><td><code>string</code></td><td>Free-form string identifying which program created the file.</td></tr>
+            <tr><td><code>data</code></td><td><code>object</code></td><td>Program-specific payload. Opaque to the envelope.</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Minimal Example</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            my-project.CryptArt
+          </div>
+          <pre>{
+  <span class="key">"$cryptart"</span>: <span class="number">1</span>,
+  <span class="key">"program"</span>: <span class="string">"media-mogul"</span>,
+  <span class="key">"data"</span>: {}
+}</pre>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Recommended Fields</h3>
+        <table class="docs-table">
+          <thead>
+            <tr><th>Field</th><th>Type</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>name</code></td><td><code>string</code></td><td>Human-readable project name</td></tr>
+            <tr><td><code>createdAt</code></td><td><code>string</code></td><td>ISO-8601 creation timestamp</td></tr>
+            <tr><td><code>updatedAt</code></td><td><code>string</code></td><td>ISO-8601 last-save timestamp</td></tr>
+            <tr><td><code>appVersion</code></td><td><code>string</code></td><td>Version of CryptArtist Studio that wrote the file</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Compatibility Contract</h3>
+        <table class="docs-table">
+          <thead>
+            <tr><th>Rule</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Readers MUST</strong></td><td>Ignore unknown top-level keys</td></tr>
+            <tr><td><strong>Readers MUST NOT</strong></td><td>Fail if optional keys are missing</td></tr>
+            <tr><td><strong>Writers MUST</strong></td><td>Always include the 3 required keys</td></tr>
+            <tr><td><strong>Writers SHOULD</strong></td><td>Preserve unknown keys when re-saving a file</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Known Program IDs</h3>
+        <table class="docs-table">
+          <thead>
+            <tr><th>Program ID</th><th>Program Name</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>media-mogul</code></td><td>Media Mogul</td></tr>
+            <tr><td><code>vibecode-worker</code></td><td>VibeCodeWorker</td></tr>
+            <tr><td><code>demo-recorder</code></td><td>DemoRecorder</td></tr>
+            <tr><td><code>valley-net</code></td><td>ValleyNet</td></tr>
+            <tr><td><code>game-studio</code></td><td>GameStudio</td></tr>
+          </tbody>
+        </table>
+        <p class="content-text text-small" style="margin-top: 12px;">
+          Any string is valid as a program ID. Third-party programs can use their own IDs without any changes to the format.
+        </p>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Full Example</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            full-project.CryptArt
+          </div>
+          <pre>{
+  <span class="key">"$cryptart"</span>: <span class="number">1</span>,
+  <span class="key">"program"</span>: <span class="string">"vibecode-worker"</span>,
+  <span class="key">"name"</span>: <span class="string">"My Web App"</span>,
+  <span class="key">"createdAt"</span>: <span class="string">"2026-03-13T17:00:00.000Z"</span>,
+  <span class="key">"updatedAt"</span>: <span class="string">"2026-03-13T18:30:00.000Z"</span>,
+  <span class="key">"appVersion"</span>: <span class="string">"0.1.0"</span>,
+  <span class="key">"id"</span>: <span class="string">"a1b2c3d4-e5f6-7890-abcd-ef1234567890"</span>,
+  <span class="key">"meta"</span>: {
+    <span class="key">"author"</span>: <span class="string">"Matt"</span>,
+    <span class="key">"email"</span>: <span class="string">"Matt@MattyJacks.com"</span>,
+    <span class="key">"website"</span>: <span class="string">"https://mattyjacks.com"</span>,
+    <span class="key">"tags"</span>: [<span class="string">"typescript"</span>, <span class="string">"react"</span>],
+    <span class="key">"license"</span>: <span class="string">"MIT"</span>
+  },
+  <span class="key">"data"</span>: {
+    <span class="key">"rootPath"</span>: <span class="string">"/home/matt/projects/webapp"</span>,
+    <span class="key">"openFiles"</span>: [
+      { <span class="key">"path"</span>: <span class="string">"src/App.tsx"</span>, <span class="key">"name"</span>: <span class="string">"App.tsx"</span> }
+    ],
+    <span class="key">"activeFile"</span>: <span class="string">"src/App.tsx"</span>,
+    <span class="key">"aiProvider"</span>: <span class="string">"openai"</span>,
+    <span class="key">"model"</span>: <span class="string">"gpt-4o"</span>
+  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CLI Reference -->
+  <section class="content-section" id="cli">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x1F4BB; CLI Reference</h2>
+        <p class="content-text">
+          Every feature in CryptArtist Studio is accessible from the command line. The CLI uses a
+          <code>cryptartist &lt;command&gt; [options]</code> pattern.
+        </p>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Global Commands</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            terminal
+          </div>
+          <pre><span class="comment"># Show version</span>
+$ cryptartist --version
+
+<span class="comment"># Show help</span>
+$ cryptartist --help
+
+<span class="comment"># Launch specific program</span>
+$ cryptartist launch media-mogul
+$ cryptartist launch vibecode-worker
+$ cryptartist launch demo-recorder
+$ cryptartist launch valley-net
+$ cryptartist launch game-studio</pre>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Project Commands</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            terminal
+          </div>
+          <pre><span class="comment"># Create a new project</span>
+$ cryptartist new --program media-mogul --name <span class="string">"My Video"</span>
+
+<span class="comment"># Open an existing project</span>
+$ cryptartist open project.CryptArt
+
+<span class="comment"># Show project info</span>
+$ cryptartist info project.CryptArt
+
+<span class="comment"># Export project to different format</span>
+$ cryptartist export --format mp4 --output video.mp4</pre>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Media Commands</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            terminal
+          </div>
+          <pre><span class="comment"># Import media from Pexels</span>
+$ cryptartist media import --source pexels --query <span class="string">"ocean waves"</span>
+
+<span class="comment"># Import local file</span>
+$ cryptartist media import --source local --path video.mp4
+
+<span class="comment"># List media in project</span>
+$ cryptartist media list
+
+<span class="comment"># Probe media file info</span>
+$ cryptartist media probe video.mp4</pre>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">AI Commands</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            terminal
+          </div>
+          <pre><span class="comment"># Generate a video from prompt</span>
+$ cryptartist ai generate --prompt <span class="string">"Travel vlog about Tokyo"</span>
+
+<span class="comment"># Chat with AI</span>
+$ cryptartist ai chat --message <span class="string">"How do I add transitions?"</span>
+
+<span class="comment"># Generate an image</span>
+$ cryptartist ai image --prompt <span class="string">"Sunset over mountains"</span></pre>
+        </div>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Server Commands</h3>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            terminal
+          </div>
+          <pre><span class="comment"># Start the REST API server</span>
+$ cryptartist serve --port 3000
+
+<span class="comment"># Start with API key auth</span>
+$ cryptartist serve --port 3000 --api-key <span class="string">"your-key"</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REST API -->
+  <section class="content-section" id="api">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x1F310; REST API Reference</h2>
+        <p class="content-text">
+          Start the API server with <code>cryptartist serve --port 3000</code>. All endpoints accept and return JSON.
+        </p>
+
+        <table class="docs-table" style="margin-top: 24px;">
+          <thead>
+            <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>GET</code></td><td><code>/api/status</code></td><td>Server status and version</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/project</code></td><td>Current project info</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/project/new</code></td><td>Create a new project</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/project/open</code></td><td>Open a .CryptArt file</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/project/save</code></td><td>Save current project</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/media/import</code></td><td>Import media file</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/media/list</code></td><td>List project media</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/media/probe</code></td><td>Probe media file info</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/chat</code></td><td>Send AI chat message</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/generate</code></td><td>AI video generation</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/ai/image</code></td><td>AI image generation</td></tr>
+            <tr><td><code>POST</code></td><td><code>/api/export</code></td><td>Export project</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/system/info</code></td><td>System information</td></tr>
+            <tr><td><code>GET</code></td><td><code>/api/system/logs</code></td><td>Recent log entries</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Authentication</h3>
+        <p class="content-text">
+          If the server is started with <code>--api-key</code>, all requests must include the key in the
+          <code>Authorization</code> header:
+        </p>
+        <div class="code-block">
+          <div class="code-block-header">
+            <div class="code-block-dots">
+              <span class="code-block-dot red"></span>
+              <span class="code-block-dot yellow"></span>
+              <span class="code-block-dot green"></span>
+            </div>
+            HTTP Request
+          </div>
+          <pre>GET /api/status HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer your-api-key-here
+Content-Type: application/json</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Configuration -->
+  <section class="content-section" id="configuration">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x2699;&#xFE0F; Configuration</h2>
+
+        <h3 style="font-size: 1.1rem; margin-top: 24px; margin-bottom: 16px;">API Keys</h3>
+        <p class="content-text">
+          CryptArtist Studio supports multiple AI providers. Enter your keys in the Settings modal
+          (accessible from any program) or pass them via the CLI.
+        </p>
+        <table class="docs-table">
+          <thead>
+            <tr><th>Provider</th><th>Key Type</th><th>Used By</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>OpenAI</strong></td><td>API Key</td><td>All programs - Chat, Image Gen, TTS, Video AI</td></tr>
+            <tr><td><strong>Anthropic</strong></td><td>API Key</td><td>VibeCodeWorker AI Chat, ValleyNet</td></tr>
+            <tr><td><strong>Google</strong></td><td>API Key</td><td>VibeCodeWorker AI Chat, ValleyNet</td></tr>
+            <tr><td><strong>Pexels</strong></td><td>API Key</td><td>Media Mogul - Stock photo/video import</td></tr>
+            <tr><td><strong>Custom Endpoint</strong></td><td>URL + Key</td><td>Any OpenAI-compatible API</td></tr>
+          </tbody>
+        </table>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">FFmpeg Setup</h3>
+        <p class="content-text">
+          FFmpeg and FFprobe are automatically downloaded on first run. The installer detects your OS
+          (Windows, macOS, Linux), downloads the appropriate binaries, verifies SHA-256 checksums,
+          and stores them in the local AppData directory. No manual installation required.
+        </p>
+
+        <h3 style="font-size: 1.1rem; margin-top: 32px; margin-bottom: 16px;">Godot Integration</h3>
+        <p class="content-text">
+          GameStudio automatically detects an installed Godot Engine or offers to download it.
+          Configure the Godot executable path in Settings if auto-detection doesn't work.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Logging -->
+  <section class="content-section" id="logging">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x1F4DD; Logging System</h2>
+        <p class="content-text">
+          CryptArtist Studio includes a comprehensive logging system with three rolling log files:
+        </p>
+        <table class="docs-table">
+          <thead>
+            <tr><th>File</th><th>Contents</th><th>Size</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>cryptartist-session.log</code></td><td>Last 100 lines since the last app launch</td><td>Rolling, per session</td></tr>
+            <tr><td><code>cryptartist-recent.log</code></td><td>Last 1,000 lines across all sessions</td><td>Rolling, 1K lines</td></tr>
+            <tr><td><code>cryptartist-full.log</code></td><td>Every log line ever written</td><td>Grows indefinitely</td></tr>
+          </tbody>
+        </table>
+        <p class="content-text" style="margin-top: 16px;">
+          Log levels: <code>DEBUG</code>, <code>INFO</code>, <code>WARN</code>, <code>ERROR</code>,
+          <code>ACTION</code>. The frontend logger sends structured messages to the Rust backend
+          for unified logging across the entire stack.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Keyboard Shortcuts -->
+  <section class="content-section" id="shortcuts">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x2328;&#xFE0F; Keyboard Shortcuts</h2>
+        <table class="docs-table">
+          <thead>
+            <tr><th>Shortcut</th><th>Action</th><th>Context</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>Ctrl+S</code></td><td>Save project</td><td>All programs</td></tr>
+            <tr><td><code>Ctrl+O</code></td><td>Open project</td><td>All programs</td></tr>
+            <tr><td><code>Ctrl+N</code></td><td>New project</td><td>All programs</td></tr>
+            <tr><td><code>Ctrl+Z</code></td><td>Undo</td><td>All programs</td></tr>
+            <tr><td><code>Ctrl+Shift+Z</code></td><td>Redo</td><td>All programs</td></tr>
+            <tr><td><code>Ctrl+,</code></td><td>Open Settings</td><td>All programs</td></tr>
+            <tr><td><code>Escape</code></td><td>Close modal / Back to launcher</td><td>All programs</td></tr>
+            <tr><td><code>Space</code></td><td>Play / Pause</td><td>Media Mogul timeline</td></tr>
+            <tr><td><code>Ctrl+Shift+F</code></td><td>Search across files</td><td>VibeCodeWorker</td></tr>
+            <tr><td><code>Ctrl+`</code></td><td>Toggle terminal</td><td>VibeCodeWorker</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="content-section" id="faq">
+    <div class="container-narrow">
+      <div class="reveal">
+        <h2 class="content-title gradient-text-cyan">&#x2753; Frequently Asked Questions</h2>
+        <div class="accordion" style="margin-top: 24px;">
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              Is CryptArtist Studio really free?
+              <span class="accordion-arrow">&#x25BC;</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                Yes, 100% free. No paywalls, no feature gates, no "pro" tiers. Every feature is available
+                to every user. The project is community-funded through voluntary donations at
+                <a href="https://mattyjacks.com" target="_blank" rel="noopener noreferrer">mattyjacks.com</a> and
+                <a href="https://givegigs.com" target="_blank" rel="noopener noreferrer">givegigs.com</a>.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              Do I need API keys to use CryptArtist Studio?
+              <span class="accordion-arrow">&#x25BC;</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                API keys are only needed for AI-powered features (chat, image generation, video AI, etc.).
+                All non-AI features - video editing, screen recording, code editing, file management - work
+                without any API keys. You can add keys for OpenAI, Anthropic, Google, or any compatible endpoint.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              What platforms does CryptArtist Studio support?
+              <span class="accordion-arrow">&#x25BC;</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                CryptArtist Studio runs on Windows, macOS, and Linux via Tauri. Mobile support for Android
+                and iOS is in active development.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              What is the .CryptArt file format?
+              <span class="accordion-arrow">&#x25BC;</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                The <code>.CryptArt</code> format is a universal JSON project file used by all five programs.
+                It's designed to be permanently forward-compatible - any file ever created will always be
+                readable by any future version of the app. See the
+                <a href="#cryptart-format">format documentation above</a> for details.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              Is my data sent to any servers?
+              <span class="accordion-arrow">&#x25BC;</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                CryptArtist Studio runs entirely on your local machine. The only external requests are made
+                when you explicitly use AI features (which call the API provider you configured), Pexels
+                stock media search, or GiveGigs media bucket access. Your project files stay on your disk.
+              </div>
+            </div>
+          </div>
+          <div class="accordion-item">
+            <button class="accordion-trigger">
+              How do I contribute?
+              <span class="accordion-arrow">&#x25BC;</span>
+            </button>
+            <div class="accordion-content">
+              <div class="accordion-body">
+                The project is open source on
+                <a href="https://github.com/mattyjacks/CryptArtistStudio" target="_blank" rel="noopener noreferrer">GitHub</a>.
+                Fork the repository, make your changes, and submit a pull request. Bug reports and feature
+                requests are also welcome via GitHub Issues.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container reveal">
+      <h2 class="cta-title"><span class="gradient-text">Ready to Build?</span></h2>
+      <p class="cta-desc">Download CryptArtist Studio and start creating.</p>
+      <div class="hero-actions">
+        <a href="download.html" class="btn btn-primary btn-lg">&#x2B07; Download Now</a>
+        <a href="https://github.com/mattyjacks/CryptArtistStudio" class="btn btn-ghost btn-lg" target="_blank" rel="noopener noreferrer">&#x2B50; GitHub</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="footer-brand-title">&#x1F480;&#x1F3A8; CryptArtist Studio</div>
+          <p class="footer-brand-desc">The open creative suite - powered by community donations.</p>
+          <div class="footer-social">
+            <a href="https://github.com/mattyjacks/CryptArtistStudio" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="GitHub">GH</a>
+            <a href="https://mattyjacks.com" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="Website">MJ</a>
+            <a href="https://givegigs.com" class="footer-social-link" target="_blank" rel="noopener noreferrer" aria-label="GiveGigs">GG</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Programs</div>
+          <div class="footer-col-links">
+            <a href="programs.html#media-mogul" class="footer-col-link">&#x1F4FA; Media Mogul</a>
+            <a href="programs.html#vibecode-worker" class="footer-col-link">&#x1F469;&#x200D;&#x1F4BB; VibeCodeWorker</a>
+            <a href="programs.html#demo-recorder" class="footer-col-link">&#x1F3A5; DemoRecorder</a>
+            <a href="programs.html#valley-net" class="footer-col-link">&#x1F471;&#x200D;&#x2640;&#xFE0F; ValleyNet</a>
+            <a href="programs.html#game-studio" class="footer-col-link">&#x1F3AE; GameStudio</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Resources</div>
+          <div class="footer-col-links">
+            <a href="docs.html" class="footer-col-link">Documentation</a>
+            <a href="docs.html#cryptart-format" class="footer-col-link">.CryptArt Format</a>
+            <a href="docs.html#cli" class="footer-col-link">CLI Reference</a>
+            <a href="docs.html#api" class="footer-col-link">REST API</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Community</div>
+          <div class="footer-col-links">
+            <a href="about.html" class="footer-col-link">About</a>
+            <a href="contact.html" class="footer-col-link">Contact</a>
+            <a href="https://mattyjacks.com" class="footer-col-link" target="_blank" rel="noopener noreferrer">mattyjacks.com</a>
+            <a href="https://givegigs.com" class="footer-col-link" target="_blank" rel="noopener noreferrer">givegigs.com</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-copy">&copy; <span class="current-year">2026</span> CryptArtist Studio. MIT License.</div>
+        <div class="footer-legal">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms of Use</a>
+          <a href="mailto:Matt@MattyJacks.com">Matt@MattyJacks.com</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

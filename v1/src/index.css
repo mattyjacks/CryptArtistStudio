@@ -951,3 +951,1211 @@ textarea.input {
   background: rgba(0, 210, 255, 0.3);
   color: var(--text-primary);
 }
+
+/* ============================================================================
+   IMPROVEMENT 1: Gradient Text Utility
+   ============================================================================ */
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-red), var(--accent-purple), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-cyan {
+  background: linear-gradient(135deg, var(--accent-cyan), #0070ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================================================
+   IMPROVEMENT 2: Glass-morphism Card
+   ============================================================================ */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+.glass-card:hover {
+  border-color: var(--border-bright);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   IMPROVEMENT 3: Animated Border Gradient
+   ============================================================================ */
+
+.border-gradient {
+  position: relative;
+  border: none !important;
+}
+.border-gradient::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-red), var(--accent-purple), var(--accent-cyan));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.border-gradient:hover::before {
+  opacity: 1;
+}
+
+/* ============================================================================
+   IMPROVEMENT 4: Skeleton Loading Placeholder
+   ============================================================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-surface) 25%,
+    var(--bg-elevated) 50%,
+    var(--bg-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text {
+  height: 12px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+}
+
+/* ============================================================================
+   IMPROVEMENT 5: Badge Component
+   ============================================================================ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.badge-red {
+  background: rgba(233, 69, 96, 0.15);
+  color: var(--accent-red);
+  border: 1px solid rgba(233, 69, 96, 0.25);
+}
+
+.badge-cyan {
+  background: rgba(0, 210, 255, 0.12);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+}
+
+.badge-green {
+  background: rgba(74, 222, 128, 0.12);
+  color: var(--accent-green);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+.badge-yellow {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--accent-yellow);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+.badge-purple {
+  background: rgba(123, 47, 247, 0.12);
+  color: var(--accent-purple);
+  border: 1px solid rgba(123, 47, 247, 0.2);
+}
+
+/* ============================================================================
+   IMPROVEMENT 6: Notification Badge Pulse
+   ============================================================================ */
+
+.badge-pulse {
+  position: relative;
+}
+.badge-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: inherit;
+  opacity: 0;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+/* ============================================================================
+   IMPROVEMENT 7: Keyboard Shortcut (kbd) Styling
+   ============================================================================ */
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 1px 5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-bright);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* ============================================================================
+   IMPROVEMENT 8: Tag / Chip Component
+   ============================================================================ */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  cursor: default;
+  transition: all 0.15s ease;
+}
+.tag:hover {
+  border-color: var(--border-bright);
+  color: var(--text-primary);
+}
+.tag-close {
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+.tag-close:hover {
+  opacity: 1;
+}
+
+/* ============================================================================
+   IMPROVEMENT 9: Inline Code Block Styling
+   ============================================================================ */
+
+.code-inline {
+  padding: 1px 6px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent-cyan);
+}
+
+.code-block {
+  padding: 12px 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* ============================================================================
+   IMPROVEMENT 10: Progress Ring
+   ============================================================================ */
+
+.progress-ring {
+  transform: rotate(-90deg);
+}
+.progress-ring-bg {
+  stroke: var(--bg-elevated);
+  fill: none;
+}
+.progress-ring-fill {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease;
+}
+
+/* ============================================================================
+   IMPROVEMENT 11: Divider Component
+   ============================================================================ */
+
+.divider {
+  height: 1px;
+  background: var(--border-default);
+  margin: 8px 0;
+}
+.divider-vertical {
+  width: 1px;
+  height: 100%;
+  background: var(--border-default);
+  margin: 0 8px;
+}
+.divider-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.divider-label::before,
+.divider-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-default);
+}
+
+/* ============================================================================
+   IMPROVEMENT 12-15: New Animations
+   ============================================================================ */
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  50% { transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes countdownPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.animate-slide-in-left { animation: slideInLeft 0.3s ease-out; }
+.animate-slide-in-right { animation: slideInRight 0.3s ease-out; }
+.animate-bounce-in { animation: bounceIn 0.4s ease-out; }
+.animate-scale-in { animation: scaleIn 0.25s ease-out; }
+
+/* ============================================================================
+   IMPROVEMENT 16: Tab Indicator Animation
+   ============================================================================ */
+
+.tab-active-indicator {
+  position: relative;
+}
+.tab-active-indicator::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 20%;
+  right: 20%;
+  height: 2px;
+  background: var(--accent-cyan);
+  border-radius: 2px 2px 0 0;
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* ============================================================================
+   IMPROVEMENT 17: Recording Pulse
+   ============================================================================ */
+
+.rec-pulse {
+  animation: recPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes recPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+/* ============================================================================
+   IMPROVEMENT 18: Dot Separator Utility
+   ============================================================================ */
+
+.dot-separator > *:not(:last-child)::after {
+  content: '\00b7';
+  margin: 0 6px;
+  color: var(--text-muted);
+}
+
+/* ============================================================================
+   IMPROVEMENT 19: Empty State Styling
+   ============================================================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+.empty-state-icon {
+  font-size: 48px;
+  opacity: 0.3;
+  margin-bottom: 12px;
+}
+.empty-state-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.empty-state-description {
+  font-size: 11px;
+  color: var(--text-muted);
+  max-width: 240px;
+  line-height: 1.5;
+}
+
+/* ============================================================================
+   IMPROVEMENT 20: Staggered Animation Delays
+   ============================================================================ */
+
+.stagger-1 { animation-delay: 0.05s; animation-fill-mode: both; }
+.stagger-2 { animation-delay: 0.10s; animation-fill-mode: both; }
+.stagger-3 { animation-delay: 0.15s; animation-fill-mode: both; }
+.stagger-4 { animation-delay: 0.20s; animation-fill-mode: both; }
+.stagger-5 { animation-delay: 0.25s; animation-fill-mode: both; }
+
+/* ============================================================================
+   IMPROVEMENT 101: Toast Notification Component
+   ============================================================================ */
+
+.toast-container {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: toastSlideIn 0.3s ease-out;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.toast-success { border-left: 3px solid var(--accent-green); }
+.toast-error { border-left: 3px solid var(--accent-red); }
+.toast-warning { border-left: 3px solid var(--accent-yellow); }
+.toast-info { border-left: 3px solid var(--accent-cyan); }
+
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastSlideOut {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+/* ============================================================================
+   IMPROVEMENT 102: Dropdown Menu Component
+   ============================================================================ */
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 50;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  animation: scaleIn 0.15s ease-out;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  white-space: nowrap;
+}
+.dropdown-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.dropdown-separator {
+  height: 1px;
+  background: var(--border-default);
+  margin: 4px 0;
+}
+
+/* ============================================================================
+   IMPROVEMENT 103: Avatar / User Icon Component
+   ============================================================================ */
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  border: 2px solid var(--border-default);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  overflow: hidden;
+  user-select: none;
+}
+.avatar-xs { width: 20px; height: 20px; font-size: 8px; }
+.avatar-sm { width: 28px; height: 28px; font-size: 10px; }
+.avatar-md { width: 36px; height: 36px; font-size: 13px; }
+.avatar-lg { width: 48px; height: 48px; font-size: 18px; }
+
+.avatar-online { border-color: var(--accent-green); }
+.avatar-busy { border-color: var(--accent-red); }
+.avatar-away { border-color: var(--accent-yellow); }
+
+/* ============================================================================
+   IMPROVEMENT 104: Switch / Toggle Component
+   ============================================================================ */
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 32px;
+  height: 18px;
+  cursor: pointer;
+}
+.switch input { display: none; }
+
+.switch-track {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: 9px;
+  transition: all 0.2s ease;
+}
+
+.switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.switch input:checked + .switch-track {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+.switch input:checked + .switch-track .switch-thumb {
+  left: 16px;
+  background: #fff;
+}
+
+/* ============================================================================
+   IMPROVEMENT 105: Breadcrumb Navigation
+   ============================================================================ */
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  color: var(--text-muted);
+  overflow: hidden;
+}
+.breadcrumb-item {
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.breadcrumb-item:hover { color: var(--text-primary); }
+.breadcrumb-item.active { color: var(--text-secondary); cursor: default; }
+.breadcrumb-sep { opacity: 0.4; margin: 0 2px; }
+
+/* ============================================================================
+   IMPROVEMENT 106: Glow Effect Utility
+   ============================================================================ */
+
+.glow-cyan { box-shadow: 0 0 12px rgba(0, 210, 255, 0.3), 0 0 40px rgba(0, 210, 255, 0.1); }
+.glow-red { box-shadow: 0 0 12px rgba(233, 69, 96, 0.3), 0 0 40px rgba(233, 69, 96, 0.1); }
+.glow-green { box-shadow: 0 0 12px rgba(74, 222, 128, 0.3), 0 0 40px rgba(74, 222, 128, 0.1); }
+.glow-purple { box-shadow: 0 0 12px rgba(123, 47, 247, 0.3), 0 0 40px rgba(123, 47, 247, 0.1); }
+.glow-yellow { box-shadow: 0 0 12px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1); }
+
+/* ============================================================================
+   IMPROVEMENT 107: Card Hover Lift Effect
+   ============================================================================ */
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================================================
+   IMPROVEMENT 108: Spotlight / Highlight Effect
+   ============================================================================ */
+
+.spotlight {
+  position: relative;
+  overflow: hidden;
+}
+.spotlight::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(0, 210, 255, 0.06) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.spotlight:hover::after { opacity: 1; }
+
+/* ============================================================================
+   IMPROVEMENT 109: Context Menu Styling
+   ============================================================================ */
+
+.context-menu {
+  position: fixed;
+  z-index: 200;
+  min-width: 180px;
+  padding: 4px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+  animation: scaleIn 0.1s ease-out;
+}
+
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+.context-menu-item:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.context-menu-item .shortcut {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============================================================================
+   IMPROVEMENT 110: Scrollbar Thin Variant
+   ============================================================================ */
+
+.scrollbar-thin::-webkit-scrollbar { width: 4px; height: 4px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================================
+   IMPROVEMENT 111: Resizable Panel Handle
+   ============================================================================ */
+
+.resize-handle {
+  position: relative;
+  flex-shrink: 0;
+  background: transparent;
+  transition: background 0.15s ease;
+  cursor: col-resize;
+  z-index: 5;
+}
+.resize-handle-h { width: 4px; cursor: col-resize; }
+.resize-handle-v { height: 4px; cursor: row-resize; }
+.resize-handle:hover, .resize-handle:active {
+  background: var(--accent-cyan);
+}
+
+/* ============================================================================
+   IMPROVEMENT 112: Floating Action Button
+   ============================================================================ */
+
+.fab {
+  position: fixed;
+  bottom: 40px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-cyan), #0090b0);
+  color: #fff;
+  font-size: 18px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 210, 255, 0.35);
+  transition: all 0.2s ease;
+  z-index: 40;
+}
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 28px rgba(0, 210, 255, 0.5);
+}
+
+/* ============================================================================
+   IMPROVEMENT 113: Notification Dot
+   ============================================================================ */
+
+.notification-dot {
+  position: relative;
+}
+.notification-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent-red);
+  border-radius: 50%;
+  border: 2px solid var(--bg-panel);
+}
+
+.notification-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--accent-red);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--bg-panel);
+}
+
+/* ============================================================================
+   IMPROVEMENT 114: Accordion / Collapsible Section
+   ============================================================================ */
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+  user-select: none;
+}
+.accordion-header:hover { color: var(--text-primary); background: var(--bg-hover); }
+.accordion-arrow {
+  transition: transform 0.2s ease;
+  font-size: 8px;
+}
+.accordion-arrow.open { transform: rotate(90deg); }
+.accordion-body {
+  overflow: hidden;
+  animation: accordionOpen 0.2s ease-out;
+}
+
+@keyframes accordionOpen {
+  from { max-height: 0; opacity: 0; }
+  to { max-height: 500px; opacity: 1; }
+}
+
+/* ============================================================================
+   IMPROVEMENT 115: Text Truncation Utilities
+   ============================================================================ */
+
+.truncate-1 {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.truncate-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Text selection variants */
+.select-all { user-select: all; }
+.select-none { user-select: none; }
+
+/* Monospace number utility for tabular data */
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* Subtle text shadow for readability over images */
+.text-shadow { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+.text-shadow-lg { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7); }
+
+/* ============================================================================
+   IMPROVEMENT 201: Stepper / Wizard Component
+   ============================================================================ */
+
+.stepper { display: flex; align-items: center; gap: 0; width: 100%; }
+.stepper-step {
+  display: flex; align-items: center; gap: 8px; flex: 1;
+  position: relative;
+}
+.stepper-circle {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700;
+  background: var(--surface); border: 2px solid var(--border);
+  color: var(--text-muted); transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+.stepper-step.active .stepper-circle {
+  background: var(--accent-cyan); border-color: var(--accent-cyan);
+  color: #fff; box-shadow: 0 0 12px rgba(0, 210, 255, 0.3);
+}
+.stepper-step.completed .stepper-circle {
+  background: var(--accent-green); border-color: var(--accent-green); color: #fff;
+}
+.stepper-line {
+  flex: 1; height: 2px; background: var(--border);
+  margin: 0 8px; transition: background 0.3s ease;
+}
+.stepper-step.completed + .stepper-line,
+.stepper-step.completed .stepper-line { background: var(--accent-green); }
+.stepper-label { font-size: 10px; color: var(--text-muted); }
+.stepper-step.active .stepper-label { color: var(--text-primary); font-weight: 600; }
+
+/* ============================================================================
+   IMPROVEMENT 202: Chip Input / Tag Input
+   ============================================================================ */
+
+.chip-input {
+  display: flex; flex-wrap: wrap; gap: 4px; padding: 6px 8px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; min-height: 36px; align-items: center;
+  transition: border-color 0.2s;
+}
+.chip-input:focus-within { border-color: var(--accent-cyan); }
+.chip-input .chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 12px; font-size: 10px;
+  background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+}
+.chip-input .chip-remove {
+  cursor: pointer; opacity: 0.6; font-size: 12px; line-height: 1;
+  transition: opacity 0.15s;
+}
+.chip-input .chip-remove:hover { opacity: 1; }
+.chip-input input {
+  flex: 1; min-width: 80px; background: transparent;
+  border: none; outline: none; color: var(--text-primary);
+  font-size: 11px;
+}
+
+/* ============================================================================
+   IMPROVEMENT 203: Timeline Ruler Markings (enhanced)
+   ============================================================================ */
+
+.timeline-ruler-enhanced {
+  position: relative; height: 24px;
+  background: linear-gradient(180deg, var(--surface) 0%, var(--panel) 100%);
+  border-bottom: 1px solid var(--border);
+  overflow: hidden;
+}
+.timeline-ruler-mark {
+  position: absolute; top: 0; width: 1px; height: 100%;
+  background: var(--border);
+}
+.timeline-ruler-mark.major { background: rgba(255,255,255,0.15); }
+.timeline-ruler-mark .ruler-label {
+  position: absolute; top: 2px; left: 3px;
+  font-size: 8px; color: var(--text-muted); white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ============================================================================
+   IMPROVEMENT 204: Split Pane Divider (enhanced)
+   ============================================================================ */
+
+.split-divider {
+  position: relative; flex-shrink: 0;
+  background: var(--border); transition: background 0.2s;
+  z-index: 10;
+}
+.split-divider.horizontal { width: 100%; height: 4px; cursor: row-resize; }
+.split-divider.vertical { height: 100%; width: 4px; cursor: col-resize; }
+.split-divider:hover { background: var(--accent-cyan); }
+.split-divider::after {
+  content: ''; position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  border-radius: 2px; background: rgba(255,255,255,0.2);
+  transition: background 0.2s;
+}
+.split-divider.horizontal::after { width: 32px; height: 2px; }
+.split-divider.vertical::after { width: 2px; height: 32px; }
+.split-divider:hover::after { background: rgba(255,255,255,0.5); }
+
+/* ============================================================================
+   IMPROVEMENT 205: Color Swatch Palette
+   ============================================================================ */
+
+.swatch-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
+  gap: 4px;
+}
+.swatch {
+  width: 24px; height: 24px; border-radius: 4px;
+  border: 2px solid transparent; cursor: pointer;
+  transition: all 0.15s; position: relative;
+}
+.swatch:hover { transform: scale(1.15); z-index: 1; }
+.swatch.active { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.3); }
+.swatch-lg { width: 36px; height: 36px; border-radius: 6px; }
+
+/* ============================================================================
+   IMPROVEMENT 206: Popover Component
+   ============================================================================ */
+
+.popover {
+  position: absolute; z-index: 50;
+  background: var(--panel); border: 1px solid var(--border-bright);
+  border-radius: 10px; padding: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: popoverIn 0.15s ease-out;
+  min-width: 180px;
+}
+.popover-arrow {
+  position: absolute; width: 8px; height: 8px;
+  background: var(--panel); border: 1px solid var(--border-bright);
+  transform: rotate(45deg);
+}
+.popover-arrow.top { bottom: -5px; left: 50%; margin-left: -4px; border-top: none; border-left: none; }
+.popover-arrow.bottom { top: -5px; left: 50%; margin-left: -4px; border-bottom: none; border-right: none; }
+
+@keyframes popoverIn {
+  from { opacity: 0; transform: translateY(4px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ============================================================================
+   IMPROVEMENT 207: Slider / Range Input Styled
+   ============================================================================ */
+
+.range-styled {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 2px;
+  background: var(--border); outline: none;
+  transition: background 0.2s;
+}
+.range-styled::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent-cyan); cursor: pointer;
+  border: 2px solid var(--panel);
+  box-shadow: 0 0 6px rgba(0, 210, 255, 0.3);
+  transition: transform 0.15s;
+}
+.range-styled::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.range-styled::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent-cyan); cursor: pointer;
+  border: 2px solid var(--panel);
+}
+.range-styled.range-red::-webkit-slider-thumb { background: var(--accent-red); }
+.range-styled.range-green::-webkit-slider-thumb { background: var(--accent-green); }
+.range-styled.range-purple::-webkit-slider-thumb { background: #7b2ff7; }
+
+/* ============================================================================
+   IMPROVEMENT 208: Inline Editable Label
+   ============================================================================ */
+
+.editable-label {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 6px; border-radius: 4px; cursor: text;
+  border: 1px solid transparent; transition: all 0.15s;
+  font-size: 11px; color: var(--text-primary);
+}
+.editable-label:hover { border-color: var(--border); background: var(--surface); }
+.editable-label.editing {
+  border-color: var(--accent-cyan); background: var(--surface);
+  outline: none;
+}
+.editable-label-icon {
+  opacity: 0; font-size: 9px; color: var(--text-muted);
+  transition: opacity 0.15s;
+}
+.editable-label:hover .editable-label-icon { opacity: 0.6; }
+
+/* ============================================================================
+   IMPROVEMENT 209: Mini Calendar / Date Picker
+   ============================================================================ */
+
+.mini-calendar {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px; width: 220px;
+}
+.mini-calendar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; font-size: 11px; font-weight: 600;
+  color: var(--text-primary);
+}
+.mini-calendar-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+.mini-calendar-day {
+  width: 28px; height: 28px; display: flex;
+  align-items: center; justify-content: center;
+  font-size: 10px; border-radius: 6px; cursor: pointer;
+  color: var(--text-secondary); transition: all 0.15s;
+}
+.mini-calendar-day:hover { background: var(--hover); color: var(--text-primary); }
+.mini-calendar-day.today {
+  background: rgba(0, 210, 255, 0.15); color: var(--accent-cyan); font-weight: 700;
+}
+.mini-calendar-day.selected {
+  background: var(--accent-cyan); color: #fff;
+}
+.mini-calendar-day.other-month { opacity: 0.3; }
+
+/* ============================================================================
+   IMPROVEMENT 210: Vertical Tabs
+   ============================================================================ */
+
+.vtabs { display: flex; height: 100%; }
+.vtabs-list {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 4px; background: var(--panel);
+  border-right: 1px solid var(--border); min-width: 44px;
+}
+.vtab {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 8px;
+  font-size: 16px; cursor: pointer; color: var(--text-muted);
+  transition: all 0.2s; position: relative;
+}
+.vtab:hover { background: var(--hover); color: var(--text-primary); }
+.vtab.active {
+  background: var(--surface); color: var(--accent-cyan);
+  box-shadow: inset 3px 0 0 var(--accent-cyan);
+}
+.vtab-tooltip {
+  position: absolute; left: calc(100% + 8px); top: 50%;
+  transform: translateY(-50%); white-space: nowrap;
+  font-size: 10px; padding: 4px 8px; border-radius: 4px;
+  background: var(--elevated); color: var(--text-primary);
+  pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.vtab:hover .vtab-tooltip { opacity: 1; }
+.vtabs-content { flex: 1; overflow: auto; }
+
+/* ============================================================================
+   IMPROVEMENT 211: Circular Progress / Donut Chart
+   ============================================================================ */
+
+.circular-progress {
+  position: relative; display: inline-flex;
+  align-items: center; justify-content: center;
+}
+.circular-progress svg { transform: rotate(-90deg); }
+.circular-progress-track {
+  fill: none; stroke: var(--border); stroke-width: 4;
+}
+.circular-progress-bar {
+  fill: none; stroke: var(--accent-cyan); stroke-width: 4;
+  stroke-linecap: round; transition: stroke-dashoffset 0.6s ease;
+}
+.circular-progress-label {
+  position: absolute; font-size: 10px; font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ============================================================================
+   IMPROVEMENT 212: Drag Handle / Sortable Item
+   ============================================================================ */
+
+.drag-handle {
+  cursor: grab; display: flex; align-items: center;
+  padding: 2px; color: var(--text-muted); opacity: 0.4;
+  transition: opacity 0.15s;
+}
+.drag-handle:hover { opacity: 1; }
+.drag-handle:active { cursor: grabbing; }
+.drag-handle-dots::before {
+  content: '\u2807'; font-size: 14px; letter-spacing: -1px;
+}
+.sortable-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 8px;
+  transition: all 0.2s;
+}
+.sortable-item:hover { border-color: var(--border-bright); }
+.sortable-item.dragging {
+  opacity: 0.5; border-color: var(--accent-cyan);
+  box-shadow: 0 4px 16px rgba(0, 210, 255, 0.1);
+}
+
+/* ============================================================================
+   IMPROVEMENT 213: Alert / Callout Banner
+   ============================================================================ */
+
+.callout {
+  display: flex; gap: 10px; padding: 12px 16px;
+  border-radius: 10px; border: 1px solid; font-size: 12px;
+  line-height: 1.5;
+}
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-info {
+  background: rgba(59, 130, 246, 0.08); border-color: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+}
+.callout-success {
+  background: rgba(34, 197, 94, 0.08); border-color: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+.callout-warning {
+  background: rgba(234, 179, 8, 0.08); border-color: rgba(234, 179, 8, 0.2);
+  color: #fde68a;
+}
+.callout-danger {
+  background: rgba(239, 68, 68, 0.08); border-color: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+}
+.callout-title { font-weight: 700; margin-bottom: 2px; }
+
+/* ============================================================================
+   IMPROVEMENT 214: Masonry / Waterfall Grid
+   ============================================================================ */
+
+.masonry {
+  columns: 3; column-gap: 12px;
+}
+.masonry-item {
+  break-inside: avoid; margin-bottom: 12px;
+  border-radius: 10px; overflow: hidden;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.masonry-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+@media (max-width: 768px) { .masonry { columns: 2; } }
+@media (max-width: 480px) { .masonry { columns: 1; } }
+
+/* ============================================================================
+   IMPROVEMENT 215: Ribbon / Corner Badge
+   ============================================================================ */
+
+.ribbon-container { position: relative; overflow: hidden; }
+.ribbon {
+  position: absolute; top: 16px; right: -32px;
+  padding: 4px 40px; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1px;
+  transform: rotate(45deg); z-index: 5;
+  background: var(--accent-red); color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.ribbon.ribbon-cyan { background: var(--accent-cyan); }
+.ribbon.ribbon-green { background: var(--accent-green); }
+.ribbon.ribbon-purple { background: #7b2ff7; }
+.ribbon.ribbon-left {
+  left: -32px; right: auto; transform: rotate(-45deg);
+}
+
+/* Corner dot badge */
+.corner-badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent-red); border: 2px solid var(--panel);
+}
+.corner-badge.corner-badge-lg {
+  width: 18px; height: 18px; font-size: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700;
+}

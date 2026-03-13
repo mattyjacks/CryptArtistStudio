@@ -223,6 +223,7 @@ pub struct AppState {
     pub pexels_key: Mutex<String>,
     pub givegigs_url: Mutex<String>,
     pub givegigs_key: Mutex<String>,
+    pub openrouter_key: Mutex<String>,
 }
 
 impl AppState {
@@ -233,6 +234,7 @@ impl AppState {
             pexels_key: Mutex::new(String::new()),
             givegigs_url: Mutex::new(String::new()),
             givegigs_key: Mutex::new(String::new()),
+            openrouter_key: Mutex::new(String::new()),
         }
     }
 
@@ -300,6 +302,19 @@ impl AppState {
 
     pub fn get_givegigs_key(&self) -> String {
         self.givegigs_key
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    pub fn set_openrouter_key(&self, key: String) -> Result<(), String> {
+        let mut openrouter_key = self.openrouter_key.lock().map_err(|e| e.to_string())?;
+        *openrouter_key = key;
+        Ok(())
+    }
+
+    pub fn get_openrouter_key(&self) -> String {
+        self.openrouter_key
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .clone()

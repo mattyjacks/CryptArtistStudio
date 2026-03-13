@@ -369,3 +369,110 @@ Make a 2,000 line README.md in multiple steps, including everything possible abo
 The program is open source.
 
 Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+## 100 UI/UX Improvements Across All Programs (Prompt 24 - March 2026)
+
+Implement 100 new improvements across the entire CryptArtist Studio suite:
+
+- **1-20**: Global CSS - gradient text, glass cards, skeleton loading, badges, kbd styling, tags, animated borders, progress rings, code blocks, new animations
+- **21-30**: Tailwind config - extended color palette (info, success, danger, warning, pink, teal), new animations (scale-in, slide-in, bounce-in, spin-slow, typing)
+- **31-40**: SuiteLauncher - search/filter, keyboard number shortcuts, version badges, last-opened indicator, staggered animation, system status (FFmpeg/Godot), clock display, enhanced footer
+- **41-46**: App.tsx - loading splash screen, 404 route, document title per route, error boundary, route transition context
+- **47-65**: VibeCodeWorker - file type icons, breadcrumb navigation, editor controls (word wrap, minimap, font size, tab size, theme), close-all tabs, welcome tab, keyboard shortcut help, enhanced status bar
+- **66-75**: MediaMogul - keyboard shortcut bar, project duration display, workspace transitions, quick export, undo/redo buttons, zoom controls, aspect ratio selector, volume slider, media count in status bar
+- **76-83**: DemoRecorder - countdown timer, recording time limit, audio level meter, screenshot button, quality presets, file size estimate, webcam overlay toggle, hotkey hints
+- **84-91**: ValleyNet - agent autonomy level, clear chat, quick task templates, agent personality selector, export conversation, connection status, message timestamps, enhanced status bar
+- **92-98**: GameStudio - game genre selector, scene count, build target selector, play test button, asset counter, GDScript snippet library, enhanced status bar with project stats
+- **99**: Shared utilities - clamp, pluralize, capitalize, debounceAsync, uniqueId, groupBy, relativeTime, copyToClipboard, downloadAsFile
+- **100**: Updated prompt archive with this prompt
+
+Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+## CryptArtist Studio Website (Prompt 25 - March 13, 2026) - DONE in 2nd Windsurf Cascade Conversation
+
+In a new folder with new files like    /website/A1/index.html   make me a full website about cryptartist studio, including links and stuff. Be Creative. Be perfect.
+
+Spend maximum context and do this task at maximum depth.
+
+Add this prompt to prompts/all-prompts.md with a note that it's done in the second Windsurf Cascade Conversation.
+
+**Status: COMPLETED** - Created full website in `/website/A1/` with 8 HTML pages, 1 CSS file, and 1 JS file:
+- `index.html` - Main landing page with hero, program cards, feature highlights, tech stack, CTA
+- `programs.html` - Detailed breakdown of all 5 programs (Media Mogul, VibeCodeWorker, DemoRecorder, ValleyNet, GameStudio)
+- `about.html` - Philosophy, story timeline, tech stack tables, related projects
+- `docs.html` - .CryptArt format spec, CLI reference, REST API reference, configuration, logging, FAQ
+- `download.html` - Platform download cards (Windows/macOS/Linux), build-from-source guide, system requirements
+- `contact.html` - Contact info, form, related site links
+- `privacy.html` - Full privacy policy compliant with New Hampshire law
+- `terms.html` - Full terms of use compliant with New Hampshire law
+- `style.css` - Complete dark theme with gradients, animations, responsive design
+- `script.js` - Navigation, scroll animations, accordion, counter animations, mobile menu
+
+---
+
+## 100 More UI/UX Improvements - Second Wave (Prompt 26 - March 2026)
+
+Implement improvements 101-200 across the entire CryptArtist Studio suite:
+
+- **101-115**: Global CSS - toast notifications, dropdown menus, avatar components, switch toggles, breadcrumb navigation, glow effects (cyan/red/green/purple/yellow), hover lift, spotlight effect, context menus, thin scrollbar variant, resize handles, floating action button (FAB), notification dots/counts, accordion sections, text truncation utilities
+- **116-125**: Tailwind config - 8 new semantic colors (indigo, lime, rose, sky, amber, emerald, violet, fuchsia), extended spacing (18/88/112/128), border radius (2xl/3xl), z-index scale (60-100), glow box shadows (sm/md/lg/red/green/purple), inner shadows, font sizes (2xs/3xs), extended opacity scale, backdrop blur (xs/2xl/3xl), 8 new animations (float, shake, wiggle, ping-slow, gradient-shift, expand, collapse, pop), transition durations (50-2000ms), timing functions (bounce/snappy/smooth)
+- **126-140**: SuiteLauncher - favorites system with star toggle, recent projects panel, program launch counter, uptime display, theme accent state, quick actions dropdown (recents/shortcuts/cache clear/GitHub), rotating tips carousel, keyboard shortcuts overlay (?), recent projects modal (R), launch animation, enhanced donation banner with gradient, favorite count in footer, total launches in footer
+- **141-155**: VibeCodeWorker - git branch + change count detection, cursor position (line/col) tracking, file encoding selector (UTF-8/ASCII), line ending toggle (LF/CRLF), auto-save toggle with indicator, command palette (Ctrl+Shift+P) with 20+ commands, terminal command history, code folding toggle, editor zoom percentage (50-200%), enhanced status bar with git/cursor/encoding/line-ending/zoom
+- **156-170**: MediaMogul - timeline markers with labels/colors, render queue state, clip counter, effects panel toggle, media bin categories (all/video/audio/image/other), color scopes toggle, audio waveform toggle, proxy editing mode, project notes panel with textarea, auto-backup indicator, render progress bar with gradient, timeline snap toggle, playback speed selector (0.25x-2x), export format selector, enhanced status bar with proxy/snap/speed/format indicators
+- **171-180**: DemoRecorder - annotation tools (pen/arrow/text/highlight), watermark toggle with text/position, multi-monitor selector, recording schedule/delay, output folder selector, mouse highlight toggle, click sound toggle, recording format selector (WebM/MP4/GIF), auto-stop on silence detection, recording tags, enhanced toolbar and status bar
+- **181-190**: ValleyNet - workflow builder with steps/active state, scheduled tasks with recurring support, agent memory system (key-value store with add/clear), token usage tracking (prompt/completion/total), conversation bookmarks, agent plugins (web search/file ops/code exec/email), response streaming toggle, safe mode toggle, task priority levels (low/normal/high/urgent), session timer, memory overlay modal, workflow builder modal, enhanced status bar with plugins/safe mode/tokens/memory/session
+- **191-198**: GameStudio - scene graph hierarchy state, asset pipeline status (importing/total/errors), debug overlay toggle, physics debug toggle, game resolution selector (1080p/720p/480p/240p), performance stats display (fps/draw calls/nodes/memory), node inspector toggle, VCS status with branch display, enhanced toolbar with debug/physics/perf/graph/inspector buttons, enhanced status bar with resolution/VCS/debug indicators
+- **199**: Shared hooks library (src/utils/hooks.ts) - useLocalStorage, useDebounce, useInterval, useTimeout, useToggle, useClickOutside, useKeyPress, useMediaQuery, usePrevious, useClipboard, useDocumentTitle, useCounter, useWindowSize, useHover, useAsync, useThrottle, useScrollPosition
+- **200**: Updated prompt archive with this prompt
+
+Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+## 100 More UI/UX Improvements - Third Wave (Prompt 27 - March 2026)
+
+Implement improvements 201-300 across the entire CryptArtist Studio suite:
+
+- **201-215**: Global CSS - stepper/wizard component, chip/tag input, enhanced timeline ruler, split pane dividers, color swatch palette, popover component, styled range slider, inline editable label, mini calendar/date picker, vertical tabs, circular progress/donut chart, drag handle/sortable items, alert/callout banners (info/success/warning/danger), masonry/waterfall grid, ribbon/corner badges
+- **216-225**: Tailwind config - extended breakpoints (xs/3xl/4xl/tall/short), min/max width extensions, min/max height extensions, grid template columns (auto-fill-sm/md/lg, sidebar, holy-grail) and rows (layout, header-body), aspect ratios (video/photo/portrait/ultrawide/vertical), line height extensions, letter spacing extensions, text decoration thickness, ring width extensions, gap extensions
+- **226-240**: SuiteLauncher - category filter with tag-based pills, What's New modal with changelog, sort options (default/A-Z/most-used/favorites), grid/list view toggle, time-based greeting, suite health check indicator, system info modal (platform/screen/deps/stats), enhanced search with categories/sort/view controls, enhanced footer with health status and info button
+- **241-260**: VibeCodeWorker - split editor toggle with orientation, diff viewer with inline/side-by-side modes, code snippets library (5 built-in), editor bookmarks with file/line/label, go-to-line dialog, file templates (React/TS/CSS/Test), indent detection display, symbol outline panel, sticky scroll toggle, bracket pair colorization, linked editing toggle, minimap decorations, editor ruler columns (80/120), multiple cursors indicator, inline git blame, code lens toggle, selection character count, find-in-files scope (workspace/open/current), breadcrumb depth, word count display, enhanced status bar with all new indicators
+- **261-275**: MediaMogul - color wheel grading (lift/gamma/gain), LUT browser with 6 presets and category filter, audio mixer with 4 channels (volume/mute/solo), subtitle editor with add/list, transition library (12 transitions), keyframe editor toggle, motion tracking, stabilization toggle, HDR mode toggle, loudness meter, media metadata viewer, multicam editing with angle count, chroma key/green screen with color picker, speed ramping toggle, render preset profiles (youtube/instagram/tiktok/custom), enhanced status bar with all indicators
+- **276-285**: DemoRecorder - region selection (fullscreen/window/region), zoom during recording, crop tool, GIF preview toggle, auto-chapter markers with count, recording profiles (4 presets), picture-in-picture mode, frame rate monitor, recording history search, file size estimate display, enhanced status bar with region/PiP/chapters/profile/size
+- **286-293**: ValleyNet - agent chains with multi-agent pipelines, knowledge base with documents/tags/add, RAG context toggle with sources, tool use log overlay with timestamps, conversation templates (4 presets), agent personas (4: ValleyNet/CodeBot/ResearchAI/CreativeAI), multi-model support (5 models), cost tracking estimate, enhanced status bar with model/RAG/cost/KB/tools
+- **294-298**: GameStudio - tilemap editor with layers (visibility/lock/add), particle system preview with 8 presets, shader editor with canvas_item template, profiler panel with physics/render/script/idle breakdown and FPS, input mapping editor with 7 default actions, enhanced status bar with profiler/input mapper buttons
+- **299**: Shared constants and types library (src/utils/constants.ts) - APP metadata, program IDs/names/icons/versions, routes, localStorage keys, API providers/models, editor defaults, media formats, resolution presets, quality presets, keyboard shortcuts, accent colors, status types, file type icons, build targets, game genres, timing constants, size limits
+- **300**: Updated prompt archive with this prompt
+
+Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+## CryptArt Commander + Settings + OpenRouter Integration (Prompt 28 - March 13, 2026)
+
+Add a new program called CryptArt Commander [🐱CAC] - a way of controlling CryptArtist Studio through the API and Command Line tools, with advanced scripting allowed.
+
+Also make a settings program "Settings" [⚙️Set] that lets the user put in API keys for all things, including a newly integrated OpenRouter API key for use of every single AI on OpenRouter with CryptArtist Studio programs. Integrate this deeply into every program.
+
+Make it so the user can import and export every API key to a "Forbidden-Secrets-of-CryptArtist-Keys-(number).txt" file.
+
+**Implementation:**
+- **Settings [⚙️Set]** (`src/programs/settings/Settings.tsx`): Full settings hub with sidebar navigation (API Keys, OpenRouter, Appearance, About). Manages OpenAI, OpenRouter, Pexels, and GiveGigs API keys. OpenRouter section with 15 popular models, default model selector, and live connection test. Accent color picker. Import/export keys to `Forbidden-Secrets-of-CryptArtist-Keys-N.txt` files with auto-incrementing file numbers. Keys stored securely in Rust backend.
+- **CryptArt Commander [🐱CAC]** (`src/programs/commander/Commander.tsx`): Full terminal emulator with 27+ built-in commands (help, clear, version, sysinfo, health, keys, ffmpeg, godot, ls, cat, write, chat, or, pexels, generate, tts, project, programs, scripts, api, echo, time, history). Script editor with save/run/delete. REST API reference tab with 18 endpoints. Command history with arrow key navigation. OpenRouter integration via `or <prompt>` command.
+- **Rust Backend** (`src-tauri/src/state.rs`, `src-tauri/src/main.rs`): Added `openrouter_key` to AppState. New Tauri commands: `save_openrouter_key`, `get_openrouter_key`, `openrouter_chat` (full OpenRouter API integration with Bearer auth, HTTP-Referer, X-Title headers), `openrouter_list_models`, `export_all_api_keys`, `import_all_api_keys`. All key export/import uses JSON format with warning header.
+- **Deep OpenRouter Integration**: All AI-powered programs (ValleyNet, VibeCodeWorker, GameStudio) now try OpenRouter first with the user's selected model, falling back to direct OpenAI if OpenRouter is not configured. ValleyNet's model selector updated with 11 OpenRouter model IDs. VibeCodeWorker's AI chat, test runner, and web audit all use OpenRouter. GameStudio's AI game design assistant uses OpenRouter.
+- **Routes & Launcher**: Both programs added to App.tsx routes and SuiteLauncher program grid with keyboard shortcuts (6 for Commander, 7 for Settings).
+
+Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+Add every prompt so far, including this one, to prompts/all-prompts.md
+
+---
+
+<!-- End of prompt archive -->

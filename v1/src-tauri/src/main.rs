@@ -331,6 +331,128 @@ async fn get_pexels_key(state: tauri::State<'_, AppState>) -> Result<String, Str
 }
 
 // ---------------------------------------------------------------------------
+// OpenRouter API Key Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn save_openrouter_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    log_cmd!("save_openrouter_key", "Saving OpenRouter API key (length: {})", key.len());
+    state.set_openrouter_key(key).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_openrouter_key(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    log_cmd!("get_openrouter_key", "Retrieving OpenRouter API key");
+    Ok(state.get_openrouter_key())
+}
+
+#[tauri::command]
+async fn openrouter_chat(
+    prompt: String,
+    model: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    log_cmd!("openrouter_chat", "OpenRouter chat: model={} prompt={} chars", model, prompt.len());
+    let api_key = state.get_openrouter_key();
+    if api_key.is_empty() {
+        return Err("No OpenRouter API key configured. Set it in Settings.".to_string());
+    }
+    let client = reqwest::Client::new();
+    let body = serde_json::json!({
+        "model": model,
+        "messages": [
+            { "role": "user", "content": prompt }
+        ]
+    });
+    let res = client
+        .post("https://openrouter.ai/api/v1/chat/completions")
+        .header("Authorization", format!("Bearer {}", api_key))
+        .header("HTTP-Referer", "https://mattyjacks.com")
+        .header("X-Title", "CryptArtist Studio")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if !res.status().is_success() {
+        let status = res.status();
+        let text = res.text().await.unwrap_or_default();
+        return Err(format!("OpenRouter API error {}: {}", status, text));
+    }
+    let json: serde_json::Value = res.json().await.map_err(|e| e.to_string())?;
+    let content = json["choices"][0]["message"]["content"]
+        .as_str()
+        .unwrap_or("No response")
+        .to_string();
+    Ok(content)
+}
+
+#[tauri::command]
+async fn openrouter_list_models(
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    log_cmd!("openrouter_list_models", "Fetching OpenRouter model list");
+    let api_key = state.get_openrouter_key();
+    if api_key.is_empty() {
+        return Err("No OpenRouter API key configured.".to_string());
+    }
+    let client = reqwest::Client::new();
+    let res = client
+        .get("https://openrouter.ai/api/v1/models")
+        .header("Authorization", format!("Bearer {}", api_key))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    Ok(text)
+}
+
+// ---------------------------------------------------------------------------
+// Bulk API Key Export/Import Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn export_all_api_keys(
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    log_cmd!("export_all_api_keys", "Exporting all API keys");
+    let keys = serde_json::json!({
+        "_warning": "FORBIDDEN SECRETS - Do NOT share this file with anyone!",
+        "_app": "CryptArtist Studio",
+        "_exported_at": chrono_timestamp(),
+        "openai_api_key": state.get_api_key(),
+        "pexels_api_key": state.get_pexels_key(),
+        "openrouter_api_key": state.get_openrouter_key(),
+        "givegigs_url": state.get_givegigs_url(),
+        "givegigs_key": state.get_givegigs_key(),
+    });
+    Ok(serde_json::to_string_pretty(&keys).unwrap_or_default())
+}
+
+#[tauri::command]
+async fn import_all_api_keys(
+    json_str: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    log_cmd!("import_all_api_keys", "Importing API keys from JSON ({} chars)", json_str.len());
+    let val: serde_json::Value = serde_json::from_str(&json_str).map_err(|e| format!("Invalid JSON: {}", e))?;
+    let mut count = 0;
+    if let Some(k) = val["openai_api_key"].as_str() { if !k.is_empty() { state.set_api_key(k.to_string())?; count += 1; } }
+    if let Some(k) = val["pexels_api_key"].as_str() { if !k.is_empty() { state.set_pexels_key(k.to_string())?; count += 1; } }
+    if let Some(k) = val["openrouter_api_key"].as_str() { if !k.is_empty() { state.set_openrouter_key(k.to_string())?; count += 1; } }
+    if let Some(k) = val["givegigs_url"].as_str() { if !k.is_empty() { state.set_givegigs_url(k.to_string())?; count += 1; } }
+    if let Some(k) = val["givegigs_key"].as_str() { if !k.is_empty() { state.set_givegigs_key(k.to_string())?; count += 1; } }
+    Ok(format!("Imported {} keys successfully", count))
+}
+
+fn chrono_timestamp() -> String {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    format!("{}", now)
+}
+
+// ---------------------------------------------------------------------------
 // Filesystem Commands (for VibeCodeWorker + .CryptArt)
 // ---------------------------------------------------------------------------
 
@@ -1360,6 +1482,12 @@ fn main() {
             get_log_session,
             get_log_recent,
             get_log_paths,
+            save_openrouter_key,
+            get_openrouter_key,
+            openrouter_chat,
+            openrouter_list_models,
+            export_all_api_keys,
+            import_all_api_keys,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CryptArtist Studio");

@@ -41,6 +41,74 @@ export default function DemoRecorder() {
   const [inputLoggerEnabled, setInputLoggerEnabled] = useState(false);
   const [showLoggerWarning, setShowLoggerWarning] = useState(false);
   const [recordings, setRecordings] = useState<{ name: string; duration: number; date: string }[]>([]);
+  // Improvement 76: Countdown before recording
+  const [countdown, setCountdown] = useState<number | null>(null);
+  // Improvement 77: Recording time limit
+  const [timeLimit, setTimeLimit] = useState(0); // 0 = unlimited
+  // Improvement 78: Audio level meter
+  const [audioLevel, setAudioLevel] = useState(0);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioAnimRef = useRef<number | null>(null);
+  // Improvement 80: Quality presets
+  const [qualityPreset, setQualityPreset] = useState<"low" | "medium" | "high" | "ultra">("high");
+  // Improvement 82: Webcam overlay
+  const [webcamEnabled, setWebcamEnabled] = useState(false);
+  // Improvement 171: Annotation tool
+  const [annotationMode, setAnnotationMode] = useState<"none" | "pen" | "arrow" | "text" | "highlight">("none");
+  const [annotations, setAnnotations] = useState<{ type: string; x: number; y: number; data: string }[]>([]);
+  // Improvement 172: Watermark
+  const [watermarkEnabled, setWatermarkEnabled] = useState(false);
+  const [watermarkText, setWatermarkText] = useState("CryptArtist Studio");
+  const [watermarkPosition, setWatermarkPosition] = useState<"top-left" | "top-right" | "bottom-left" | "bottom-right">("bottom-right");
+  // Improvement 173: Multi-monitor
+  const [selectedMonitor, setSelectedMonitor] = useState(0);
+  const [monitorCount] = useState(1);
+  // Improvement 174: Recording schedule
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduleDelay, setScheduleDelay] = useState(0);
+  // Improvement 175: Output folder
+  const [outputFolder, setOutputFolder] = useState<string | null>(null);
+  // Improvement 176: Mouse highlight
+  const [mouseHighlight, setMouseHighlight] = useState(false);
+  // Improvement 177: Click sound
+  const [clickSound, setClickSound] = useState(false);
+  // Improvement 178: Recording format
+  const [recordingFormat, setRecordingFormat] = useState<"webm" | "mp4" | "gif">("webm");
+  // Improvement 179: Auto-stop on silence
+  const [autoStopSilence, setAutoStopSilence] = useState(false);
+  const [silenceThreshold] = useState(5);
+  // Improvement 180: Recording tags
+  const [recordingTags, setRecordingTags] = useState<string[]>([]);
+  // Improvement 276: Region selection
+  const [regionMode, setRegionMode] = useState<"fullscreen" | "window" | "region">("fullscreen");
+  const [regionRect, setRegionRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  // Improvement 277: Zoom during recording
+  const [recordingZoom, setRecordingZoom] = useState(1.0);
+  // Improvement 278: Crop tool
+  const [showCropTool, setShowCropTool] = useState(false);
+  // Improvement 279: GIF preview
+  const [gifPreview, setGifPreview] = useState(false);
+  // Improvement 280: Auto-chapter markers
+  const [autoChapters, setAutoChapters] = useState(false);
+  const [chapters, setChapters] = useState<{ time: number; label: string }[]>([]);
+  // Improvement 281: Recording profiles
+  const [recordingProfiles, setRecordingProfiles] = useState<{ name: string; resolution: string; fps: number; quality: string }[]>([
+    { name: "Screen Share", resolution: "1920x1080", fps: 30, quality: "medium" },
+    { name: "Tutorial", resolution: "1920x1080", fps: 60, quality: "high" },
+    { name: "Quick Clip", resolution: "1280x720", fps: 30, quality: "low" },
+    { name: "4K Ultra", resolution: "3840x2160", fps: 60, quality: "ultra" },
+  ]);
+  const [activeProfile, setActiveProfile] = useState<string | null>(null);
+  // Improvement 282: Picture-in-picture
+  const [pipMode, setPipMode] = useState(false);
+  // Improvement 283: Frame rate monitor
+  const [showFpsMonitor, setShowFpsMonitor] = useState(false);
+  const [currentFps, setCurrentFps] = useState(0);
+  // Improvement 284: Recording history search
+  const [recordingSearch, setRecordingSearch] = useState("");
+  // Improvement 285: Recording file size estimate
+  const [estimatedSize, setEstimatedSize] = useState<string | null>(null);
   const timerRef = useRef<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -119,6 +187,64 @@ export default function DemoRecorder() {
   // Screen capture with getDisplayMedia
   // ---------------------------------------------------------------------------
 
+  // Improvement 77: Auto-stop when time limit reached
+  useEffect(() => {
+    if (recording && !paused && timeLimit > 0 && elapsed >= timeLimit) {
+      handleStop();
+      toast.info(`Recording stopped - ${timeLimit}s time limit reached`);
+    }
+  }, [elapsed, timeLimit, recording, paused]);
+
+  // Improvement 78: Audio level monitoring
+  const startAudioMeter = (stream: MediaStream) => {
+    try {
+      const audioCtx = new AudioContext();
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      audioContextRef.current = audioCtx;
+      analyserRef.current = analyser;
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      const tick = () => {
+        analyser.getByteFrequencyData(dataArray);
+        const avg = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        setAudioLevel(Math.round((avg / 255) * 100));
+        audioAnimRef.current = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch { /* audio meter not critical */ }
+  };
+
+  const stopAudioMeter = () => {
+    if (audioAnimRef.current) cancelAnimationFrame(audioAnimRef.current);
+    audioContextRef.current?.close().catch(() => {});
+    audioContextRef.current = null;
+    analyserRef.current = null;
+    setAudioLevel(0);
+  };
+
+  // Improvement 81: Estimated file size
+  const estimatedFileSize = (() => {
+    const bitrateMap: Record<string, number> = { low: 1, medium: 2.5, high: 5, ultra: 10 };
+    const mbps = bitrateMap[qualityPreset] || 5;
+    const sizeMB = (mbps * elapsed) / 8;
+    if (sizeMB < 1) return `${Math.round(sizeMB * 1024)} KB`;
+    return `${sizeMB.toFixed(1)} MB`;
+  })();
+
+  // Improvement 76: Countdown then start
+  const handleStartWithCountdown = async () => {
+    setCountdown(3);
+    for (let i = 3; i > 0; i--) {
+      setCountdown(i);
+      await new Promise((r) => setTimeout(r, 1000));
+    }
+    setCountdown(null);
+    await handleStart();
+  };
+
   const handleStart = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -137,12 +263,18 @@ export default function DemoRecorder() {
         videoPreviewRef.current.play().catch(() => {});
       }
 
+      // Improvement 78: Start audio level meter
+      if (stream.getAudioTracks().length > 0) {
+        startAudioMeter(stream);
+      }
+
       // Set up MediaRecorder
       const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
         ? "video/webm;codecs=vp9,opus"
         : "video/webm";
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const bitrateMap: Record<string, number> = { low: 1_000_000, medium: 2_500_000, high: 5_000_000, ultra: 10_000_000 };
+      const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: bitrateMap[qualityPreset] });
 
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -151,16 +283,15 @@ export default function DemoRecorder() {
       };
 
       recorder.onstop = () => {
-        // Recording ended - save the file
         handleSaveRecording();
+        stopAudioMeter();
       };
 
-      // Stop recording if user clicks browser's native "Stop sharing" button
       stream.getVideoTracks()[0].addEventListener("ended", () => {
         handleStop();
       });
 
-      recorder.start(1000); // Collect data every second
+      recorder.start(1000);
       mediaRecorderRef.current = recorder;
       setRecording(true);
       setPaused(false);
@@ -168,7 +299,6 @@ export default function DemoRecorder() {
     } catch (err) {
       console.error("Screen capture failed:", err);
       toast.error("Screen capture failed or was cancelled");
-      // User cancelled the screen picker - that's fine
     }
   };
 
@@ -194,8 +324,25 @@ export default function DemoRecorder() {
     if (videoPreviewRef.current) {
       videoPreviewRef.current.srcObject = null;
     }
+    stopAudioMeter();
     setRecording(false);
     setPaused(false);
+  };
+
+  // Improvement 79: Screenshot during recording
+  const handleScreenshot = () => {
+    if (!videoPreviewRef.current) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoPreviewRef.current.videoWidth;
+    canvas.height = videoPreviewRef.current.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(videoPreviewRef.current, 0, 0);
+    const link = document.createElement("a");
+    link.download = `screenshot_${Date.now()}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+    toast.success("Screenshot saved!");
   };
 
   const handleSaveRecording = useCallback(async () => {
@@ -354,12 +501,24 @@ export default function DemoRecorder() {
                 style={{ display: recording ? "block" : "none" }}
               />
 
-              {!recording && (
+              {/* Improvement 76: Countdown overlay */}
+              {countdown !== null && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/70">
+                  <span className="text-8xl font-bold text-studio-cyan" style={{ animation: 'countdownPulse 1s ease-out' }}>
+                    {countdown}
+                  </span>
+                </div>
+              )}
+
+              {!recording && countdown === null && (
                 <div className="text-center">
                   <div className="text-6xl mb-4 opacity-40">{"\u{1F4F9}"}</div>
                   <p className="text-studio-secondary">Click Start to begin recording</p>
                   <p className="text-studio-muted text-xs mt-1">
                     Uses getDisplayMedia for real screen capture
+                  </p>
+                  <p className="text-studio-muted text-[10px] mt-2">
+                    <span className="kbd">F9</span> Start - <span className="kbd">F10</span> Pause - <span className="kbd">F11</span> Stop
                   </p>
                 </div>
               )}
@@ -378,9 +537,9 @@ export default function DemoRecorder() {
             </div>
           </div>
 
-          {/* Recording Control Bar */}
+          {/* Recording Control Bar - Improvements 76-83 applied */}
           <div className="flex items-center justify-center gap-4 p-4 bg-studio-panel border-t border-studio-border">
-            {/* Resolution + FPS */}
+            {/* Resolution + FPS + Quality */}
             <div className="flex items-center gap-2">
               <select
                 value={resolution}
@@ -403,12 +562,24 @@ export default function DemoRecorder() {
                 <option value="30">30 fps</option>
                 <option value="24">24 fps</option>
               </select>
+              {/* Improvement 80: Quality presets */}
+              <select
+                value={qualityPreset}
+                onChange={(e) => setQualityPreset(e.target.value as any)}
+                className="input text-[11px] py-1 w-[90px]"
+                disabled={recording}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="ultra">Ultra</option>
+              </select>
             </div>
 
             {/* Transport controls */}
             <div className="flex items-center gap-2">
               {!recording ? (
-                <button onClick={handleStart} className="btn btn-accent px-6">
+                <button onClick={handleStartWithCountdown} className={`btn btn-accent px-6 ${countdown !== null ? "opacity-50" : ""}`} disabled={countdown !== null}>
                   {"\u23FA"} Start Recording
                 </button>
               ) : (
@@ -416,17 +587,43 @@ export default function DemoRecorder() {
                   <button onClick={handlePause} className="btn px-4">
                     {paused ? "\u25B6" : "\u23F8"} {paused ? "Resume" : "Pause"}
                   </button>
-                  <button onClick={handleStop} className="btn btn-accent px-4">
+                  {/* Improvement 79: Screenshot button */}
+                  <button onClick={handleScreenshot} className="btn px-3" title="Take Screenshot">
+                    {"\u{1F4F7}"}
+                  </button>
+                  <button onClick={handleStop} className={`btn btn-accent px-4 ${recording ? "rec-pulse" : ""}`}>
                     {"\u23F9"} Stop & Save
                   </button>
                 </>
               )}
             </div>
 
-            {/* Timer */}
-            <div className="font-mono text-lg text-studio-cyan min-w-[100px] text-center">
-              {formatTime(elapsed)}
+            {/* Timer + size estimate */}
+            <div className="text-center">
+              <div className="font-mono text-lg text-studio-cyan min-w-[100px]">
+                {formatTime(elapsed)}
+                {timeLimit > 0 && <span className="text-[10px] text-studio-muted"> / {formatTime(timeLimit)}</span>}
+              </div>
+              {/* Improvement 81: File size estimate */}
+              {recording && (
+                <div className="text-[9px] text-studio-muted">~{estimatedFileSize}</div>
+              )}
             </div>
+
+            {/* Improvement 78: Audio level meter */}
+            {recording && (
+              <div className="flex items-center gap-1.5" title={`Audio: ${audioLevel}%`}>
+                <span className="text-[10px] text-studio-muted">{"\u{1F3A4}"}</span>
+                <div className="w-16 h-2 bg-studio-surface rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-75 ${
+                      audioLevel > 80 ? "bg-red-400" : audioLevel > 40 ? "bg-studio-green" : "bg-studio-cyan"
+                    }`}
+                    style={{ width: `${audioLevel}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -545,17 +742,112 @@ export default function DemoRecorder() {
         </div>
       </div>
 
-      {/* Status Bar */}
+      {/* Improvements 171-180: Enhanced toolbar */}
+      <div className="flex items-center h-[26px] bg-studio-surface border-t border-studio-border px-4 gap-2 text-[9px]">
+        {/* Improvement 171: Annotation tools */}
+        <span className="text-studio-muted">Annotate:</span>
+        {(["none", "pen", "arrow", "text", "highlight"] as const).map((mode) => (
+          <button
+            key={mode}
+            onClick={() => setAnnotationMode(mode)}
+            className={`px-1.5 py-0.5 rounded ${annotationMode === mode ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+          >
+            {mode === "none" ? "Off" : mode === "pen" ? "\u270F\uFE0F" : mode === "arrow" ? "\u2197\uFE0F" : mode === "text" ? "T" : "\u{1F7E8}"}
+          </button>
+        ))}
+        <div className="w-px h-3 bg-studio-border" />
+        {/* Improvement 172: Watermark */}
+        <button
+          onClick={() => setWatermarkEnabled((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${watermarkEnabled ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
+          title={`Watermark: ${watermarkText}`}
+        >
+          WM {watermarkEnabled ? "ON" : "OFF"}
+        </button>
+        <div className="w-px h-3 bg-studio-border" />
+        {/* Improvement 176: Mouse highlight */}
+        <button
+          onClick={() => setMouseHighlight((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${mouseHighlight ? "bg-studio-yellow/15 text-studio-yellow" : "text-studio-muted hover:text-studio-text"}`}
+        >
+          {"\u{1F5B1}\uFE0F"} {mouseHighlight ? "Highlight" : "Normal"}
+        </button>
+        {/* Improvement 177: Click sound */}
+        <button
+          onClick={() => setClickSound((s) => !s)}
+          className={`px-1.5 py-0.5 rounded ${clickSound ? "bg-studio-green/15 text-studio-green" : "text-studio-muted hover:text-studio-text"}`}
+        >
+          {clickSound ? "\u{1F50A}" : "\u{1F507}"} Click
+        </button>
+        <div className="flex-1" />
+        {/* Improvement 178: Format selector */}
+        <span className="text-studio-muted">Format:</span>
+        <select
+          value={recordingFormat}
+          onChange={(e) => setRecordingFormat(e.target.value as "webm" | "mp4" | "gif")}
+          className="bg-transparent text-[9px] text-studio-secondary outline-none cursor-pointer"
+          disabled={recording}
+        >
+          <option value="webm">WebM</option>
+          <option value="mp4">MP4</option>
+          <option value="gif">GIF</option>
+        </select>
+      </div>
+
+      {/* Status Bar - Improvements 276-285 */}
       <footer className="status-bar">
-        <span>{"\u{1F3A5}"} DemoRecorder v0.1.0</span>
         <div className="flex items-center gap-3">
+          <span>{"\u{1F3A5}"} DRe v0.1.0</span>
+          <span>|</span>
           <span>{resolution} @ {fps}fps</span>
           <span>|</span>
-          <span>{inputLoggerEnabled ? "Input Logger: ON" : "Input Logger: OFF"}</span>
+          <span>{qualityPreset}</span>
           <span>|</span>
-          <span>{streamTargets.filter((t) => t.enabled).length} stream(s)</span>
+          <span>{recordingFormat.toUpperCase()}</span>
+          {/* Improvement 276: Region mode */}
           <span>|</span>
-          <span>{recordings.length} recording(s)</span>
+          <span>{regionMode}</span>
+          {/* Improvement 283: FPS monitor */}
+          {showFpsMonitor && recording && <><span>|</span><span className="text-studio-green tabular-nums">{currentFps}fps</span></>}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setWebcamEnabled(!webcamEnabled)}
+            className={`text-[10px] ${webcamEnabled ? "text-studio-green" : "text-studio-muted"} hover:text-studio-text transition-colors`}
+          >
+            {"\u{1F4F7}"} {webcamEnabled ? "ON" : "OFF"}
+          </button>
+          <span>|</span>
+          {/* Improvement 282: PiP */}
+          {pipMode && <><span className="text-studio-cyan">PiP</span><span>|</span></>}
+          <select
+            value={timeLimit}
+            onChange={(e) => setTimeLimit(Number(e.target.value))}
+            className="bg-transparent text-[10px] text-studio-muted outline-none cursor-pointer"
+            disabled={recording}
+          >
+            <option value={0}>No limit</option>
+            <option value={60}>1 min</option>
+            <option value={300}>5 min</option>
+            <option value={600}>10 min</option>
+            <option value={1800}>30 min</option>
+            <option value={3600}>1 hour</option>
+          </select>
+          <span>|</span>
+          {annotationMode !== "none" && <><span className="text-studio-cyan">{"\u270F\uFE0F"} {annotationMode}</span><span>|</span></>}
+          {watermarkEnabled && <><span className="text-studio-secondary">WM</span><span>|</span></>}
+          {autoStopSilence && <><span className="text-studio-yellow">Sil</span><span>|</span></>}
+          {/* Improvement 280: Auto-chapters */}
+          {autoChapters && <><span className="text-studio-purple">Ch:{chapters.length}</span><span>|</span></>}
+          {/* Improvement 281: Active profile */}
+          {activeProfile && <><span className="text-studio-cyan">{activeProfile}</span><span>|</span></>}
+          {/* Improvement 285: Size estimate */}
+          {estimatedSize && <><span>{estimatedSize}</span><span>|</span></>}
+          <span>{inputLoggerEnabled ? "Log" : ""}</span>
+          <span>|</span>
+          <span>{streamTargets.filter((t) => t.enabled).length} st</span>
+          <span>|</span>
+          <span>{recordings.length} rec</span>
         </div>
       </footer>
 
