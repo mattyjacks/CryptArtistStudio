@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { ChatMessage } from "../App";
+import { chatWithAI, getActionModel, setActionModel } from "../utils/openrouter";
 
 interface AIStudioProps {
   apiKey: string;
@@ -80,7 +81,7 @@ export default function AIStudio({
     { prompt: string; url: string }[]
   >([]);
   // Improvement 356: OpenRouter model selector for AI Studio
-  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o");
+  const [selectedModel, setSelectedModel] = useState(() => getActionModel("media-chat"));
   const [useOpenRouter, setUseOpenRouter] = useState(true);
   // Improvement 421: Subtitle generator input
   const [subtitleInput, setSubtitleInput] = useState("");
@@ -173,16 +174,9 @@ export default function AIStudio({
         const fullPrompt = `${contextStr}\nUser: ${text}\nAI:`;
 
         // Improvement 357: Try OpenRouter first, fall back to OpenAI
-        let reply: string;
-        if (useOpenRouter) {
-          try {
-            reply = await invoke<string>("openrouter_chat", { prompt: fullPrompt, model: selectedModel });
-          } catch {
-            reply = await invoke<string>("ai_chat", { prompt: fullPrompt });
-          }
-        } else {
-          reply = await invoke<string>("ai_chat", { prompt: fullPrompt });
-        }
+        const reply = useOpenRouter
+          ? await chatWithAI(fullPrompt, { action: "media-chat", model: selectedModel })
+          : await invoke<string>("ai_chat", { prompt: fullPrompt });
 
         setChatMessages((prev) => [
           ...prev,
@@ -283,7 +277,7 @@ export default function AIStudio({
       // 1. Generate Script
       setAutoEditStatus("Generating script and search queries...");
       const scriptPrompt = `Write a 2-sentence voiceover script for: "${prompt}". Also provide 2 short search queries for stock video. Format as JSON: {"voiceover": "...", "queries": ["query1", "query2"]}`;
-      const scriptJsonStr = await invoke<string>("ai_chat", { prompt: scriptPrompt });
+      const scriptJsonStr = await chatWithAI(scriptPrompt, { action: "auto-edit" });
       
       // Try to parse the script JSON (assuming GPT returns valid JSON or markdown JSON)
       const cleanJson = scriptJsonStr.replace(/```json|```/g, "").trim();
@@ -457,11 +451,15 @@ export default function AIStudio({
               {/* Improvement 359: Model selector */}
               <select
                 value={selectedModel}
-                onChange={(e) => { setSelectedModel(e.target.value); localStorage.setItem("cryptartist_openrouter_model", e.target.value); }}
+                onChange={(e) => {
+                  const model = e.target.value;
+                  setSelectedModel(model);
+                  setActionModel("media-chat", model);
+                }}
                 className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer"
                 title="AI Model"
               >
-                {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "meta-llama/llama-3.1-70b-instruct"].map((m) => (
+                {["openai/gpt-5-mini", "openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "meta-llama/llama-3.1-70b-instruct"].map((m) => (
                   <option key={m} value={m}>{m.split("/").pop()}</option>
                 ))}
               </select>

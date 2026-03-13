@@ -31,7 +31,7 @@ The project is community-funded through donations at
   - [ValleyNet](#valleynet--vnt)
   - [GameStudio](#gamestudio--gst)
   - [CryptArt Commander](#cryptart-commander--cac)
-  - [Donate Computer](#donate-computer--dco)
+  - [DonatePersonalSeconds](#donatepersonalseconds--dps)
   - [Settings](#settings--set)
 - [Workspace Management](#workspace-management)
   - [Multi-File Workspaces](#multi-file-workspaces)
@@ -87,7 +87,7 @@ The project is community-funded through donations at
   - [Model Selection](#model-selection)
   - [Fallback Behavior](#fallback-behavior)
 - [Security Hardening](#security-hardening)
-  - [Overview of 100 Vulnerability Fixes](#overview-of-100-vulnerability-fixes)
+  - [Overview of 300 Vulnerability Fixes](#overview-of-300-vulnerability-fixes)
   - [Security Utility Module](#security-utility-module)
   - [Content Security Policy](#content-security-policy)
   - [REST API Security Headers](#rest-api-security-headers)
@@ -104,6 +104,15 @@ The project is community-funded through donations at
 - [Performance Optimization](#performance-optimization)
 - [Prompt History](#prompt-history)
 - [Related Projects and Links](#related-projects-and-links)
+- [Roadmap](#roadmap)
+- [Future Plans](#future-plans)
+  - [New Programs (CꜴS, SLM, BRD, MKT, NET, SYN, TRN, ARK, COM)](#new-programs)
+  - [Existing Program Enhancements](#existing-program-enhancements)
+  - [Platform and Infrastructure](#platform-and-infrastructure)
+  - [AI and Machine Learning](#ai-and-machine-learning)
+  - [Community and Ecosystem](#community-and-ecosystem)
+- [Detailed CꜴS Plan](#detailed-cꜴs-plan)
+- [Detailed SLM Plan](#detailed-slm-plan)
 - [License](#license)
 - [Credits](#credits)
 
@@ -121,8 +130,9 @@ and deep AI integration powered by the user's own API keys.
 - **Eight Programs in One** - Video editing, code editing, screen recording, AI agent,
   game development, terminal commander, P2P compute sharing, and a settings hub all
   in a single ~15 MB download.
-- **Security Hardened** - 100 vulnerability fixes across frontend and backend,
-  including CSP, input validation, rate limiting, XSS prevention, and audit logging.
+- **Security Hardened** - 300 vulnerability fixes across frontend and backend,
+  including CSP, input validation, rate limiting, XSS prevention, audit logging,
+  encrypted storage, SVG sanitization, WebSocket monitoring, and API guards.
 - **AI-Powered Everything** - Every program integrates with OpenAI, Anthropic, Google,
   or any OpenAI-compatible API endpoint. Users bring their own keys.
 - **The .CryptArt File Format** - A permanently future-proof JSON project file that
@@ -136,14 +146,14 @@ and deep AI integration powered by the user's own API keys.
   a recent log (last 1,000 lines), and a full history log.
 - **Community-Funded** - No subscriptions, no ads. Supported by donations at
   [mattyjacks.com](https://mattyjacks.com) and [givegigs.com](https://givegigs.com).
-- **Open Source** - MIT licensed. Fork it, extend it, make it yours.
+- **Open Source** - CryptArtist Custom License v1.69.420.3. Fork it, extend it, make it yours.
 
 ### Philosophy
 
 CryptArtist Studio is built on the belief that creative tools should be:
 
 1. **Free** - No paywalls, no feature gates, no "pro" tiers.
-2. **Open** - MIT licensed, fully auditable, community-driven.
+2. **Open** - CryptArtist Custom License v1.69.420.3, fully auditable, community-driven.
 3. **Permanent** - File formats that never break, software that respects your work.
 4. **AI-Native** - AI is not bolted on; it is woven into every workflow.
 5. **User-Controlled** - Your API keys, your data, your machine. No cloud dependency.
@@ -152,8 +162,9 @@ CryptArtist Studio is built on the belief that creative tools should be:
 
 ## Programs in the Suite
 
-When you launch CryptArtist Studio, you are greeted by the **Suite Launcher** - a
-full-window launcher displaying the CryptArtist logo and eight program cards.
+When you launch CryptArtist Studio, you are greeted by the **Suite Launcher [🗺️SLr]** - a
+full-window launcher displaying the CryptArtist logo and ten program cards.
+The Suite Launcher is itself a launchable program from within the grid.
 Each card shows the program's emoji logo, name, short code, and a one-line description.
 The launcher includes search and filter, favorites, category sorting, grid/list views,
 a rotating tips carousel, keyboard shortcuts overlay, system status indicators, and
@@ -161,20 +172,22 @@ an AI readiness indicator.
 
 | # | Program | Emoji | Code | Shortcut | Description |
 |---|---|---|---|---|---|
+| - | **Suite Launcher** | Map | SLr | `Home` | The home screen - launch programs, open .CryptArt files, view status |
 | 1 | **Media Mogul** | TV | MMo | `1` | Video editor, image editor, and AI-powered media studio |
 | 2 | **VibeCodeWorker** | Technologist | VCW | `2` | Your personal vibe-coding IDE powered by your own API keys |
 | 3 | **DemoRecorder** | Camera | DRe | `3` | Screen recorder and live streamer for demos and gaming |
 | 4 | **ValleyNet** | Person | VNt | `4` | Autonomous AI agent that can do anything on your computer |
 | 5 | **GameStudio** | Game Controller | GSt | `5` | Combined media + code + Godot engine for game development |
 | 6 | **CryptArt Commander** | Cat | CAC | `6` | Terminal-based command center for API and CLI control |
-| 7 | **Donate Computer** | Computer | DCo | `7` | P2P compute resource sharing for distributed tasks |
-| 8 | **Settings** | Gear | Set | `8` | API key management, OpenRouter, appearance, and data |
+| 7 | **DonatePersonalSeconds** | Computer | DPS | `7` | P2P compute resource sharing for distributed tasks |
+| 8 | **Clone Tool** | Package | CLN | `9` | Create .exe, .dmg, .deb installers from your config |
+| 9 | **Settings** | Gear | Set | `0` | API key management, OpenRouter, appearance, and data |
 
-The Suite Launcher also displays a donation banner encouraging users to support
+The Suite Launcher [SLr] also displays a donation banner encouraging users to support
 development at [mattyjacks.com](https://mattyjacks.com) and
 [givegigs.com](https://givegigs.com).
 
-#### Suite Launcher Features
+#### Suite Launcher [SLr] Features
 
 - **Search and Filter** - Type to search programs by name, code, description, or tags
 - **Category Filter** - Filter by category tags (all, video, code, ai, media, game, tools)
@@ -197,11 +210,12 @@ development at [mattyjacks.com](https://mattyjacks.com) and
 ### Media Mogul - MMo
 
 **Media Mogul** is the flagship program of CryptArtist Studio. It is a professional-grade
-video editor, image editor, and AI-powered media production studio.
+video editor, image editor, and AI-powered media production studio with an integrated
+Podcast & Audio Lab powered by ElevenLabs.
 
 #### Workspaces
 
-Media Mogul is organized into six workspaces, each accessible from the header tabs:
+Media Mogul is organized into seven workspaces, each accessible from the header tabs:
 
 | Workspace | Description |
 |---|---|
@@ -210,6 +224,7 @@ Media Mogul is organized into six workspaces, each accessible from the header ta
 | **Color** | Color grading and correction tools |
 | **Audio** | Audio editing, mixing, and waveform visualization |
 | **AI Studio** | AI-powered video generation, voiceover, captioning, and scripting |
+| **Podcast** | ElevenLabs voice generation, speech-to-text, and sound effects lab |
 | **Deliver** | Export settings, format selection, and render queue |
 
 #### Features
@@ -224,6 +239,12 @@ Media Mogul is organized into six workspaces, each accessible from the header ta
   - AI generates captions and subtitles
   - AI suggests background music from GiveGigs media bucket
   - AI creates podcast scripts and music compositions
+- **Podcast & Audio Lab (ElevenLabs)**:
+  - Text-to-speech voiceover generation with selectable voice/model
+  - Speech-to-text transcription for uploaded audio files
+  - Sound effects generation from text prompts
+  - Voice/model catalog fetch (from ElevenLabs API)
+  - Generated audio output tracking for quick reuse in timeline workflows
 - **Pexels Integration** - Search and import photos and videos from Pexels directly
   into your project. Multiple resolution options for video.
 - **GiveGigs Media Bucket** - Connect to a GiveGigs.com Supabase bucket for royalty-free
@@ -481,6 +502,77 @@ game development.
   top-down RPGs, puzzle games, and more.
 - **Asset Pipeline** - Use Media Mogul's AI image generation to create sprites,
   textures, and UI elements, then import them directly into Godot.
+- **Video Game Cloner** - Generate completely original games based on the mechanics
+  (not lore, art, or copyrighted content) of any existing video game. See below.
+
+#### Video Game Cloner
+
+The **Video Game Cloner** is a powerful AI-assisted tool inside GameStudio that
+creates entirely original video games inspired by the *mechanics* of existing games.
+It uses publicly available information (Wikipedia, wikis, gameplay descriptions) to
+understand game mechanics and then generates a fresh, original game with no
+copyrighted or patented content.
+
+**How It Works:**
+
+1. **Input** - Enter the name of any video game (e.g., "Tetris", "Pac-Man", "Portal")
+2. **Research** - The system fetches the Wikipedia page and all publicly available
+   gameplay descriptions, mechanic breakdowns, and genre classifications
+3. **Analyze** - AI extracts the core *mechanics* (movement, scoring, physics, rules)
+   while explicitly filtering out all lore, characters, art, music, and trademarks
+4. **Generate (Phase 1: Emoji Graphics)** - On first run, the game is generated with
+   emoji-based graphics for instant playability. Emoji sprites, emoji backgrounds,
+   emoji UI elements - a fully playable game in minutes
+5. **Generate (Phase 2: AI 3D Graphics)** - AI generates basic 3D models, textures,
+   and environments to replace emoji placeholders with original visual assets
+6. **Export** - The finished game is a complete Godot project ready for distribution
+
+**What Gets Cloned:**
+- Core gameplay mechanics (movement, physics, rules, win/loss conditions)
+- Genre conventions (platformer, puzzle, shooter, RPG, etc.)
+- Game design patterns (progression systems, difficulty curves, control schemes)
+- UI/UX paradigms (HUD layout concepts, menu flow patterns)
+
+**What Never Gets Cloned:**
+- Characters, names, or likenesses
+- Story, lore, dialogue, or narrative elements
+- Art assets, sprites, textures, or visual designs
+- Music, sound effects, or audio
+- Patented game mechanics (clearly flagged and avoided)
+- Trademarked terms or branding
+
+**Legal Disclaimer (shown on first run):**
+
+> **IMPORTANT LEGAL NOTICE**
+>
+> The Video Game Cloner is designed for creating original games inspired by
+> publicly available game mechanics. It is optimized for games in the **public
+> domain** but can accept any game name with the following conditions:
+>
+> 1. No copyrighted or patented content is included in generated output
+> 2. Users are solely responsible for the games they produce
+> 3. CryptArtist Studio is not liable for any games generated by this tool
+> 4. We will actively report copyright infringement at our discretion to
+>    protect the platform and its community
+> 5. Patent holders and copyright owners may use this tool on their own
+>    intellectual property without restriction
+> 6. By using this tool, you agree to the CryptArtist Studio Terms of Service
+>
+> If you are not the rights holder, ensure the game mechanics you are cloning
+> are not covered by active patents. When in doubt, stick to public domain games.
+
+**Emoji Graphics Mode (Phase 1 Output Example):**
+- Player character: a running emoji (e.g., a person, animal, or object)
+- Enemies: threat-themed emojis (skulls, fire, ghosts)
+- Collectibles: gem/star/coin emojis
+- Terrain: earth/tree/water/brick emojis arranged in grid or platformer layouts
+- UI: emoji-based health bars, score counters, and menus
+
+**AI 3D Graphics Mode (Phase 2 Output):**
+- AI-generated low-poly 3D models via text-to-3D
+- Procedural textures and materials
+- Basic lighting and environment setup
+- Original character designs with no resemblance to source material
 
 #### Layout Modes
 
@@ -630,9 +722,9 @@ documentation panel for developers integrating with CryptArtist Studio.
 
 ---
 
-### Donate Computer - DCo
+### DonatePersonalSeconds - DPS
 
-**Donate Computer** is a P2P compute resource sharing tool that allows users to donate
+**DonatePersonalSeconds** is a P2P compute resource sharing tool that allows users to donate
 their idle CPU, RAM, and GPU resources to help other CryptArtist Studio users run
 computationally intensive tasks like AI inference, video rendering, and image generation.
 
@@ -684,7 +776,7 @@ Users can configure how much of each resource to share via sliders:
 - Cryptographically secure peer ID generation (Vuln 86)
 - Double-click prevention on stop button (Vuln 64)
 
-#### .CryptArt Data Payload (Donate Computer)
+#### .CryptArt Data Payload (DonatePersonalSeconds)
 
 ```json
 {
@@ -700,15 +792,15 @@ Users can configure how much of each resource to share via sliders:
 ### Settings - Set
 
 **Settings** is the centralized configuration hub for CryptArtist Studio. It manages
-all API keys, AI model selection, appearance preferences, data management, and
+all API keys, AI model defaults, per-action model/mode routing, appearance preferences, data management, and
 keyboard shortcuts.
 
 #### Sidebar Navigation
 
 | Section | Description |
 |---|---|
-| **API Keys** | Manage OpenAI, Pexels, and GiveGigs API keys |
-| **OpenRouter** | Configure OpenRouter API key and default model |
+| **API Keys** | Manage OpenAI, OpenRouter, Pexels, ElevenLabs, and GiveGigs API keys |
+| **OpenRouter** | Configure OpenRouter key, global model/mode defaults, and per-action overrides |
 | **Appearance** | Theme accent color, font family, font size |
 | **Keyboard Shortcuts** | View all global keyboard shortcuts |
 | **Data & Storage** | localStorage usage, clear data, reset settings |
@@ -722,6 +814,7 @@ localStorage. The Settings panel provides:
 - **OpenAI Key** - For AI chat, image generation, TTS, and AI Studio
 - **OpenRouter Key** - For access to 200+ AI models
 - **Pexels Key** - For stock photo and video search
+- **ElevenLabs Key** - For podcast voice generation, speech transcription, and sound effects
 - **GiveGigs Config** - For media asset library access
 
 Keys are masked in the UI (showing only the first 8 characters) and can be
@@ -729,13 +822,16 @@ toggled visible.
 
 #### OpenRouter Configuration
 
-- **Model Selector** - Choose from 15 popular models across providers:
-  - OpenAI: GPT-4o, GPT-4o Mini, GPT-4 Turbo, o1 Preview, o1 Mini
-  - Anthropic: Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku
-  - Google: Gemini Pro 1.5, Gemini Flash 1.5
-  - Meta: Llama 3.1 405B, Llama 3.1 70B
-  - Mistral: Mixtral 8x22B, Mistral Large
-  - Perplexity: Llama 3.1 Sonar 70B
+- **Default Model** - `openai/gpt-5-mini` is the global default for all AI actions
+- **Default AI Mode** - Global efficiency mode:
+  - `💳 Cheap` - Minimize token usage and total cost
+  - `⚡ Fast` - Prioritize quick completion
+  - `🦄 Good` - Positive, clever, funny tone; serious code quality; goodness-oriented guidance
+  - `🧠 Smart` - Default mode; highly intelligent and precise
+- **Per-Action Defaults** - Configure model + mode for each action:
+  - General AI chat, Media chat, Auto-edit planning
+  - ValleyNet agent, Coding assistant/planner/review
+  - Game generation, Demo narration, Commander chat/OpenRouter
 - **Connection Test** - Verify OpenRouter key works with a live API call
 - **Live Status** - Shows connected model and provider in the panel footer
 
@@ -807,6 +903,168 @@ All programs use the workspace system:
 | `src/utils/workspace.ts` | Types, context, and helper functions |
 | `src/components/WorkspaceProvider.tsx` | React state provider with CRUD and group logic |
 | `src/components/WorkspaceBar.tsx` | Global tab bar UI with context menu |
+
+---
+
+## Cross-Program Interoperability
+
+CryptArtist Studio features a comprehensive interoperability layer that enables all
+programs in the suite to communicate, share data, and chain workflows together. This
+is the backbone that makes the suite feel like one unified application rather than
+separate tools.
+
+### 1. Event Bus (`src/utils/interop.ts`)
+
+A global pub/sub event bus that enables real-time communication between programs.
+Programs can emit events and subscribe to events from other programs.
+
+**Event Categories:**
+- **Media events** - `media:exported`, `media:imported`, `media:image-generated`, `media:audio-generated`
+- **Code events** - `code:file-saved`, `code:file-opened`, `code:snippet-created`, `code:project-opened`
+- **Game events** - `game:asset-imported`, `game:script-generated`, `game:scene-created`, `game:clone-started`
+- **Recording events** - `recording:started`, `recording:stopped`, `recording:exported`
+- **Agent events** - `agent:task-started`, `agent:task-completed`, `agent:task-failed`
+- **AI events** - `ai:response-received`, `ai:model-changed`, `ai:key-updated`
+- **Workspace events** - `workspace:opened`, `workspace:closed`, `workspace:saved`
+- **Pipeline events** - `pipeline:step-completed`, `pipeline:finished`, `pipeline:failed`
+- **Clipboard events** - `clipboard:copied`, `clipboard:pasted`
+- **Navigation events** - `nav:program-switched`, `nav:requested`
+- **System events** - `system:theme-changed`, `system:settings-updated`, `system:notification`
+
+**Usage in programs:**
+```tsx
+// Subscribe to events
+useInterop("media:exported", (event) => {
+  console.log("Media from", event.source, event.data);
+}, { target: "game-studio" });
+
+// Emit events
+const emit = useInteropEmit("media-mogul");
+emit("media:exported", { path: "/sprites/hero.png", type: "image" });
+
+// Request-response pattern
+const response = await interopBus.request(
+  "agent:task-started", "game-studio", { task: "Generate GDScript" },
+  "agent:task-completed", "valley-net"
+);
+```
+
+**Cross-program event flows:**
+- **VibeCodeWorker -> GameStudio** - GDScript snippets are received and displayed in GameStudio's terminal and AI chat
+- **MediaMogul -> GameStudio** - Exported media assets appear in GameStudio's asset import queue
+- **ValleyNet -> Any Program** - Agent task requests can be sent to ValleyNet from any program
+- **All Programs -> System** - Save events, AI responses, and errors are broadcast globally
+
+### 2. Shared API Key Context (`src/utils/apiKeys.ts` + `src/components/ApiKeyProvider.tsx`)
+
+Centralized API key management that loads all keys from the Rust backend once at app
+startup and shares them via React context. Eliminates redundant `invoke("get_api_key")`
+calls in every program.
+
+**Supported keys:** OpenAI, OpenRouter, Pexels, Supabase/GiveGigs, ElevenLabs
+
+**Features:**
+- Single load on app startup via `ApiKeyProvider`
+- Auto-refresh when any key is updated from Settings
+- `useApiKeys()` hook provides `openaiKey`, `openrouterKey`, `pexelsKey`, `supabaseKey`, `elevenlabsKey`
+- `hasKey("openai")` check for conditional feature rendering
+- `getKeyStatus()` returns a map of all key availability
+- `ai:key-updated` event broadcast when keys change
+
+### 3. Cross-Program Clipboard (`src/utils/crossClipboard.ts`)
+
+A universal clipboard that can transfer media, code snippets, files, and other data
+between programs with rich metadata about source, content type, and transfer context.
+
+**Content types:** `text`, `code`, `image`, `audio`, `video`, `file-path`, `media-asset`,
+`gdscript`, `scene-tree`, `ai-prompt`, `ai-response`, `recording`, `sprite`, `texture`,
+`project-data`, `terminal-output`, `custom`
+
+**Features:**
+- 50-entry clipboard history
+- Type-filtered paste (e.g., paste only code, only images)
+- Program-aware content compatibility checks
+- Automatic interop bus notifications on copy/paste
+- `useCrossClipboard("program-id")` hook for easy integration
+
+**Program compatibility matrix:**
+
+| Content Type | MMo | VCW | GSt | VNt | DRe | CAC |
+|---|---|---|---|---|---|---|
+| code | | X | X | X | | X |
+| gdscript | | X | X | | | |
+| image | X | | X | | | |
+| audio | X | | | | X | |
+| video | X | | | | X | |
+| sprite/texture | X | | X | | | |
+| ai-prompt | | | | X | | X |
+| terminal-output | | X | | X | | X |
+| file-path | X | X | X | | X | X |
+
+### 4. Program Pipeline System (`src/utils/pipeline.ts`)
+
+Defines reusable workflows that chain operations across multiple programs. Pipelines
+are sequences of steps, each handled by a specific program, with automatic progression
+and failure handling.
+
+**Built-in pipelines:**
+
+| Pipeline | Steps | Description |
+|---|---|---|
+| Media to Game Asset | MMo -> GSt | Export media from Media Mogul, import as game asset |
+| AI Code to Game Script | VCW -> GSt | Generate code in VibeCodeWorker, apply as GDScript |
+| Record and Narrate | DRe -> DRe -> MMo | Record screen, export, add AI narration |
+| Agent Full-Stack Build | VNt -> VCW -> GSt | Agent plans feature, code generates, game integrates |
+| Video Game Clone Pipeline | VNt -> MMo -> VCW -> GSt | Research, generate assets, write code, build project |
+| AI Podcast Pipeline | VNt -> MMo -> MMo | Write script, TTS voiceover, add SFX |
+
+**Features:**
+- Start, advance, fail, cancel pipeline runs
+- Optional steps that can be skipped on failure
+- 20-run history
+- Custom pipeline registration via `pipelineRunner.register()`
+- Pipeline events broadcast via interop bus
+- Input/output chaining between steps
+
+### 5. Unified Notification Hub (`src/utils/notifications.ts`)
+
+Central notification system for all programs with priorities, categories, grouping,
+and cross-program routing.
+
+**Notification levels:** `info`, `success`, `warning`, `error`, `critical`
+**Categories:** `ai`, `media`, `code`, `game`, `recording`, `agent`, `system`, `pipeline`, `security`, `update`, `donation`
+
+**Features:**
+- 100-notification history
+- Read/unread tracking
+- Auto-dismiss with configurable timeout
+- Group key for collapsing similar notifications
+- Optional action buttons and navigation targets
+- `subscribe()` for real-time notification handling
+- Convenience functions: `notifyInfo()`, `notifySuccess()`, `notifyWarning()`, `notifyError()`, `notifyAI()`, `notifyPipeline()`
+
+### Interoperability Architecture
+
+| File | Purpose |
+|---|---|
+| `src/utils/interop.ts` | Cross-program event bus (pub/sub) with React hooks |
+| `src/utils/apiKeys.ts` | Shared API key types, context, and backend loaders |
+| `src/components/ApiKeyProvider.tsx` | React provider that loads keys once at startup |
+| `src/utils/crossClipboard.ts` | Cross-program clipboard with type-aware routing |
+| `src/utils/pipeline.ts` | Multi-program workflow pipeline system |
+| `src/utils/notifications.ts` | Unified notification hub with categories and grouping |
+
+### Integration Status
+
+All five main programs are fully integrated with the interoperability layer:
+
+| Program | useApiKeys | useInteropEmit | useCrossClipboard | useInterop (listen) | Save Events | AI Events |
+|---|---|---|---|---|---|---|
+| Media Mogul [MMo] | X | X | X | - | X | X |
+| VibeCodeWorker [VCW] | X | X | X | - | X | X |
+| GameStudio [GSt] | X | X | X | code:snippet-created, media:exported | X | X |
+| ValleyNet [VNt] | X | X | X | agent:task-started | X | X |
+| DemoRecorder [DRe] | X | X | X | - | X | - |
 
 ---
 
@@ -1178,8 +1436,8 @@ CryptArtistStudio/
     |   |   |   |-- GameStudio.tsx         # GameStudio main component
     |   |   |-- commander/
     |   |   |   |-- Commander.tsx          # CryptArt Commander terminal
-    |   |   |-- donate-computer/
-    |   |   |   |-- DonateComputer.tsx     # P2P compute resource sharing
+    |   |   |-- donate-personal-seconds/
+    |   |   |   |-- DonatePersonalSeconds.tsx     # P2P compute resource sharing
     |   |   |-- settings/
     |   |       |-- Settings.tsx           # Settings hub with API keys
     |   |
@@ -1232,11 +1490,11 @@ CryptArtistStudio/
         |-- contact.html                  # Contact page
         |-- privacy.html                  # Privacy policy page
         |-- terms.html                    # Terms of use page
-        |-- donate-computer.html          # P2P resource sharing page
+        |-- donate-personal-seconds.html  # P2P resource sharing page
         |-- style.css                     # Full dark theme stylesheet
         |-- script.js                     # Navigation, animations, interactions
-        |-- donate-computer.js            # Donate Computer UI controller
-        |-- donate-computer-api.js        # P2P resource sharing API
+        |-- donate-personal-seconds.js    # DonatePersonalSeconds UI controller
+        |-- donate-personal-seconds-api.js # P2P resource sharing API
 ```
 
 ### Frontend Architecture
@@ -1297,8 +1555,14 @@ The backend exposes the following Tauri commands to the frontend via `invoke()`:
 |---|---|---|---|
 | `ai_chat` | `{ message: string }` | `string` | Send a chat completion request to OpenAI |
 | `ai_generate_image` | `{ prompt: string }` | `string` | Generate an image via DALL-E; returns URL |
+| `ai_generate_tts` | `{ text: string }` | `string` | Generate OpenAI TTS audio and return saved file path |
 | `openrouter_chat` | `{ message: string, model: string }` | `string` | Chat via OpenRouter with model selection |
 | `openrouter_list_models` | none | `string` | List available OpenRouter models (JSON) |
+| `elevenlabs_text_to_speech` | `{ text: string, voiceId: string, modelId?: string }` | `string` | Generate ElevenLabs voiceover and return saved file path |
+| `elevenlabs_speech_to_text` | `{ filePath: string, modelId?: string, languageCode?: string }` | `string` | Transcribe audio via ElevenLabs STT |
+| `elevenlabs_generate_sound_effect` | `{ prompt: string, durationSeconds?: number }` | `string` | Generate sound effect audio via ElevenLabs |
+| `elevenlabs_list_voices` | none | `string` | List available ElevenLabs voices (JSON) |
+| `elevenlabs_list_models` | none | `string` | List available ElevenLabs models (JSON) |
 
 ##### API Key Commands
 
@@ -1310,6 +1574,8 @@ The backend exposes the following Tauri commands to the frontend via `invoke()`:
 | `set_pexels_key` | `{ key: string }` | `()` | Store a Pexels API key |
 | `get_openrouter_key` | none | `string` | Retrieve the stored OpenRouter API key |
 | `save_openrouter_key` | `{ key: string }` | `()` | Store an OpenRouter API key |
+| `get_elevenlabs_key` | none | `string` | Retrieve the stored ElevenLabs API key |
+| `save_elevenlabs_key` | `{ key: string }` | `()` | Store an ElevenLabs API key |
 | `export_all_api_keys` | none | `string` | Export all keys as JSON string |
 | `import_all_api_keys` | `{ json: string }` | `()` | Import keys from JSON (max 10 MB) |
 
@@ -1499,15 +1765,15 @@ summary of the project's scope:
 
 | Metric | Count |
 |---|---|
-| **Total Prompts** | 33+ |
+| **Total Prompts** | 37+ |
 | **Programs in Suite** | 8 |
 | **Tauri Commands** | 30+ |
 | **CLI Commands** | 20+ |
 | **REST API Endpoints** | 18+ |
 | **Commander Built-In Commands** | 40+ |
 | **UI/UX Improvements** | 370+ |
-| **Security Vulnerability Fixes** | 100 |
-| **Security Helper Functions** | 30+ |
+| **Security Vulnerability Fixes** | 300 |
+| **Security Helper Functions** | 150+ |
 | **React Hooks (shared)** | 17 |
 | **OpenRouter Models** | 15 popular (200+ available) |
 | **Website Pages** | 9 |
@@ -2018,7 +2284,7 @@ The Tauri configuration lives in `v1/src-tauri/tauri.conf.json`:
 ```json
 {
   "productName": "CryptArtist Studio",
-  "version": "0.1.0",
+  "version": "1.69.420.4",
   "identifier": "com.cryptartist.studio",
   "app": {
     "windows": [{
@@ -2151,7 +2417,7 @@ is deeply integrated into every program that uses AI.
 
 | Provider | Models Available | Example Model IDs |
 |---|---|---|
-| **OpenAI** | GPT-4o, GPT-4o Mini, GPT-4 Turbo, o1 | `openai/gpt-4o`, `openai/gpt-4o-mini` |
+| **OpenAI** | GPT-5 Mini, GPT-4o, GPT-4o Mini, o1 | `openai/gpt-5-mini`, `openai/gpt-4o` |
 | **Anthropic** | Claude 3.5 Sonnet, Claude 3 Opus, Claude 3 Haiku | `anthropic/claude-3.5-sonnet`, `anthropic/claude-3-opus` |
 | **Google** | Gemini Pro 1.5, Gemini Flash 1.5 | `google/gemini-pro-1.5`, `google/gemini-flash-1.5` |
 | **Meta** | Llama 3.1 405B, Llama 3.1 70B | `meta-llama/llama-3.1-405b-instruct` |
@@ -2160,14 +2426,26 @@ is deeply integrated into every program that uses AI.
 
 ### Model Selection
 
-The default model is stored in localStorage and can be changed from:
+`openai/gpt-5-mini` is the default model for all purposes unless overridden.
+
+Model and mode can be changed from:
 
 - **Settings** > OpenRouter section (global default)
-- **ValleyNet** config toolbar (per-session override)
-- **VibeCodeWorker** AI settings panel
-- **GameStudio** AI Generator panel header
-- **DemoRecorder** AI Tools panel header
+- **Settings** > Per-Action AI Defaults (persistent per-action overrides)
+- **ValleyNet** config toolbar (action-specific override)
+- **VibeCodeWorker** AI settings panel (action-specific override)
+- **GameStudio** AI Generator panel header (action-specific override)
+- **DemoRecorder** AI Tools panel header (action-specific override)
 - **CryptArt Commander** via `or models` command
+
+### AI Efficiency Modes
+
+All major AI actions support four efficiency modes:
+
+- **`💳 Cheap`** - Keep responses token-efficient and cost-minimized
+- **`⚡ Fast`** - Prefer fastest useful completion path
+- **`🦄 Good`** - Encourage commonwealth goodness, keep tone clever/funny, and keep code quality strict
+- **`🧠 Smart`** - Default mode with maximum precision and practical intelligence
 
 ### Fallback Behavior
 
@@ -2215,17 +2493,23 @@ isOpenAIConfigured()            // Check if OpenAI key is set
 getAIStatus()                   // Get full AI readiness status
 getDefaultModel()               // Get stored default model
 setDefaultModel(model)          // Set default model (validated)
+getDefaultMode()                // Get global AI mode (cheap/fast/good/smart)
+setDefaultMode(mode)            // Set global AI mode
+getActionModel(action)          // Get per-action model override
+setActionModel(action, model)   // Set per-action model override
+getActionMode(action)           // Get per-action mode override
+setActionMode(action, mode)     // Set per-action mode override
 ```
 
 ---
 
 ## Security Hardening
 
-CryptArtist Studio has undergone comprehensive security hardening with 100 vulnerability
+CryptArtist Studio has undergone comprehensive security hardening with 300 vulnerability
 fixes across the Rust backend and TypeScript frontend. The fixes are organized into
-four batches covering all major vulnerability categories.
+ten batches covering all major vulnerability categories.
 
-### Overview of 100 Vulnerability Fixes
+### Overview of 300 Vulnerability Fixes
 
 #### BATCH A (Vulns 1-25): Rust Backend
 
@@ -2264,7 +2548,7 @@ four batches covering all major vulnerability categories.
 | # | Category | Fix Description |
 |---|---|---|
 | 51-53 | **Timeout Cleanup** | Track all `setTimeout`/`setInterval`, clean up on unmount |
-| 52-54 | **Peer Limits** | Max 50 peer connections in Donate Computer |
+| 52-54 | **Peer Limits** | Max 50 peer connections in DonatePersonalSeconds |
 | 55-57 | **Log Limits** | Max 200 log entries in activity logs |
 | 58-60 | **History Limits** | Max 200 display entries, 500 command history entries |
 | 61-63 | **Input Limits** | Max 10,000 char command input, 50,000 char scripts |
@@ -2287,9 +2571,114 @@ four batches covering all major vulnerability categories.
 | 97-98 | **Suspicious Paths** | Warning on paths containing `..`, `~`, or null bytes |
 | 99-100 | **UTF-8 Validation** | Input string validation before processing |
 
+#### BATCH E (Vulns 101-125): Advanced Frontend Hardening
+
+| # | Category | Fix Description |
+|---|---|---|
+| 101-103 | **DOM XSS** | Safe innerHTML alternatives, attribute sanitization |
+| 104-106 | **Event Handlers** | Event listener cleanup, delegation limits |
+| 107-109 | **iframe Security** | Sandbox attributes, postMessage origin validation |
+| 110-112 | **Form Security** | CSRF token validation, autocomplete controls |
+| 113-115 | **CSS Injection** | Color value validation, safe CSS property setting |
+| 116-118 | **Web Worker** | Worker script URL validation, message size limits |
+| 119-121 | **WebSocket** | Connection limits, message size validation |
+| 122-125 | **Canvas Security** | Canvas fingerprint mitigation, tainted canvas detection |
+
+#### BATCH F (Vulns 126-150): API and Network Security
+
+| # | Category | Fix Description |
+|---|---|---|
+| 126-128 | **Fetch Hardening** | Request timeout enforcement, response size limits |
+| 129-131 | **CORS** | Strict origin checking, preflight caching |
+| 132-134 | **Cookie Security** | Secure/HttpOnly/SameSite enforcement |
+| 135-137 | **CSP Nonce** | Dynamic script nonce generation |
+| 138-140 | **SRI** | Subresource integrity hash validation |
+| 141-143 | **Rate Limiting** | Per-endpoint rate limiting with sliding window |
+| 144-146 | **Request Queue** | Priority-based request queuing |
+| 147-150 | **Error Handling** | Safe error serialization, stack trace redaction |
+
+#### BATCH G (Vulns 151-175): Data Protection
+
+| # | Category | Fix Description |
+|---|---|---|
+| 151-153 | **Template Safety** | Safe template literal interpolation |
+| 154-156 | **Clipboard** | Clipboard data sanitization, paste event filtering |
+| 157-159 | **Drag-Drop** | File validation on drop, type checking |
+| 160-162 | **Storage Encryption** | AES-GCM encrypted localStorage wrapper |
+| 163-165 | **Key Management** | Web Crypto API key generation and export |
+| 166-168 | **Credential Leak** | URL credential detection, referrer stripping |
+| 169-171 | **HSTS** | HTTP Strict Transport Security enforcement |
+| 172-175 | **Cookie Consent** | Cookie consent manager with category controls |
+
+#### BATCH H (Vulns 176-200): Resource Management
+
+| # | Category | Fix Description |
+|---|---|---|
+| 176-178 | **Focus Trap** | Modal focus containment for accessibility |
+| 179-181 | **Scroll Safety** | Scroll restoration control, position validation |
+| 182-184 | **Content Disposition** | Header validation for file downloads |
+| 185-187 | **DOM Monitoring** | DOM size tracking, mutation rate limiting |
+| 188-190 | **Lazy Loading** | Secure lazy load with crossorigin and referrerpolicy |
+| 191-193 | **Intersection Observer** | Safe observer factory with error handling |
+| 194-196 | **Resource Timing** | Performance entry analysis for slow/cross-origin resources |
+| 197-200 | **Connection Pool** | Hostname connection limits, pool management |
+
+#### BATCH I (Vulns 201-250): Advanced Security Utilities
+
+| # | Category | Fix Description |
+|---|---|---|
+| 201-203 | **CSP Nonce Injection** | Dynamic nonce generation for inline scripts |
+| 204-206 | **SRI Cache** | Subresource integrity hash caching |
+| 207-209 | **Form Guard** | Secure form submission with action URL validation |
+| 210-212 | **postMessage** | Safe cross-window messaging with origin verification |
+| 213-215 | **DOM Mutation** | Rate-limited DOM mutation tracking |
+| 216-218 | **Text Purification** | Control character stripping, Unicode normalization |
+| 219-221 | **URL Builder** | Safe URL construction with parameter encoding |
+| 222-224 | **Credential Detection** | URL userinfo detection and warning |
+| 225-227 | **HSTS Check** | Strict-Transport-Security header validation |
+| 228-230 | **Cookie Consent** | Granular analytics/functional/marketing consent |
+| 231-233 | **Web Crypto** | AES-GCM key generation and secure export |
+| 234-236 | **Permission Guard** | Throttled permission request with cooldowns |
+| 237-239 | **Object Safety** | Prototype-safe property access with fallbacks |
+| 240-242 | **Event Guard** | Propagation control, secure worker creation |
+| 243-245 | **Leak Detection** | Stale object tracking with age-based eviction |
+| 246-248 | **Blob Security** | MIME type validation for Blob creation |
+| 249-250 | **Array Zeroing** | Typed array secure zeroing, enum validation |
+
+#### BATCH J (Vulns 251-300): Platform API Guards and Comprehensive Init
+
+| # | Category | Fix Description |
+|---|---|---|
+| 251-252 | **Encrypted Storage** | AES-GCM encrypt/decrypt localStorage wrapper |
+| 253-254 | **WebSocket Monitor** | Heartbeat/pong monitoring with auto-disconnect |
+| 255-256 | **Drag-Drop Validation** | File type, size, and extension validation on drop |
+| 257-258 | **Fetch Retry** | Exponential backoff retry with abort timeout |
+| 259-260 | **SVG Sanitization** | Dangerous tag/attribute removal from SVG markup |
+| 261-262 | **WebGL Guard** | Context count limiting, leak prevention |
+| 263-264 | **Audio Fingerprint** | Oscillator creation monitoring to detect fingerprinting |
+| 265-266 | **Battery/Geolocation** | Privacy guards with value quantization |
+| 267-268 | **BroadcastChannel** | Origin-validated cross-tab messaging |
+| 269-270 | **Device Orientation** | Listener limits, precision reduction |
+| 271-272 | **Speech/Gamepad** | Single-instance guards, ID truncation |
+| 273-274 | **SharedArrayBuffer** | Cross-origin isolation check |
+| 275-276 | **WebTransport** | Connection count limits |
+| 277-278 | **WASM Validation** | Magic byte verification, size limits |
+| 279-280 | **Screen Capture** | Single-instance guard |
+| 281-282 | **USB/Serial/Bluetooth** | Rate-limited device access requests |
+| 283-284 | **Idle/Wake Lock** | Single-instance API guards |
+| 285-286 | **File Handle** | Size and path traversal validation |
+| 287-288 | **Web Share/Payment** | Cooldown and single-instance guards |
+| 289-290 | **Notifications** | Permission throttling, safe creation |
+| 291-292 | **Error Serialization** | Stack trace leak prevention |
+| 293-294 | **Content Editable** | Paste sanitization, drop prevention |
+| 295-296 | **Image Validation** | Dimension and pixel count limits (decompression bomb prevention) |
+| 297-298 | **AbortController Pool** | Managed pool with auto-eviction |
+| 299 | **Console Protection** | Tamper detection and restoration |
+| 300 | **Comprehensive Init** | `initializeSecurityHardeningV2()` combining all vulns 201-300 |
+
 ### Security Utility Module
 
-The `src/utils/security.ts` module provides 30+ security helper functions:
+The `src/utils/security.ts` module provides 150+ security helper functions:
 
 #### Sanitization Functions
 
@@ -2417,7 +2806,7 @@ Cloudflare Pages or any static hosting provider.
 | **Contact** | `contact.html` | Contact form, email, social links |
 | **Privacy** | `privacy.html` | Full privacy policy (NH law compliant) |
 | **Terms** | `terms.html` | Full terms of use (NH law compliant) |
-| **Donate Computer** | `donate-computer.html` | P2P resource sharing page with live demo |
+| **DonatePersonalSeconds** | `donate-personal-seconds.html` | P2P resource sharing page with live demo |
 
 ### Website Technology
 
@@ -2437,13 +2826,13 @@ The website uses a dark theme consistent with the desktop application, featuring
 - Counter animations for statistics
 - Mobile hamburger menu with smooth transitions
 
-### Donate Computer Web API
+### DonatePersonalSeconds Web API
 
-The website includes a standalone P2P resource sharing API (`donate-computer-api.js`)
+The website includes a standalone P2P resource sharing API (`donate-personal-seconds-api.js`)
 that can be used independently of the desktop application:
 
 ```javascript
-const api = new DonateComputerAPI({ password: "my-password" });
+const api = new DonatePersonalSecondsAPI({ password: "my-password" });
 
 // Start donating resources
 api.startDonating({ cpuPercent: 80, ramPercent: 50, gpuPercent: 90 });
@@ -2717,7 +3106,7 @@ CryptArtist Studio is designed for smooth performance even on lower-end hardware
 | **Log Rotation** | Session log capped at 100 lines, recent at 1,000 |
 | **History Limits** | Command history: 500 entries, display: 200 entries |
 | **Toast Queue** | Maximum 10 concurrent toast notifications |
-| **Peer Limits** | Maximum 50 P2P connections in Donate Computer |
+| **Peer Limits** | Maximum 50 P2P connections in DonatePersonalSeconds |
 | **Activity Logs** | Maximum 200 log entries per component |
 | **Timeout Cleanup** | All `setTimeout`/`setInterval` cleaned up on unmount |
 | **Storage Limits** | localStorage values capped at 5 MB each |
@@ -2730,7 +3119,7 @@ CryptArtist Studio is designed for smooth performance even on lower-end hardware
 | **RAM** | 4 GB | 8 GB+ |
 | **Storage** | 200 MB (app + FFmpeg) | 1 GB+ (with media files) |
 | **Display** | 1280x720 | 1920x1080+ |
-| **GPU** | Not required | WebGL-capable for Donate Computer GPU detection |
+| **GPU** | Not required | WebGL-capable for DonatePersonalSeconds GPU detection |
 | **Network** | Optional | Required for AI features and Pexels integration |
 
 ---
@@ -2738,8 +3127,11 @@ CryptArtist Studio is designed for smooth performance even on lower-end hardware
 ## Prompt History
 
 CryptArtist Studio was built through a series of AI-assisted development sessions.
-Below is the complete history of every prompt used to develop the application. The
-full text of each prompt is preserved in `prompts/all-prompts.md`.
+The prompt entries in this README are a summary view. The full archive is in
+`prompts/all-prompts.md` and on GitHub:
+`https://github.com/mattyjacks/CryptArtistStudio/blob/main/prompts/all-prompts.md`.
+Some historical prompt text may contain minor AI transcription mistakes, so it is
+not guaranteed to be 100% exact. We continuously improve prompt accuracy.
 
 This history serves as both documentation and a case study in AI-assisted
 ("vibe coding") software development.
@@ -3079,18 +3471,18 @@ privacy policy, contributing guidelines, and the complete prompt history.
 - Global CSS: AI provider badges, model selector, AI panel components, streaming
   indicator, token usage bar, glow effects, gradient text, pulse ring, skeleton loading
 
-### Prompt 30 - Donate Computer Feature
+### Prompt 30 - DonatePersonalSeconds Feature
 
 > Add a donate computer page to the website and a donate computer component to the
 > desktop app for P2P resource sharing.
 
-**Result:** Created the Donate Computer feature:
-- Desktop: `DonateComputer.tsx` with system resource detection, peer management,
+**Result:** Created the DonatePersonalSeconds feature:
+- Desktop: `DonatePersonalSeconds.tsx` with system resource detection, peer management,
   donation limits, live statistics, activity log, and secure random peer IDs
-- Website: `donate-computer.html` page with control panel, live stats, and FAQ
-- Website: `donate-computer-api.js` P2P resource sharing API with WebRTC
+- Website: `donate-personal-seconds.html` page with control panel, live stats, and FAQ
+- Website: `donate-personal-seconds-api.js` P2P resource sharing API with WebRTC
 - Updated navigation across all website pages
-- Added Donate Computer to App.tsx routes and SuiteLauncher program grid
+- Added DonatePersonalSeconds to App.tsx routes and SuiteLauncher program grid
 
 ### Prompt 31 - Multi-File Workspace Management
 
@@ -3127,17 +3519,59 @@ privacy policy, contributing guidelines, and the complete prompt history.
 
 **Result:** This update. Added 700+ lines to README.md covering:
 - CryptArt Commander program documentation (40+ commands, aliases, scripts)
-- Donate Computer program documentation (P2P resource sharing)
+- DonatePersonalSeconds program documentation (P2P resource sharing)
 - Settings program documentation (API keys, OpenRouter, appearance)
 - Workspace Management system
 - OpenRouter Multi-Model AI Integration
-- Security Hardening documentation (100 vulnerability fixes, security utility API)
+- Security Hardening documentation (300 vulnerability fixes, security utility API)
 - CryptArtist Studio Website documentation
 - Extended Prompt History (Prompts 24-33)
 - Troubleshooting guide with common issues tables
 - Performance Optimization guide
 - Extended FAQ
 - Updated directory structure
+
+### Prompt 34 - Cross-Platform Support and Clone Tool
+
+> Add cross-platform support for Windows, macOS, Linux, Android, and iOS.
+> Add a Clone Tool for creating custom installers.
+
+**Result:** Implemented cross-platform detection and Clone Tool:
+- `cross-platform.ts` - Platform detection, responsive breakpoints, touch support
+- `platform.ts` - Device type detection, mobile viewport hooks
+- Clone Tool UI for creating custom branded installers
+- Responsive layouts for all programs across screen sizes
+
+### Prompt 35 - Security Hardening Batch 2 (Vulns 101-200)
+
+> Add 100 more security vulnerability fixes to security.ts covering advanced
+> frontend hardening, API security, data protection, and resource management.
+
+**Result:** Added vulnerabilities 101-200 to `security.ts`:
+- BATCH E (101-125): DOM XSS, event handlers, iframe, form, CSS injection, WebSocket, canvas
+- BATCH F (126-150): Fetch hardening, CORS, cookie security, CSP nonce, SRI, rate limiting
+- BATCH G (151-175): Template safety, clipboard, drag-drop, storage encryption, HSTS
+- BATCH H (176-200): Focus trap, scroll safety, DOM monitoring, lazy loading, connection pool
+
+### Prompt 36 - Security Hardening Batch 3 (Vulns 201-300) and Documentation Update
+
+> Add 100 more security vulnerability fixes (201-300) to security.ts. Update Terms
+> of Use and Privacy Policy. Update README.md comprehensively. Set version to 1.69.420.4.
+
+**Result:** Completed the final batch of security fixes and documentation updates:
+- BATCH I (201-250): CSP nonce injection, SRI cache, form guard, postMessage, DOM mutation,
+  text purification, URL builder, credential detection, HSTS, cookie consent, Web Crypto,
+  permission guard, object safety, event guard, leak detection, blob security, array zeroing
+- BATCH J (251-300): Encrypted localStorage, WebSocket heartbeat, drag-drop validation,
+  fetch retry with backoff, SVG sanitization, WebGL guard, audio fingerprint mitigation,
+  battery/geolocation privacy, BroadcastChannel, device orientation, speech/gamepad guards,
+  SharedArrayBuffer, WebTransport, WASM validation, screen capture, USB/serial/bluetooth,
+  idle/wake lock, file handle, web share, notifications, error serialization, content
+  editable, image validation, AbortController pool, console protection, comprehensive init
+- Updated Terms of Use with DonatePersonalSeconds, Clone Tool, security section (17 sections)
+- Updated Privacy Policy with OpenRouter, DonatePersonalSeconds, encrypted storage
+- Version standardized to 1.69.420.4 across package.json, Cargo.toml, tauri.conf.json, constants.ts
+- README updated with 300 vulnerability documentation (10 batches), renamed references
 
 ---
 
@@ -3225,12 +3659,477 @@ privacy policy, contributing guidelines, and the complete prompt history.
 
 ---
 
+## Future Plans
+
+The following is a comprehensive list of planned features, new programs, and
+long-term initiatives for CryptArtist Studio. These range from near-term
+improvements to ambitious moonshot projects.
+
+### New Programs
+
+#### [🤯CꜴS] CryptArtist Operating System
+
+**CꜴS** (pronounced "chaos") is a planned vibe-coded operating system built
+from scratch to run on any device or computer chip - including obscure,
+legacy, and experimental architectures. CꜴS is the ultimate expression of the
+CryptArtist philosophy: free, open, permanent, and user-controlled.
+
+See the **[Detailed CꜴS Plan](#detailed-cꜴs-plan)** section below.
+
+#### [SLM] Small Language Model (Slalom)
+
+**Slalom** is a planned lightweight, locally-runnable language model with a
+skiing-inspired interface. It is designed to provide fast, private AI
+inference without any cloud dependency.
+
+See the **[Detailed SLM Plan](#detailed-slm-plan)** section below.
+
+#### [BRD] BirdWatch - System Monitor
+
+A real-time system resource monitor and task manager built into the suite.
+Visualizes CPU, RAM, GPU, disk, and network usage with animated graphs.
+Integrates with DonatePersonalSeconds to show donation/borrow impact.
+
+#### [MKT] Marketplace
+
+A built-in marketplace for sharing, discovering, and installing:
+- `.CryptArt` project templates
+- Mods and plugins
+- AI prompt packs
+- Color grading LUTs
+- Sound effect libraries
+- Godot game templates
+
+#### [NET] NetBrowser
+
+A minimal, privacy-focused web browser built into the suite using Tauri's
+webview. Integrates with ValleyNet for AI-assisted browsing, form-filling,
+and web scraping. Supports tabbed browsing, ad blocking, and reader mode.
+
+#### [SYN] SyncStation
+
+Cloud and local sync for `.CryptArt` projects across devices. Supports:
+- End-to-end encrypted cloud storage (user-provided S3/GCS/Azure bucket)
+- Local network sync via mDNS/Bonjour discovery
+- Git-style version history with branch and merge
+- Conflict resolution with visual diff viewer
+
+#### [TRN] TrainYard
+
+A visual machine learning training interface for fine-tuning small models
+on local hardware. Supports LoRA adapters, dataset management, training
+progress visualization, and model export. Integrates with Slalom [SLM]
+for local inference after training.
+
+#### [ARK] Archive
+
+A universal file format converter and digital preservation tool. Converts
+between 100+ file formats (images, video, audio, documents, 3D models).
+Includes batch processing, metadata preservation, and format validation.
+
+#### [COM] Community Hub
+
+A built-in forum and chat system for CryptArtist Studio users. Features
+include project showcase, help requests, collaboration matching, and
+direct messaging. All communication is encrypted and can be self-hosted.
+
+### Existing Program Enhancements
+
+#### Media Mogul [MMo]
+
+- [ ] Real-time GPU-accelerated video preview via wgpu/WebGPU
+- [ ] Motion graphics and title designer
+- [ ] Multicam editing with sync
+- [ ] 3D compositing with depth maps
+- [ ] AI-powered auto-edit from transcript
+- [ ] Spatial audio mixing and binaural rendering
+- [ ] HDR and Dolby Vision grading
+- [ ] Live collaboration on timelines
+- [ ] ElevenLabs voice cloning integration
+- [ ] AI music generation (Suno/Udio integration)
+- [ ] Subtitle translation with AI
+- [ ] AI scene detection and auto-chapter markers
+
+#### VibeCodeWorker [VCW]
+
+- [ ] Full LSP (Language Server Protocol) support
+- [ ] Integrated debugger with breakpoints and step-through
+- [ ] Git integration with visual diff, merge, and blame
+- [ ] AI code review with inline suggestions
+- [ ] Terminal emulator built into the IDE
+- [ ] Multi-cursor editing and vim keybindings
+- [ ] Jupyter notebook support
+- [ ] Live preview for web development (HTML/CSS/JS)
+- [ ] Package manager integration (npm, pip, cargo)
+- [ ] AI pair programming with voice commands
+- [ ] Snippet library with AI-generated snippets
+- [ ] Refactoring tools (rename, extract, inline)
+
+#### DemoRecorder [DRe]
+
+- [ ] Hardware-accelerated encoding (NVENC, QSV, AMF)
+- [ ] Twitch/YouTube/Kick RTMP live streaming
+- [ ] Webcam overlay with green screen removal
+- [ ] Audio mixer with per-source volume control
+- [ ] Replay buffer (save last N seconds)
+- [ ] Scheduled recordings
+- [ ] AI-powered highlight detection
+- [ ] Annotation tools (draw on screen during recording)
+
+#### ValleyNet [VNt]
+
+- [ ] Browser automation via embedded webview
+- [ ] File system operations (create, read, write, organize)
+- [ ] Email and calendar integration
+- [ ] Skills marketplace (installable capabilities)
+- [ ] Multi-agent collaboration (multiple ValleyNet instances)
+- [ ] Voice control and dictation
+- [ ] Workflow builder (visual task automation)
+- [ ] Computer vision (screen understanding)
+- [ ] API integration hub (Zapier-like connectors)
+
+#### GameStudio [GSt]
+
+- [ ] Visual scene editor with drag-and-drop
+- [ ] Sprite editor and animation timeline
+- [ ] Physics debugger and collision visualizer
+- [ ] Asset store with free game assets
+- [ ] One-click export to Web, Windows, macOS, Linux, Android, iOS
+- [ ] AI-generated game levels and characters
+- [ ] Multiplayer networking templates
+- [ ] Sound designer with procedural audio
+- [ ] Video Game Cloner: Wikipedia-based mechanic extraction pipeline
+- [ ] Video Game Cloner: emoji-to-3D graphics upgrade workflow
+- [ ] Video Game Cloner: patent/copyright detection and avoidance engine
+- [ ] Video Game Cloner: public domain game library with one-click clone
+- [ ] Video Game Cloner: multiplayer clone support (clone networked games)
+
+#### CryptArt Commander [CAC]
+
+- [ ] SSH and SFTP remote connections
+- [ ] Tmux-style pane splitting
+- [ ] Plugin commands (user-installable command packs)
+- [ ] Cron-style scheduled command execution
+- [ ] Pipeline builder (chain commands visually)
+- [ ] REST API testing (Postman-like interface)
+
+#### DonatePersonalSeconds [DPS]
+
+- [ ] Real WebRTC P2P connections (currently simulated)
+- [ ] Task queue with priority scheduling
+- [ ] Reputation system for donors and borrowers
+- [ ] Cryptocurrency micropayments for compute time
+- [ ] Docker/WASM workload containers
+- [ ] Distributed AI training across peer network
+- [ ] Bandwidth sharing for CDN-like content delivery
+
+#### Suite Launcher [SLr]
+
+- [ ] Customizable dashboard widgets
+- [ ] Recent file previews with thumbnails
+- [ ] Plugin/mod discovery feed
+- [ ] Project templates gallery
+- [ ] Drag-and-drop file opening
+- [ ] Multi-monitor workspace layout presets
+
+### Platform and Infrastructure
+
+- [ ] **Android and iOS** - Native mobile builds via Tauri 2 mobile
+- [ ] **Web version** - Run CryptArtist Studio in the browser via WebAssembly
+- [ ] **Self-hosted server** - Host your own CryptArtist instance for teams
+- [ ] **Electron fallback** - Alternative desktop build for broader compatibility
+- [ ] **Flatpak and Snap** - Linux package manager distribution
+- [ ] **Microsoft Store and Mac App Store** - Official store listings
+- [ ] **Auto-updater** - In-app update mechanism with delta patches
+- [ ] **Crash reporter** - Opt-in crash reporting with stack traces
+- [ ] **Telemetry dashboard** - Opt-in anonymous usage analytics
+- [ ] **i18n / Localization** - Multi-language UI (Spanish, French, German, Japanese, Chinese, Korean, Arabic, Hindi)
+- [ ] **Accessibility** - Screen reader support, high contrast mode, keyboard-only navigation
+- [ ] **Offline mode** - Full functionality without internet (local AI via Slalom)
+
+### AI and Machine Learning
+
+- [ ] **Local AI inference** - Run models locally via llama.cpp, Ollama, or Slalom
+- [ ] **Voice control** - Control any program with natural language voice commands
+- [ ] **AI memory** - Persistent context across sessions and programs
+- [ ] **Multi-modal AI** - Image, audio, and video understanding in AI prompts
+- [ ] **AI agents marketplace** - Share and install custom AI agent configurations
+- [ ] **Fine-tuning UI** - Fine-tune models on your own data via TrainYard
+- [ ] **AI model benchmarking** - Compare model performance on your specific tasks
+- [ ] **Prompt library** - Community-curated prompt templates for every program
+
+### Community and Ecosystem
+
+- [ ] **CryptArtist Studio Hub** - Central website for projects, mods, and community
+- [ ] **Mod SDK** - Full documentation and tooling for mod developers
+- [ ] **Theme designer** - Visual theme editor with live preview
+- [ ] **Tutorial system** - Interactive in-app tutorials for each program
+- [ ] **Certification program** - Skills certification for CryptArtist mastery
+- [ ] **Hackathons** - Regular community hackathons with prizes
+- [ ] **YouTube channel** - Official tutorials and development vlogs
+- [ ] **Discord server** - Community chat and support
+- [ ] **Bug bounty program** - Security rewards for vulnerability reports
+
+---
+
+## Detailed CꜴS Plan
+
+### [🤯CꜴS] CryptArtist Operating System - Full Specification
+
+**CꜴS** is a from-scratch, vibe-coded operating system that embodies the
+CryptArtist philosophy at the deepest level. It is designed to run on
+literally any device - from modern x86-64 and ARM64 machines to obscure
+and experimental architectures like RISC-V, MIPS, PowerPC, SPARC, Xtensa,
+AVR microcontrollers, and even custom FPGAs.
+
+#### Design Philosophy
+
+1. **Universal** - One OS for every chip. CꜴS compiles to any instruction set.
+2. **Minimal** - The kernel fits in under 1 MB. Boot in under 2 seconds.
+3. **Secure** - Capability-based security model. No root user. No sudo.
+4. **AI-Native** - The OS itself is an AI agent. Talk to your computer.
+5. **Permanent** - File formats and APIs never break. Forward-compatible forever.
+6. **Beautiful** - GPU-accelerated compositor with smooth 120fps animations.
+7. **Open** - CryptArtist Custom License v1.69.420.3. Every line of code is auditable.
+
+#### Architecture Overview
+
+```
+Layer 5: Applications    - CryptArtist Suite, user apps, WASM apps
+Layer 4: Desktop Shell   - Window manager, compositor, notification center
+Layer 3: System Services - File system, networking, audio, GPU, AI runtime
+Layer 2: HAL             - Hardware Abstraction Layer (per-architecture)
+Layer 1: Microkernel     - Scheduling, IPC, memory management, capabilities
+Layer 0: Bootloader      - UEFI/BIOS/custom boot for each platform
+```
+
+#### Supported Architectures (Planned)
+
+| Architecture | Status | Notes |
+|---|---|---|
+| **x86-64** | Priority | Desktop PCs, laptops, servers |
+| **ARM64 (AArch64)** | Priority | Apple Silicon, Raspberry Pi 4/5, phones |
+| **RISC-V (RV64GC)** | Priority | Open-source ISA, growing ecosystem |
+| **ARM32 (ARMv7)** | Planned | Older Raspberry Pi, embedded devices |
+| **x86 (i686)** | Planned | Legacy 32-bit PCs |
+| **MIPS32/64** | Planned | Routers, embedded systems, retro hardware |
+| **PowerPC** | Planned | Old Macs, IBM servers, game consoles |
+| **SPARC** | Planned | Sun/Oracle servers |
+| **Xtensa** | Planned | ESP32 microcontrollers |
+| **AVR** | Experimental | Arduino (extremely constrained) |
+| **WebAssembly** | Planned | Run CꜴS in a browser |
+| **Custom FPGA** | Experimental | User-designed CPU architectures |
+
+#### Microkernel Design
+
+The CꜴS microkernel is a capability-based, message-passing microkernel
+written in Rust with minimal unsafe code:
+
+- **Scheduler** - Preemptive, priority-based, O(1) scheduler with per-core run queues
+- **IPC** - Synchronous and asynchronous message passing between processes
+- **Memory** - Virtual memory with demand paging, copy-on-write, and ASLR
+- **Capabilities** - Every resource access requires an unforgeable capability token
+- **Interrupts** - User-space interrupt handlers for maximum driver flexibility
+
+#### Hardware Abstraction Layer (HAL)
+
+Each supported architecture has a HAL implementation that provides:
+
+- CPU initialization and feature detection
+- Interrupt controller setup (APIC, GIC, PLIC, etc.)
+- Timer abstraction (HPET, ARM Generic Timer, RISC-V mtime)
+- UART/serial console for early boot debugging
+- Page table management per architecture
+- Cache and TLB management
+- Power management (ACPI, device tree, etc.)
+
+#### File System: CryptFS
+
+A new file system designed for CꜴS:
+
+- **Content-addressable** - Files identified by cryptographic hash
+- **Versioned** - Every file change creates a new version (git-like history)
+- **Encrypted** - Optional per-file or per-directory encryption
+- **Deduplicated** - Identical blocks stored only once
+- **Mountable anywhere** - Mount remote CryptFS volumes over the network
+- **Maximum file size** - 16 exabytes
+- **Maximum volume size** - 1 zettabyte
+
+#### Desktop Shell: CryptShell
+
+The CꜴS desktop environment:
+
+- **Tiling + Floating** - Hybrid window manager (like i3 + macOS)
+- **GPU Compositor** - Vulkan/Metal/WebGPU-based rendering at 120fps
+- **AI Assistant** - Built-in AI assistant accessible from any context
+- **Universal Search** - Search files, apps, settings, and the web from one bar
+- **Notification Center** - Priority-based notifications with AI filtering
+- **Widget Dashboard** - Customizable widgets (clock, weather, system stats, etc.)
+- **Theming** - Full theme engine with CSS-like styling language
+- **Gestures** - Trackpad and touchscreen gesture support
+- **Virtual Desktops** - Unlimited virtual desktops with named workspaces
+
+#### AI Runtime
+
+CꜴS includes a system-level AI runtime:
+
+- **Local inference** - Run language models directly on the OS (llama.cpp, ONNX)
+- **Voice control** - System-wide voice commands in any language
+- **Smart autocomplete** - AI-powered autocomplete in every text field
+- **Predictive launching** - AI predicts which apps you'll open next
+- **Automated maintenance** - AI manages updates, cleanup, and optimization
+- **Natural language shell** - Type commands in plain English
+
+#### Networking Stack
+
+- **TCP/IP** - Full IPv4 and IPv6 networking stack
+- **DNS** - Built-in DNS resolver with DNS-over-HTTPS
+- **Firewall** - Application-level firewall with AI-suggested rules
+- **VPN** - Built-in WireGuard VPN client
+- **P2P** - Native peer-to-peer networking (used by DonatePersonalSeconds)
+- **Mesh networking** - Optional mesh mode for local device clusters
+
+#### Development Timeline
+
+| Phase | Target | Milestone |
+|---|---|---|
+| **Phase 1** | 2026 Q3 | Bootloader + microkernel on x86-64 (serial console) |
+| **Phase 2** | 2026 Q4 | Memory management, process scheduling, basic IPC |
+| **Phase 3** | 2027 Q1 | CryptFS, basic device drivers, ARM64 port |
+| **Phase 4** | 2027 Q2 | GPU compositor, window manager, keyboard/mouse |
+| **Phase 5** | 2027 Q3 | Networking stack, package manager, RISC-V port |
+| **Phase 6** | 2027 Q4 | AI runtime, CryptArtist Suite port, WASM apps |
+| **Phase 7** | 2028 Q1 | MIPS/PowerPC/SPARC ports, stability hardening |
+| **Phase 8** | 2028 Q2 | Public beta, community contributions, app ecosystem |
+
+#### Technical Inspirations
+
+- **seL4** - Formally verified microkernel (capability model)
+- **Redox OS** - Rust-based microkernel OS
+- **Plan 9** - Everything-is-a-file philosophy
+- **Fuchsia** - Capability-based security, Zircon microkernel
+- **TempleOS** - One person building an entire OS (spirit of the project)
+- **Linux** - Broad hardware support and driver ecosystem
+
+---
+
+## Detailed SLM Plan
+
+### [SLM] Small Language Model (Slalom) - Full Specification
+
+**Slalom** (pronounced like the skiing term) is a planned small, fast,
+locally-runnable language model designed specifically for CryptArtist Studio.
+The name reflects its design: like a skier navigating a slalom course, the
+model weaves efficiently through tokens, taking the fastest path to the answer.
+
+#### Skiing-Inspired Interface
+
+The Slalom interface is themed around skiing and winter sports:
+
+- **Slopes** - Different model sizes are called slopes:
+  - **Bunny Slope** (300M params) - Fast, lightweight, basic tasks
+  - **Blue Run** (1B params) - General purpose, good quality
+  - **Black Diamond** (3B params) - High quality, more compute needed
+  - **Double Black** (7B params) - Maximum quality, GPU recommended
+- **Moguls** - Difficult prompts that challenge the model (benchmark suite)
+- **Lift Tickets** - API access tokens for remote Slalom instances
+- **Powder** - Fresh, uncached responses (vs. cached "groomed" responses)
+- **Apres-Ski** - Post-inference analytics and token usage dashboard
+
+#### UI Design
+
+The Slalom interface features:
+
+- **Snow-themed dark mode** - Deep navy background with white/ice-blue accents
+- **Mountain silhouette header** - Animated mountain range with parallax scrolling
+- **Slope selector** - Visual mountain with clickable difficulty indicators
+- **Speed gauge** - Real-time tokens-per-second display styled as a ski speedometer
+- **Trail map** - Visual token generation path showing model attention patterns
+- **Chairlift progress bar** - Loading indicator styled as a moving chairlift
+- **Snowflake particles** - Subtle animated snowfall in the background
+- **Temperature slider** - Styled as a thermometer with icicles
+
+#### Model Architecture
+
+Slalom uses a custom transformer architecture optimized for size and speed:
+
+- **Grouped Query Attention (GQA)** - Reduced memory bandwidth
+- **RoPE positional encoding** - Efficient rotary position embeddings
+- **SwiGLU activation** - Better training stability than ReLU
+- **RMSNorm** - Faster than LayerNorm with comparable results
+- **Sliding window attention** - Efficient long-context handling
+- **4-bit quantization** - GGUF format for minimal memory usage
+- **Speculative decoding** - Draft model for 2-3x faster generation
+
+#### Training Data
+
+Slalom is trained on a curated dataset focused on CryptArtist Studio tasks:
+
+- Open-source code (Rust, TypeScript, Python, GDScript)
+- Creative writing and storytelling
+- Technical documentation
+- Video editing terminology and workflows
+- Game development concepts
+- Shell commands and scripting
+- JSON and configuration formats
+- Conversation and chat patterns
+
+#### Integration Points
+
+Slalom integrates with every CryptArtist Studio program:
+
+| Program | Use Case |
+|---|---|
+| **Media Mogul** | Script generation, subtitle writing, prompt refinement |
+| **VibeCodeWorker** | Code completion, refactoring suggestions, documentation |
+| **DemoRecorder** | Auto-narration, highlight detection |
+| **ValleyNet** | Local agent reasoning, task planning |
+| **GameStudio** | Dialogue writing, level descriptions, NPC behavior |
+| **Commander** | Command suggestion, error explanation |
+| **DonatePersonalSeconds** | Task description generation, peer matching |
+| **Settings** | Configuration recommendations |
+| **CꜴS** | System-wide AI assistant, voice commands |
+
+#### Benchmarks (Target)
+
+| Metric | Bunny Slope | Blue Run | Black Diamond | Double Black |
+|---|---|---|---|---|
+| **Parameters** | 300M | 1B | 3B | 7B |
+| **VRAM** | 256 MB | 768 MB | 2 GB | 5 GB |
+| **Tokens/sec (CPU)** | 40 | 18 | 8 | 3 |
+| **Tokens/sec (GPU)** | 120 | 80 | 45 | 25 |
+| **Context window** | 4K | 8K | 16K | 32K |
+| **MMLU score** | 42% | 55% | 65% | 72% |
+| **HumanEval** | 25% | 40% | 55% | 65% |
+| **Download size** | 180 MB | 600 MB | 1.8 GB | 4.2 GB |
+
+#### Development Timeline
+
+| Phase | Target | Milestone |
+|---|---|---|
+| **Phase 1** | 2026 Q3 | Dataset curation and tokenizer training |
+| **Phase 2** | 2026 Q4 | Bunny Slope (300M) training and evaluation |
+| **Phase 3** | 2027 Q1 | Blue Run (1B) training, GGUF quantization |
+| **Phase 4** | 2027 Q2 | CryptArtist Studio integration, skiing UI |
+| **Phase 5** | 2027 Q3 | Black Diamond (3B) and Double Black (7B) training |
+| **Phase 6** | 2027 Q4 | Speculative decoding, fine-tuning tools in TrainYard |
+
+#### Distribution
+
+- Bundled with CryptArtist Studio (Bunny Slope only, ~180 MB)
+- Downloadable from within the app (larger slopes)
+- Available on Hugging Face as open-weight models
+- GGUF format for llama.cpp compatibility
+- ONNX format for cross-platform inference
+
+---
+
 ## FAQ
 
 ### Is CryptArtist Studio really free?
 
-Yes. CryptArtist Studio is MIT licensed and completely free to use, modify, and
-distribute. There are no paid tiers, no subscriptions, and no feature gates.
+Yes. CryptArtist Studio is released under the CryptArtist Custom License v1.69.420.3
+and is completely free to use, modify, and distribute. There are no paid tiers, no subscriptions, and no feature gates.
 Development is supported by voluntary donations at [mattyjacks.com](https://mattyjacks.com)
 and [givegigs.com](https://givegigs.com).
 
@@ -3284,9 +4183,9 @@ Studio through text commands. It supports 40+ commands, tab completion, command 
 scripting, and direct integration with OpenRouter and OpenAI. It is useful for
 automation, batch operations, and AI agent integration.
 
-### What does Donate Computer do?
+### What does DonatePersonalSeconds do?
 
-Donate Computer enables peer-to-peer compute resource sharing. You can donate idle
+DonatePersonalSeconds enables peer-to-peer compute resource sharing. You can donate idle
 CPU, RAM, and GPU resources to help other CryptArtist Studio users run tasks like
 AI inference, video rendering, and image generation. Alternatively, you can borrow
 resources from the network to speed up your own workloads. All connections use
@@ -3294,7 +4193,7 @@ cryptographically secure peer IDs and password verification.
 
 ### How secure is CryptArtist Studio?
 
-CryptArtist Studio has undergone comprehensive security hardening with 100
+CryptArtist Studio has undergone comprehensive security hardening with 300
 vulnerability fixes covering input validation, XSS prevention, Content Security
 Policy, rate limiting, memory leak prevention, prototype pollution protection,
 secure random generation, and audit logging. See the
@@ -3330,7 +4229,7 @@ Direct OpenAI access is also supported for users who prefer not to use OpenRoute
 
 Eight programs: Media Mogul (video/image editor), VibeCodeWorker (code IDE),
 DemoRecorder (screen recorder), ValleyNet (AI agent), GameStudio (game development),
-CryptArt Commander (terminal), Donate Computer (P2P sharing), and Settings (config hub).
+CryptArt Commander (terminal), DonatePersonalSeconds (P2P sharing), and Settings (config hub).
 
 ### Where are log files stored?
 
@@ -3354,30 +4253,109 @@ study in AI-assisted software development.
 
 ## License
 
-CryptArtist Studio is released under the **MIT License**.
+CryptArtist Studio is released under the **CryptArtist Custom License v1.69.420.3**.
 
 ```
-MIT License
+CryptArtist Custom License v1.69.420.3
 
-Copyright (c) 2026 Matt - MattyJacks.com
+Copyright (c) 2026 Matt - MattyJacks.com (MattyJacks, Sole Proprietorship, New Hampshire, USA)
+
+TERMS AND CONDITIONS
+
+1. GRANT OF LICENSE
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, publish, and distribute copies of the Software, subject
+to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+2. CONDITIONS
+
+  a) The above copyright notice, this license, and all conditions herein shall
+     be included in all copies or substantial portions of the Software.
+
+  b) You may not use the Software, its name, branding, logos, or documentation
+     to misrepresent the origin of derivative works. Derivative works must be
+     clearly identified as modified versions and must not use the "CryptArtist"
+     or "MattyJacks" names, logos, or branding without prior written consent.
+
+  c) You may not sublicense or sell copies of the unmodified Software itself.
+     You may distribute the Software as part of a larger work or modified version.
+
+  d) Commercial use of the Software is permitted, provided that the original
+     copyright notice and this license are preserved and that the CryptArtist
+     branding is not used in a way that implies endorsement.
+
+  e) Contributions submitted to the official CryptArtist Studio repository
+     grant the Operator (MattyJacks) a perpetual, worldwide, non-exclusive,
+     royalty-free license to use, modify, and distribute the contribution.
+
+3. AI-GENERATED CONTENT
+
+The Software includes features that generate content using artificial intelligence.
+All AI-generated content is provided "as is" without any warranty. The Operator
+makes no claims regarding the accuracy, legality, or fitness of AI-generated
+content for any purpose. Users are solely responsible for reviewing, verifying,
+and using AI-generated content in compliance with applicable laws.
+
+4. VIDEO GAME CLONER
+
+The Software includes a Video Game Cloner feature designed for public domain
+game mechanics. The Operator is not liable for any games produced using this
+feature. Users are solely responsible for ensuring their output does not infringe
+on any third party's intellectual property rights. The Operator reserves the
+right to report copyright infringement at its sole discretion.
+
+5. PEER-TO-PEER FEATURES
+
+The Software includes peer-to-peer resource sharing features. Use of these
+features is entirely voluntary and at your own risk. The Operator is not
+responsible for any damages, data loss, hardware wear, or security issues
+arising from peer-to-peer connections.
+
+6. DISCLAIMER OF WARRANTY
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NONINFRINGEMENT. THE OPERATOR
+DOES NOT WARRANT THAT THE SOFTWARE WILL BE UNINTERRUPTED, ERROR-FREE, SECURE,
+OR FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS. THE OPERATOR MAKES NO
+WARRANTIES REGARDING AI-GENERATED CONTENT, THIRD-PARTY INTEGRATIONS, OR
+PEER-TO-PEER FEATURES.
+
+7. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL MATTYJACKS (THE SOLE PROPRIETOR), ITS OWNER, CONTRIBUTORS,
+OR AFFILIATES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, DATA,
+USE, GOODWILL, OR OTHER INTANGIBLE LOSSES, ARISING OUT OF OR IN CONNECTION
+WITH THE SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. IN NO
+EVENT SHALL THE OPERATOR'S TOTAL LIABILITY EXCEED FIFTY DOLLARS ($50.00).
+
+8. INDEMNIFICATION
+
+You agree to indemnify, defend, and hold harmless MattyJacks from and against
+any claims, liabilities, damages, losses, and expenses arising from your use
+of the Software, content you create using the Software, or your violation of
+this License or any third-party rights.
+
+9. GOVERNING LAW
+
+This License shall be governed by the laws of the State of New Hampshire,
+United States. Any disputes shall be resolved by binding arbitration in
+New Hampshire in accordance with AAA rules, or in the state or federal courts
+of New Hampshire. Class actions are waived.
+
+10. TERMINATION
+
+This License is effective until terminated. It terminates automatically if you
+fail to comply with any term herein. Upon termination, you must destroy all
+copies of the Software in your possession.
+
+11. SEVERABILITY
+
+If any provision of this License is found unenforceable, the remaining
+provisions shall continue in full force and effect.
 ```
 
 ---

@@ -172,6 +172,10 @@ export const PROGRAM_LABELS: Record<string, string> = {
   "demo-recorder": "DemoRecorder",
   "valley-net": "ValleyNet",
   "game-studio": "GameStudio",
+  "commander": "CryptArt Commander",
+  "donate-personal-seconds": "DonatePersonalSeconds",
+  "clone-tool": "Clone Tool",
+  "settings": "Settings",
 };
 
 export function programLabel(program: string): string {

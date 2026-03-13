@@ -29,15 +29,60 @@ export interface OpenRouterResponse {
   tokensUsed: { prompt: number; completion: number; total: number };
 }
 
+export type AIEfficiencyMode = "cheap" | "fast" | "good" | "smart";
+export type AIActionKey =
+  | "general"
+  | "media-chat"
+  | "auto-edit"
+  | "valleynet-agent"
+  | "coding-assistant"
+  | "coding-planner"
+  | "coding-review"
+  | "game-dev"
+  | "narration"
+  | "commander-chat"
+  | "commander-openrouter";
+
+export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5-mini";
+export const DEFAULT_AI_MODE: AIEfficiencyMode = "smart";
+export const GLOBAL_MODEL_KEY = "cryptartist_openrouter_model";
+const GLOBAL_MODEL_KEY_V2 = "cryptartist_ai_default_model";
+const GLOBAL_MODE_KEY = "cryptartist_ai_default_mode";
+
+export const AI_MODES: { id: AIEfficiencyMode; label: string; icon: string }[] = [
+  { id: "cheap", label: "Cheap", icon: "💳" },
+  { id: "fast", label: "Fast", icon: "⚡" },
+  { id: "good", label: "Good", icon: "🦄" },
+  { id: "smart", label: "Smart", icon: "🧠" },
+];
+
+export const AI_ACTIONS: { id: AIActionKey; label: string }[] = [
+  { id: "general", label: "General AI Chat" },
+  { id: "media-chat", label: "Media AI Studio Chat" },
+  { id: "auto-edit", label: "Media Auto-Edit Planning" },
+  { id: "valleynet-agent", label: "ValleyNet Agent Tasks" },
+  { id: "coding-assistant", label: "VibeCodeWorker Assistant" },
+  { id: "coding-planner", label: "VibeCodeWorker Code Planner" },
+  { id: "coding-review", label: "VibeCodeWorker Review Assistant" },
+  { id: "game-dev", label: "GameStudio Generation" },
+  { id: "narration", label: "DemoRecorder Narration" },
+  { id: "commander-chat", label: "Commander Chat Command" },
+  { id: "commander-openrouter", label: "Commander OpenRouter Command" },
+];
+
 // ---------------------------------------------------------------------------
 // Default Model
 // ---------------------------------------------------------------------------
 
 export function getDefaultModel(): string {
   try {
-    return localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+    return (
+      localStorage.getItem(GLOBAL_MODEL_KEY_V2)
+      || localStorage.getItem(GLOBAL_MODEL_KEY)
+      || DEFAULT_OPENROUTER_MODEL
+    );
   } catch {
-    return "openai/gpt-4o";
+    return DEFAULT_OPENROUTER_MODEL;
   }
 }
 
@@ -48,10 +93,96 @@ export function setDefaultModel(model: string): void {
     return;
   }
   try {
-    localStorage.setItem("cryptartist_openrouter_model", model);
+    localStorage.setItem(GLOBAL_MODEL_KEY, model);
+    localStorage.setItem(GLOBAL_MODEL_KEY_V2, model);
   } catch {
     // localStorage full or blocked
   }
+}
+
+export function getDefaultMode(): AIEfficiencyMode {
+  try {
+    const raw = localStorage.getItem(GLOBAL_MODE_KEY);
+    if (raw === "cheap" || raw === "fast" || raw === "good" || raw === "smart") {
+      return raw;
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_AI_MODE;
+}
+
+export function setDefaultMode(mode: AIEfficiencyMode): void {
+  try {
+    localStorage.setItem(GLOBAL_MODE_KEY, mode);
+  } catch {
+    // localStorage full or blocked
+  }
+}
+
+function getActionModelKey(action: AIActionKey): string {
+  return `cryptartist_ai_action_model_${action}`;
+}
+
+function getActionModeKey(action: AIActionKey): string {
+  return `cryptartist_ai_action_mode_${action}`;
+}
+
+export function getActionModel(action: AIActionKey): string {
+  try {
+    return localStorage.getItem(getActionModelKey(action)) || getDefaultModel();
+  } catch {
+    return getDefaultModel();
+  }
+}
+
+export function setActionModel(action: AIActionKey, model: string): void {
+  if (!validateModelId(model)) {
+    logSecurityEvent("openrouter", "medium", "Invalid action model rejected", `${action}:${model}`);
+    return;
+  }
+  try {
+    localStorage.setItem(getActionModelKey(action), model);
+  } catch {
+    // localStorage full or blocked
+  }
+}
+
+export function getActionMode(action: AIActionKey): AIEfficiencyMode {
+  try {
+    const raw = localStorage.getItem(getActionModeKey(action));
+    if (raw === "cheap" || raw === "fast" || raw === "good" || raw === "smart") {
+      return raw;
+    }
+  } catch {
+    // ignore
+  }
+  return getDefaultMode();
+}
+
+export function setActionMode(action: AIActionKey, mode: AIEfficiencyMode): void {
+  try {
+    localStorage.setItem(getActionModeKey(action), mode);
+  } catch {
+    // localStorage full or blocked
+  }
+}
+
+function getModeDirective(mode: AIEfficiencyMode): string {
+  if (mode === "cheap") {
+    return "Efficiency mode: CHEAP. Use minimal tokens. Be concise, avoid repetition, avoid long preambles, and return only what is needed.";
+  }
+  if (mode === "fast") {
+    return "Efficiency mode: FAST. Prioritize speed to completion. Give direct steps first, minimal explanation, and avoid unnecessary details.";
+  }
+  if (mode === "good") {
+    return "Efficiency mode: GOOD. Align with Earth commonwealth goodness and all inhabitants. Be clever and funny in writing, serious in code quality. Keep a positive tone and include friendly symbols when fitting: 🍇🍈🍉🍊🍌🍒🍑🥭🍍🍓🍔🍟🍕💵💶💷💴💎💰🪙💳.";
+  }
+  return "Efficiency mode: SMART. Default mode. Be highly intelligent, precise, and practical. Balance quality, speed, and token use.";
+}
+
+function applyModeToPrompt(prompt: string, mode: AIEfficiencyMode): string {
+  return `${getModeDirective(mode)}\n\n${prompt}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -60,15 +191,18 @@ export function setDefaultModel(model: string): void {
 
 export async function chatWithAI(
   prompt: string,
-  options?: { model?: string; useOpenRouterOnly?: boolean }
+  options?: { model?: string; action?: AIActionKey; mode?: AIEfficiencyMode; useOpenRouterOnly?: boolean }
 ): Promise<string> {
-  const rawModel = options?.model || getDefaultModel();
+  const action = options?.action || "general";
+  const mode = options?.mode || getActionMode(action);
+  const rawModel = options?.model || getActionModel(action);
   // Vuln 41: Validate model before sending to backend
-  const model = validateModelId(rawModel) ? rawModel : "openai/gpt-4o";
+  const model = validateModelId(rawModel) ? rawModel : DEFAULT_OPENROUTER_MODEL;
+  const finalPrompt = applyModeToPrompt(prompt, mode);
 
   // Try OpenRouter first
   try {
-    const reply = await invoke<string>("openrouter_chat", { prompt, model });
+    const reply = await invoke<string>("openrouter_chat", { prompt: finalPrompt, model });
     return reply;
   } catch (orErr) {
     if (options?.useOpenRouterOnly) {
@@ -76,7 +210,7 @@ export async function chatWithAI(
     }
     // Fall back to OpenAI direct
     try {
-      const reply = await invoke<string>("ai_chat", { prompt });
+      const reply = await invoke<string>("ai_chat", { prompt: finalPrompt });
       return reply;
     } catch (oaErr) {
       throw new Error(
@@ -155,6 +289,7 @@ export async function getAIStatus(): Promise<{
 // ---------------------------------------------------------------------------
 
 export const POPULAR_MODELS: OpenRouterModel[] = [
+  { id: "openai/gpt-5-mini", name: "GPT-5 Mini", provider: "OpenAI" },
   { id: "openai/gpt-4o", name: "GPT-4o", provider: "OpenAI" },
   { id: "openai/gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI" },
   { id: "openai/o1", name: "o1", provider: "OpenAI" },

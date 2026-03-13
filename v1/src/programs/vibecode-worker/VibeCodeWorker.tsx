@@ -9,6 +9,11 @@ import { logger } from "../../utils/logger";
 import { useDeviceType } from "../../utils/platform";
 import { safeGetRaw, safeSetRaw, safeGetRawJSON } from "../../utils/storage";
 import { useWorkspace } from "../../utils/workspace";
+import { chatWithAI, getDefaultModel, setDefaultModel } from "../../utils/openrouter";
+import { useApiKeys } from "../../utils/apiKeys";
+import { useInteropEmit } from "../../utils/interop";
+import { useCrossClipboard } from "../../utils/crossClipboard";
+import { notifySuccess } from "../../utils/notifications";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -302,12 +307,17 @@ export default function VibeCodeWorker() {
     aiEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [aiMessages]);
 
-  // Load shared API key from Rust backend on mount
+  // Interop: shared API keys, event bus, cross-clipboard
+  const apiKeys = useApiKeys();
+  const emit = useInteropEmit("vibecode-worker");
+  const clip = useCrossClipboard("vibecode-worker");
+
+  // Sync shared API key from context
   useEffect(() => {
-    invoke<string>("get_api_key")
-      .then((key) => { if (key && !vcwApiKey) setVcwApiKey(key); })
-      .catch(() => {});
-  }, []);
+    if (apiKeys.loaded && apiKeys.openaiKey && !vcwApiKey) {
+      setVcwApiKey(apiKeys.openaiKey);
+    }
+  }, [apiKeys.loaded, apiKeys.openaiKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Improvement 141: Detect git branch on root path change
   useEffect(() => {
@@ -473,6 +483,7 @@ export default function VibeCodeWorker() {
       await invoke("write_text_file", { path: tab.path, contents: tab.content });
       setOpenTabs((prev) => prev.map((t) => (t.path === tab.path ? { ...t, dirty: false } : t)));
       setTerminalOutput((prev) => [...prev, `$ Saved: ${tab.name}`]);
+      emit("code:file-saved", { path: tab.path, name: tab.name, program: "vibecode-worker" });
     } catch (err) {
       setTerminalOutput((prev) => [...prev, `[error] Save failed: ${err}`]);
     }
@@ -553,14 +564,7 @@ export default function VibeCodeWorker() {
 
       const prompt = `You are a senior software engineer AI assistant in VibeCodeWorker IDE. Help the user with their coding request. Be concise and provide code when appropriate.${context}\n\nUser: ${userMsg.content}`;
 
-      // Try OpenRouter first, fall back to OpenAI
-      const orModel = safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o");
-      let reply: string;
-      try {
-        reply = await invoke<string>("openrouter_chat", { prompt, model: orModel });
-      } catch {
-        reply = await invoke<string>("ai_chat", { prompt });
-      }
+      const reply = await chatWithAI(prompt, { action: "coding-assistant" });
       setAiMessages((prev) => [
         ...prev,
         { role: "assistant", content: reply, timestamp: Date.now() },
@@ -722,10 +726,7 @@ ${codeSnippet}
 
 Analyze for: null checks, error handling, boundary conditions, type safety, security issues, race conditions. Return 5-15 checks as JSON array only.`;
 
-        const orModel = safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o");
-        let reply: string;
-        try { reply = await invoke<string>("openrouter_chat", { prompt, model: orModel }); }
-        catch { reply = await invoke<string>("ai_chat", { prompt }); }
+        const reply = await chatWithAI(prompt, { action: "coding-planner" });
         // Try to parse JSON from the reply
         const jsonMatch = reply.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
@@ -827,10 +828,7 @@ Return ONLY valid JSON (no markdown) in this exact format:
 
 Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, meta tags, viewport, HTTPS, CSP headers, font loading, CSS specificity, JS bundle size, accessibility contrast, keyboard navigation, heading hierarchy, link text, form labels, mobile responsiveness. Return 15-25 checks.`;
 
-        const orModel2 = safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o");
-        let reply: string;
-        try { reply = await invoke<string>("openrouter_chat", { prompt, model: orModel2 }); }
-        catch { reply = await invoke<string>("ai_chat", { prompt }); }
+        const reply = await chatWithAI(prompt, { action: "coding-review" });
         const jsonMatch = reply.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
@@ -939,6 +937,8 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           wsCtx.markClean(active.id);
         }
         setTerminalOutput((prev) => [...prev, `$ Project saved: ${savePath}`]);
+        emit("workspace:saved", { program: "vibecode-worker", path: savePath });
+        notifySuccess("vibecode-worker", "Project Saved", `Saved to ${(savePath as string).split(/[\\/]/).pop()}`);
       }
     } catch (err) {
       setTerminalOutput((prev) => [...prev, `[error] Save project failed: ${err}`]);
@@ -1576,19 +1576,19 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                     placeholder="Model name (e.g. gpt-4o)"
                   />
                   <select
-                    value={safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o")}
-                    onChange={(e) => safeSetRaw("cryptartist_openrouter_model", e.target.value)}
+                    value={getDefaultModel()}
+                    onChange={(e) => setDefaultModel(e.target.value)}
                     className="input text-[9px] py-1 w-28"
                     title="OpenRouter model"
                   >
-                    {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "google/gemini-2.0-flash-001", "meta-llama/llama-3.1-70b-instruct", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "mistralai/mistral-large"].map((m) => (
+                    {["openai/gpt-5-mini", "openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "google/gemini-2.0-flash-001", "meta-llama/llama-3.1-70b-instruct", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "mistralai/mistral-large"].map((m) => (
                       <option key={m} value={m}>{m.split("/").pop()}</option>
                     ))}
                   </select>
                 </div>
                 <div className="text-[9px] text-studio-muted">
                   {vcwApiKey ? "\u2705 Key set" : "\u26A0\uFE0F No key - uses shared CryptArtist key if available"}
-                  {" | OR: "}{safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o").split("/").pop()}
+                  {" | OR: "}{getDefaultModel().split("/").pop()}
                 </div>
               </div>
             </div>

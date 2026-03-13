@@ -224,6 +224,7 @@ pub struct AppState {
     pub givegigs_url: Mutex<String>,
     pub givegigs_key: Mutex<String>,
     pub openrouter_key: Mutex<String>,
+    pub elevenlabs_key: Mutex<String>,
 }
 
 impl AppState {
@@ -235,6 +236,7 @@ impl AppState {
             givegigs_url: Mutex::new(String::new()),
             givegigs_key: Mutex::new(String::new()),
             openrouter_key: Mutex::new(String::new()),
+            elevenlabs_key: Mutex::new(String::new()),
         }
     }
 
@@ -315,6 +317,19 @@ impl AppState {
 
     pub fn get_openrouter_key(&self) -> String {
         self.openrouter_key
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    pub fn set_elevenlabs_key(&self, key: String) -> Result<(), String> {
+        let mut elevenlabs_key = self.elevenlabs_key.lock().map_err(|e| e.to_string())?;
+        *elevenlabs_key = key;
+        Ok(())
+    }
+
+    pub fn get_elevenlabs_key(&self) -> String {
+        self.elevenlabs_key
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .clone()

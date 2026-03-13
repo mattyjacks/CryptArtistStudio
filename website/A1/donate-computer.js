@@ -6,7 +6,7 @@
 (function () {
   "use strict";
 
-  var dc = null; // DonateComputer instance
+  var dc = null; // DonatePersonalSeconds instance
   var passwordVisible = false;
   var logEntries = [];
   var MAX_LOG = 100;
@@ -112,7 +112,7 @@
 
   async function detectAndDisplayResources() {
     try {
-      var resources = await DonateComputerAPI.detectResources();
+      var resources = await DonatePersonalSecondsAPI.detectResources();
 
       if (els.cpuCores) els.cpuCores.textContent = resources.cpu.cores + " cores";
       if (els.ram) els.ram.textContent = resources.ram.totalGB ? resources.ram.totalGB + " GB" : "Unknown";
@@ -179,7 +179,7 @@
   }
 
   function regeneratePassword() {
-    var newPw = DonateComputerAPI.generatePassword();
+    var newPw = DonatePersonalSecondsAPI.generatePassword();
     displayPassword(newPw);
     if (dc) dc.password = newPw;
     addLog("Password regenerated", "info");
@@ -228,7 +228,7 @@
 
   async function startDonating() {
     try {
-      dc = DonateComputerAPI.create();
+      dc = DonatePersonalSecondsAPI.create();
 
       var pw = els.password ? (els.password.dataset.pw || dc.password) : dc.password;
 
@@ -316,7 +316,7 @@
 
   async function startBorrowing() {
     try {
-      dc = DonateComputerAPI.create();
+      dc = DonatePersonalSecondsAPI.create();
 
       var pw = els.password ? (els.password.dataset.pw || dc.password) : dc.password;
 
@@ -429,7 +429,7 @@
     detectAndDisplayResources();
 
     // Generate initial password
-    var initialPw = DonateComputerAPI.generatePassword();
+    var initialPw = DonatePersonalSecondsAPI.generatePassword();
     displayPassword(initialPw);
 
     // Set initial peer ID placeholder

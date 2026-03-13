@@ -86,7 +86,7 @@ export function useGlobalShortcuts(navigate: (path: string) => void) {
       key: "0",
       ctrl: true,
       action: () => navigate("/"),
-      description: "Back to Suite Launcher",
+      description: "Back to Suite Launcher [SLr]",
     },
   ]);
 }

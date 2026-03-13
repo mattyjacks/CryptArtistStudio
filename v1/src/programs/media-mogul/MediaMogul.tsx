@@ -16,6 +16,11 @@ import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../util
 import { logger } from "../../utils/logger";
 import { useDeviceType } from "../../utils/platform";
 import { useWorkspace } from "../../utils/workspace";
+import { chatWithAI } from "../../utils/openrouter";
+import { useApiKeys } from "../../utils/apiKeys";
+import { useInteropEmit } from "../../utils/interop";
+import { useCrossClipboard } from "../../utils/crossClipboard";
+import { notifySuccess } from "../../utils/notifications";
 
 export type MogulWorkspace = "edit" | "node-mode" | "color" | "audio" | "ai" | "deliver" | "podcast";
 
@@ -40,6 +45,7 @@ export default function MediaMogul() {
   const [ffmpegReady, setFfmpegReady] = useState(true);
   const [apiKey, setApiKey] = useState("");
   const [pexelsApiKey, setPexelsApiKey] = useState("");
+  const [elevenlabsKey, setElevenlabsKey] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentFrame, setCurrentFrame] = useState(42);
   // Improvement 72-75: Preview controls
@@ -148,19 +154,19 @@ export default function MediaMogul() {
   ]);
   const [aiLoading, setAiLoading] = useState(false);
 
-  useEffect(() => {
-    invoke<string>("get_api_key")
-      .then((key) => {
-        if (key) setApiKey(key);
-      })
-      .catch((err) => console.error("Failed to load API key:", err));
+  // Interop: shared API keys, event bus, cross-clipboard
+  const apiKeys = useApiKeys();
+  const emit = useInteropEmit("media-mogul");
+  const clip = useCrossClipboard("media-mogul");
 
-    invoke<string>("get_pexels_key")
-      .then((key) => {
-        if (key) setPexelsApiKey(key);
-      })
-      .catch((err) => console.error("Failed to load Pexels key:", err));
-  }, []);
+  // Sync shared API keys from context into local state
+  useEffect(() => {
+    if (apiKeys.loaded) {
+      if (apiKeys.openaiKey && !apiKey) setApiKey(apiKeys.openaiKey);
+      if (apiKeys.pexelsKey && !pexelsApiKey) setPexelsApiKey(apiKeys.pexelsKey);
+      if (apiKeys.elevenlabsKey && !elevenlabsKey) setElevenlabsKey(apiKeys.elevenlabsKey);
+    }
+  }, [apiKeys.loaded, apiKeys.openaiKey, apiKeys.pexelsKey, apiKeys.elevenlabsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------------------
   // .CryptArt save/open
@@ -206,6 +212,8 @@ export default function MediaMogul() {
           wsCtx.markClean(active.id);
         }
         toast.success("Project saved successfully");
+        emit("workspace:saved", { program: "media-mogul", path: savePath });
+        notifySuccess("media-mogul", "Project Saved", `Saved to ${(savePath as string).split(/[\\/]/).pop()}`);
       }
     } catch (err) {
       console.error("Save project failed:", err);
@@ -266,7 +274,7 @@ export default function MediaMogul() {
       case "node-mode":
         return <NodeEditor />;
       case "podcast":
-        return <PodcastStudio apiKey={apiKey} />;
+        return <PodcastStudio apiKey={apiKey} elevenlabsKey={elevenlabsKey} />;
       default:
         return (
           <div className="flex flex-col h-full">
@@ -694,20 +702,146 @@ export default function MediaMogul() {
 // Podcast Studio (stub workspace)
 // ---------------------------------------------------------------------------
 
-function PodcastStudio({ apiKey }: { apiKey: string }) {
+function PodcastStudio({ apiKey, elevenlabsKey }: { apiKey: string; elevenlabsKey: string }) {
   const [scriptPrompt, setScriptPrompt] = useState("");
+  const [scriptOutput, setScriptOutput] = useState("");
+  const [scriptLoading, setScriptLoading] = useState(false);
+  const [voiceText, setVoiceText] = useState("");
+  const [voiceId, setVoiceId] = useState("JBFqnCBsd6RMkjVDRZzb");
+  const [voiceModel, setVoiceModel] = useState("eleven_multilingual_v2");
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [sttFilePath, setSttFilePath] = useState("");
+  const [sttLanguage, setSttLanguage] = useState("");
+  const [sttOutput, setSttOutput] = useState("");
+  const [sttLoading, setSttLoading] = useState(false);
+  const [sfxPrompt, setSfxPrompt] = useState("");
+  const [sfxDuration, setSfxDuration] = useState(5);
+  const [sfxLoading, setSfxLoading] = useState(false);
+  const [voiceCatalog, setVoiceCatalog] = useState<{ voice_id: string; name: string }[]>([]);
+  const [modelsCatalog, setModelsCatalog] = useState<{ model_id: string; name: string }[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [audioOutputs, setAudioOutputs] = useState<{ label: string; path: string }[]>([]);
+
+  const handleGenerateScript = async () => {
+    if (!scriptPrompt.trim()) return;
+    setScriptLoading(true);
+    try {
+      const prompt = `Create a production-ready podcast plan and host script for: "${scriptPrompt}".
+
+Return in markdown with:
+1) Episode title
+2) 5 bullet outline
+3) 2 minute intro script
+4) 3 sound effect opportunities
+5) Voice style guidance for narration
+6) Suggested background music mood`;
+      const reply = await chatWithAI(prompt, { action: "media-chat" });
+      setScriptOutput(reply);
+      toast.success("Podcast script generated");
+    } catch (err) {
+      toast.error(`Script generation failed: ${err}`);
+    } finally {
+      setScriptLoading(false);
+    }
+  };
+
+  const handleGenerateVoice = async () => {
+    if (!voiceText.trim()) return;
+    setVoiceLoading(true);
+    try {
+      const path = await invoke<string>("elevenlabs_text_to_speech", {
+        text: voiceText,
+        voiceId,
+        modelId: voiceModel,
+      });
+      setAudioOutputs((prev) => [{ label: "ElevenLabs Voiceover", path }, ...prev].slice(0, 20));
+      toast.success("Voiceover generated");
+    } catch (err) {
+      toast.error(`Voiceover failed: ${err}`);
+    } finally {
+      setVoiceLoading(false);
+    }
+  };
+
+  const handleChooseTranscriptionFile = async () => {
+    const selected = await openDialog({
+      multiple: false,
+      filters: [{ name: "Audio", extensions: ["wav", "mp3", "m4a", "flac", "ogg", "webm"] }],
+    });
+    if (typeof selected === "string") setSttFilePath(selected);
+  };
+
+  const handleTranscribe = async () => {
+    if (!sttFilePath) return;
+    setSttLoading(true);
+    try {
+      const text = await invoke<string>("elevenlabs_speech_to_text", {
+        filePath: sttFilePath,
+        modelId: "scribe_v1",
+        languageCode: sttLanguage.trim() || null,
+      });
+      setSttOutput(text);
+      toast.success("Transcription complete");
+    } catch (err) {
+      toast.error(`Transcription failed: ${err}`);
+    } finally {
+      setSttLoading(false);
+    }
+  };
+
+  const handleGenerateSfx = async () => {
+    if (!sfxPrompt.trim()) return;
+    setSfxLoading(true);
+    try {
+      const path = await invoke<string>("elevenlabs_generate_sound_effect", {
+        prompt: sfxPrompt,
+        durationSeconds: sfxDuration,
+      });
+      setAudioOutputs((prev) => [{ label: "ElevenLabs SFX", path }, ...prev].slice(0, 20));
+      toast.success("Sound effect generated");
+    } catch (err) {
+      toast.error(`SFX generation failed: ${err}`);
+    } finally {
+      setSfxLoading(false);
+    }
+  };
+
+  const handleRefreshCatalogs = async () => {
+    setCatalogLoading(true);
+    try {
+      const [voicesRaw, modelsRaw] = await Promise.all([
+        invoke<string>("elevenlabs_list_voices"),
+        invoke<string>("elevenlabs_list_models"),
+      ]);
+      const voicesParsed = JSON.parse(voicesRaw) as { voices?: { voice_id: string; name: string }[] };
+      const modelsParsed = JSON.parse(modelsRaw) as { models?: { model_id: string; name: string }[] } | { [k: string]: unknown }[];
+      const voices = voicesParsed.voices || [];
+      const models = Array.isArray(modelsParsed)
+        ? (modelsParsed as { model_id?: string; name?: string }[]).filter((m) => m.model_id && m.name).map((m) => ({ model_id: m.model_id!, name: m.name! }))
+        : (modelsParsed.models || []);
+      setVoiceCatalog(voices);
+      setModelsCatalog(models);
+      if (voices.length > 0 && !voices.some((v) => v.voice_id === voiceId)) {
+        setVoiceId(voices[0].voice_id);
+      }
+      toast.success("ElevenLabs voices/models loaded");
+    } catch (err) {
+      toast.error(`Failed to load ElevenLabs catalogs: ${err}`);
+    } finally {
+      setCatalogLoading(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col h-full p-4 gap-4">
-      <div className="panel flex-1">
+    <div className="flex flex-col h-full p-4 gap-4 overflow-y-auto">
+      <div className="panel">
         <div className="panel-header">
-          <h3>{"\u{1F399}\uFE0F"} Podcast & Music Studio</h3>
+          <h3>{"\u{1F399}\uFE0F"} Podcast & Audio Lab (ElevenLabs)</h3>
         </div>
         <div className="panel-body flex flex-col gap-4">
-          {/* Script Generator */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-studio-secondary uppercase tracking-wide">
-              AI Script Generator
+              AI Script Generator (Episode Planning)
             </label>
             <textarea
               className="input"
@@ -717,57 +851,152 @@ function PodcastStudio({ apiKey }: { apiKey: string }) {
               rows={3}
             />
             <button
+              onClick={handleGenerateScript}
               className="btn btn-cyan self-start"
-              disabled={!apiKey || !scriptPrompt.trim()}
+              disabled={!apiKey || !scriptPrompt.trim() || scriptLoading}
             >
-              {"\u{1F916}"} Generate Script
+              {"\u{1F916}"} {scriptLoading ? "Generating..." : "Generate Script"}
             </button>
+            {scriptOutput && (
+              <pre className="text-[10px] whitespace-pre-wrap bg-studio-bg border border-studio-border rounded p-3 max-h-44 overflow-auto">
+                {scriptOutput}
+              </pre>
+            )}
           </div>
 
-          {/* Two-Track Editor (stub) */}
-          <div className="flex flex-col gap-2 mt-4">
+          <div className="flex flex-col gap-2">
             <label className="text-xs font-semibold text-studio-secondary uppercase tracking-wide">
-              Audio Tracks
-            </label>
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-3 p-3 bg-studio-surface rounded-lg border border-studio-border">
-                <span className="text-studio-cyan text-sm font-mono">Track 1</span>
-                <div className="flex-1 h-8 bg-studio-bg rounded flex items-center px-2">
-                  <span className="text-[10px] text-studio-muted">Voiceover / TTS - Drop audio or generate with AI</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-studio-surface rounded-lg border border-studio-border">
-                <span className="text-studio-green text-sm font-mono">Track 2</span>
-                <div className="flex-1 h-8 bg-studio-bg rounded flex items-center px-2">
-                  <span className="text-[10px] text-studio-muted">Background Music - Drop audio or generate with AI</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* TTS Section */}
-          <div className="flex flex-col gap-2 mt-4">
-            <label className="text-xs font-semibold text-studio-secondary uppercase tracking-wide">
-              Text-to-Speech (OpenAI TTS)
+              ElevenLabs Text-to-Speech
             </label>
             <textarea
               className="input"
-              placeholder="Enter text for AI voiceover..."
+              placeholder="Enter narration text for voiceover..."
+              value={voiceText}
+              onChange={(e) => setVoiceText(e.target.value)}
               rows={2}
             />
             <div className="flex gap-2">
-              <button className="btn" disabled={!apiKey}>
-                {"\u{1F50A}"} Generate Voiceover
+              <input
+                className="input text-[10px] flex-1"
+                placeholder="Voice ID"
+                value={voiceId}
+                onChange={(e) => setVoiceId(e.target.value)}
+              />
+              <input
+                className="input text-[10px] flex-1"
+                placeholder="Model ID (e.g. eleven_multilingual_v2)"
+                value={voiceModel}
+                onChange={(e) => setVoiceModel(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              <button className="btn btn-cyan" onClick={handleGenerateVoice} disabled={!elevenlabsKey || !voiceText.trim() || voiceLoading}>
+                {"\u{1F50A}"} {voiceLoading ? "Generating Voice..." : "Generate Voiceover"}
               </button>
-              <button className="btn" disabled={!apiKey}>
-                {"\u{1F3B5}"} Generate Music
+              <button className="btn" onClick={handleRefreshCatalogs} disabled={!elevenlabsKey || catalogLoading}>
+                {"\u{1F4DC}"} {catalogLoading ? "Loading..." : "Load Voices/Models"}
               </button>
             </div>
+            {(voiceCatalog.length > 0 || modelsCatalog.length > 0) && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-studio-bg border border-studio-border rounded p-2 max-h-28 overflow-auto">
+                  <div className="text-[9px] text-studio-muted mb-1">Voices ({voiceCatalog.length})</div>
+                  {voiceCatalog.slice(0, 20).map((v) => (
+                    <button key={v.voice_id} className="block text-left text-[10px] hover:text-studio-cyan" onClick={() => setVoiceId(v.voice_id)}>
+                      {v.name} - {v.voice_id.slice(0, 8)}...
+                    </button>
+                  ))}
+                </div>
+                <div className="bg-studio-bg border border-studio-border rounded p-2 max-h-28 overflow-auto">
+                  <div className="text-[9px] text-studio-muted mb-1">Models ({modelsCatalog.length})</div>
+                  {modelsCatalog.slice(0, 20).map((m) => (
+                    <button key={m.model_id} className="block text-left text-[10px] hover:text-studio-cyan" onClick={() => setVoiceModel(m.model_id)}>
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-studio-secondary uppercase tracking-wide">
+              ElevenLabs Speech-to-Text
+            </label>
+            <div className="flex gap-2">
+              <input
+                className="input text-[10px] flex-1"
+                value={sttFilePath}
+                onChange={(e) => setSttFilePath(e.target.value)}
+                placeholder="Audio file path..."
+              />
+              <button className="btn" onClick={handleChooseTranscriptionFile}>Browse</button>
+              <input
+                className="input text-[10px] w-28"
+                value={sttLanguage}
+                onChange={(e) => setSttLanguage(e.target.value)}
+                placeholder="Lang (en)"
+              />
+            </div>
+            <button className="btn btn-cyan self-start" onClick={handleTranscribe} disabled={!elevenlabsKey || !sttFilePath || sttLoading}>
+              {"\u{1F4DD}"} {sttLoading ? "Transcribing..." : "Transcribe Audio"}
+            </button>
+            {sttOutput && (
+              <textarea className="input text-[10px]" rows={4} value={sttOutput} onChange={(e) => setSttOutput(e.target.value)} />
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-studio-secondary uppercase tracking-wide">
+              ElevenLabs Sound Effects Generator
+            </label>
+            <textarea
+              className="input"
+              placeholder="Describe the sound effect (example: whoosh transition, vinyl crackle, cinematic boom)..."
+              value={sfxPrompt}
+              onChange={(e) => setSfxPrompt(e.target.value)}
+              rows={2}
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-studio-muted">Duration</span>
+              <input
+                type="range"
+                min={1}
+                max={22}
+                value={sfxDuration}
+                onChange={(e) => setSfxDuration(Number(e.target.value))}
+                className="accent-studio-cyan"
+              />
+              <span className="text-[10px]">{sfxDuration}s</span>
+            </div>
+            <button className="btn btn-cyan self-start" onClick={handleGenerateSfx} disabled={!elevenlabsKey || !sfxPrompt.trim() || sfxLoading}>
+              {"\u{1F3B6}"} {sfxLoading ? "Generating SFX..." : "Generate Sound Effect"}
+            </button>
+          </div>
+
+          {audioOutputs.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-semibold text-studio-secondary uppercase tracking-wide">
+                Generated Audio Outputs
+              </label>
+              <div className="max-h-28 overflow-auto bg-studio-bg border border-studio-border rounded p-2">
+                {audioOutputs.map((a, i) => (
+                  <div key={`${a.path}-${i}`} className="text-[10px] text-studio-text mb-1">
+                    <span className="text-studio-cyan">{a.label}:</span> {a.path}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {!apiKey && (
             <div className="p-3 bg-studio-surface rounded-lg border border-studio-yellow/20 text-xs text-studio-yellow">
-              Set your OpenAI API key in Settings to use AI-powered podcast features.
+              Set your OpenAI API key in Settings to use AI-powered script planning.
+            </div>
+          )}
+          {!elevenlabsKey && (
+            <div className="p-3 bg-studio-surface rounded-lg border border-studio-yellow/20 text-xs text-studio-yellow">
+              Set your ElevenLabs API key in Settings to enable voice, transcription, and sound effects.
             </div>
           )}
         </div>

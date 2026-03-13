@@ -6,6 +6,11 @@ import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../util
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { useWorkspace } from "../../utils/workspace";
+import { chatWithAI, getActionModel, setActionModel } from "../../utils/openrouter";
+import { useApiKeys } from "../../utils/apiKeys";
+import { useInteropEmit } from "../../utils/interop";
+import { useCrossClipboard } from "../../utils/crossClipboard";
+import { notifySuccess } from "../../utils/notifications";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -441,6 +446,11 @@ export default function DemoRecorder() {
     );
   };
 
+  // Interop: shared API keys, event bus, cross-clipboard
+  const apiKeys = useApiKeys();
+  const emit = useInteropEmit("demo-recorder");
+  const clip = useCrossClipboard("demo-recorder");
+
   // ---------------------------------------------------------------------------
   // .CryptArt save/open
   // ---------------------------------------------------------------------------
@@ -485,6 +495,8 @@ export default function DemoRecorder() {
           wsCtx.markClean(active.id);
         }
         toast.success("Project saved");
+        emit("workspace:saved", { program: "demo-recorder", path: savePath });
+        notifySuccess("demo-recorder", "Session Saved", `Saved to ${(savePath as string).split(/[\\/]/).pop()}`);
       }
     } catch (err) {
       console.error("Save project failed:", err);
@@ -572,11 +584,11 @@ export default function DemoRecorder() {
             <span className="text-[11px] font-semibold text-studio-text">{"\u{1F916}"} AI Recording Tools</span>
             <span className="text-[8px] px-1.5 py-0.5 rounded bg-studio-cyan/10 text-studio-cyan">OpenRouter</span>
             <select
-              value={localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o"}
-              onChange={(e) => localStorage.setItem("cryptartist_openrouter_model", e.target.value)}
+              value={getActionModel("narration")}
+              onChange={(e) => setActionModel("narration", e.target.value)}
               className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer ml-auto"
             >
-              {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "deepseek/deepseek-chat"].map((m) => (
+              {["openai/gpt-5-mini", "openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "deepseek/deepseek-chat"].map((m) => (
                 <option key={m} value={m}>{m.split("/").pop()}</option>
               ))}
             </select>
@@ -600,11 +612,8 @@ export default function DemoRecorder() {
                     if (!aiNarration.trim()) return;
                     setAiNarrationLoading(true);
                     try {
-                      const model = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
                       const prompt = `Write a concise, engaging narration script for a screen recording tutorial about: ${aiNarration}. Format as numbered steps with narration text. Keep it under 500 words.`;
-                      let reply: string;
-                      try { reply = await invoke<string>("openrouter_chat", { prompt, model }); }
-                      catch { reply = await invoke<string>("ai_chat", { prompt }); }
+                      const reply = await chatWithAI(prompt, { action: "narration" });
                       setAiDescription(reply);
                       toast.success("Narration script generated!");
                     } catch (err) { toast.error("AI error: " + err); }

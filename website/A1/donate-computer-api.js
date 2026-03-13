@@ -20,7 +20,7 @@
 //
 // ============================================================================
 
-const DonateComputerAPI = (function () {
+const DonatePersonalSecondsAPI = (function () {
   "use strict";
 
   // -------------------------------------------------------------------------
@@ -154,7 +154,7 @@ const DonateComputerAPI = (function () {
     var args = Array.prototype.slice.call(arguments, 1);
     var fns = this._listeners[event] || [];
     for (var i = 0; i < fns.length; i++) {
-      try { fns[i].apply(null, args); } catch (e) { console.error("[DonateComputer] Event error:", e); }
+      try { fns[i].apply(null, args); } catch (e) { console.error("[DonatePersonalSeconds] Event error:", e); }
     }
   };
 
@@ -225,7 +225,7 @@ const DonateComputerAPI = (function () {
         var msg = JSON.parse(event.data);
         self._handleMessage(msg);
       } catch (e) {
-        console.error("[DonateComputer] Bad message:", e);
+        console.error("[DonatePersonalSeconds] Bad message:", e);
       }
     };
   };
@@ -327,10 +327,10 @@ const DonateComputerAPI = (function () {
   };
 
   // -------------------------------------------------------------------------
-  // DonateComputer - Main class
+  // DonatePersonalSeconds - Main class
   // -------------------------------------------------------------------------
 
-  function DonateComputer() {
+  function DonatePersonalSeconds() {
     EventEmitter.call(this);
     this.peerId = generatePeerId();
     this.password = generatePassword();
@@ -359,12 +359,12 @@ const DonateComputerAPI = (function () {
     this._startTime = null;
   }
 
-  DonateComputer.prototype = Object.create(EventEmitter.prototype);
-  DonateComputer.prototype.constructor = DonateComputer;
+  DonatePersonalSeconds.prototype = Object.create(EventEmitter.prototype);
+  DonatePersonalSeconds.prototype.constructor = DonatePersonalSeconds;
 
   // -- Initialization --
 
-  DonateComputer.prototype.init = async function (options) {
+  DonatePersonalSeconds.prototype.init = async function (options) {
     options = options || {};
     if (options.password) {
       if (options.password.length < CONFIG.PASSWORD_MIN_LENGTH) {
@@ -398,7 +398,7 @@ const DonateComputerAPI = (function () {
 
   // -- Start donating --
 
-  DonateComputer.prototype.startDonating = async function () {
+  DonatePersonalSeconds.prototype.startDonating = async function () {
     this.mode = "donor";
     this.running = true;
     this._startTime = Date.now();
@@ -417,7 +417,7 @@ const DonateComputerAPI = (function () {
 
   // -- Start borrowing --
 
-  DonateComputer.prototype.startBorrowing = async function () {
+  DonatePersonalSeconds.prototype.startBorrowing = async function () {
     this.mode = "borrower";
     this.running = true;
     this._startTime = Date.now();
@@ -432,7 +432,7 @@ const DonateComputerAPI = (function () {
 
   // -- Stop --
 
-  DonateComputer.prototype.stop = function () {
+  DonatePersonalSeconds.prototype.stop = function () {
     this.running = false;
     clearInterval(this._heartbeatInterval);
     clearInterval(this._resourceInterval);
@@ -454,7 +454,7 @@ const DonateComputerAPI = (function () {
 
   // -- Submit a task to the network --
 
-  DonateComputer.prototype.submitTask = function (task) {
+  DonatePersonalSeconds.prototype.submitTask = function (task) {
     if (this.mode !== "borrower") {
       throw new Error("Must be in borrower mode to submit tasks");
     }
@@ -495,7 +495,7 @@ const DonateComputerAPI = (function () {
 
   // -- Get stats --
 
-  DonateComputer.prototype.getStats = function () {
+  DonatePersonalSeconds.prototype.getStats = function () {
     return Object.assign({}, this.stats, {
       connectedPeers: this.peers.size,
       uptime: this._startTime ? Math.floor((Date.now() - this._startTime) / 1000) : 0,
@@ -506,7 +506,7 @@ const DonateComputerAPI = (function () {
 
   // -- Get peer list --
 
-  DonateComputer.prototype.getPeers = function () {
+  DonatePersonalSeconds.prototype.getPeers = function () {
     var list = [];
     this.peers.forEach(function (peer, id) {
       list.push({
@@ -521,7 +521,7 @@ const DonateComputerAPI = (function () {
 
   // -- Set donation limits --
 
-  DonateComputer.prototype.setLimits = function (limits) {
+  DonatePersonalSeconds.prototype.setLimits = function (limits) {
     if (limits.cpuPercent !== undefined) {
       this.donationLimits.cpuPercent = Math.max(10, Math.min(limits.cpuPercent, CONFIG.MAX_CPU_DONATION_PERCENT));
     }
@@ -538,7 +538,7 @@ const DonateComputerAPI = (function () {
   // Internal methods
   // -------------------------------------------------------------------------
 
-  DonateComputer.prototype._connectSignaling = function () {
+  DonatePersonalSeconds.prototype._connectSignaling = function () {
     var self = this;
     return new Promise(function (resolve, reject) {
       try {
@@ -570,7 +570,7 @@ const DonateComputerAPI = (function () {
           var msg = JSON.parse(event.data);
           self._handleSignalingMessage(msg);
         } catch (e) {
-          console.error("[DonateComputer] Signaling message error:", e);
+          console.error("[DonatePersonalSeconds] Signaling message error:", e);
         }
       };
 
@@ -591,7 +591,7 @@ const DonateComputerAPI = (function () {
     });
   };
 
-  DonateComputer.prototype._handleSignalingMessage = function (msg) {
+  DonatePersonalSeconds.prototype._handleSignalingMessage = function (msg) {
     var self = this;
     switch (msg.type) {
       case "peer-available": {
@@ -638,7 +638,7 @@ const DonateComputerAPI = (function () {
     }
   };
 
-  DonateComputer.prototype._setupPeerEvents = function (conn) {
+  DonatePersonalSeconds.prototype._setupPeerEvents = function (conn) {
     var self = this;
     conn.on("verified", function () {
       self.stats.connectedPeers = self.peers.size;
@@ -676,7 +676,7 @@ const DonateComputerAPI = (function () {
     });
   };
 
-  DonateComputer.prototype._executeTask = async function (task, conn) {
+  DonatePersonalSeconds.prototype._executeTask = async function (task, conn) {
     var startTime = Date.now();
     try {
       var result;
@@ -712,7 +712,7 @@ const DonateComputerAPI = (function () {
     }
   };
 
-  DonateComputer.prototype._executeWasmTask = async function (task) {
+  DonatePersonalSeconds.prototype._executeWasmTask = async function (task) {
     if (!task.wasmUrl) throw new Error("No WASM URL provided");
     // Fetch and instantiate WASM module
     var response = await fetch(task.wasmUrl);
@@ -728,7 +728,7 @@ const DonateComputerAPI = (function () {
     throw new Error("WASM module has no run export");
   };
 
-  DonateComputer.prototype._executeComputeTask = async function (task) {
+  DonatePersonalSeconds.prototype._executeComputeTask = async function (task) {
     // Run compute tasks in a sandboxed environment
     // Only allows pure math operations
     if (task.payload && task.payload.operation === "hash") {
@@ -742,7 +742,7 @@ const DonateComputerAPI = (function () {
     throw new Error("Unknown compute operation");
   };
 
-  DonateComputer.prototype._matrixMultiply = function (a, b) {
+  DonatePersonalSeconds.prototype._matrixMultiply = function (a, b) {
     if (!a || !b || !a.length || !b.length) throw new Error("Invalid matrices");
     var rowsA = a.length, colsA = a[0].length, colsB = b[0].length;
     var result = new Array(rowsA);
@@ -757,7 +757,7 @@ const DonateComputerAPI = (function () {
     return result;
   };
 
-  DonateComputer.prototype._executeRenderTask = async function (task) {
+  DonatePersonalSeconds.prototype._executeRenderTask = async function (task) {
     if (typeof OffscreenCanvas === "undefined") {
       throw new Error("OffscreenCanvas not supported");
     }
@@ -778,14 +778,14 @@ const DonateComputerAPI = (function () {
     return { width: canvas.width, height: canvas.height, size: arrayBuf.byteLength };
   };
 
-  DonateComputer.prototype._signalingSend = function (msg) {
+  DonatePersonalSeconds.prototype._signalingSend = function (msg) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       msg.from = this.peerId;
       this.ws.send(JSON.stringify(msg));
     }
   };
 
-  DonateComputer.prototype._startHeartbeat = function () {
+  DonatePersonalSeconds.prototype._startHeartbeat = function () {
     var self = this;
     this._heartbeatInterval = setInterval(function () {
       self.peers.forEach(function (peer) {
@@ -796,7 +796,7 @@ const DonateComputerAPI = (function () {
     }, CONFIG.HEARTBEAT_INTERVAL);
   };
 
-  DonateComputer.prototype._startResourceReporting = function () {
+  DonatePersonalSeconds.prototype._startResourceReporting = function () {
     var self = this;
     this._resourceInterval = setInterval(function () {
       self.peers.forEach(function (peer) {
@@ -811,7 +811,7 @@ const DonateComputerAPI = (function () {
     }, CONFIG.RESOURCE_REPORT_INTERVAL);
   };
 
-  DonateComputer.prototype._startUptimeTracking = function () {
+  DonatePersonalSeconds.prototype._startUptimeTracking = function () {
     var self = this;
     this._uptimeInterval = setInterval(function () {
       self.stats.uptime = self._startTime ? Math.floor((Date.now() - self._startTime) / 1000) : 0;
@@ -825,7 +825,7 @@ const DonateComputerAPI = (function () {
 
   return {
     create: function () {
-      return new DonateComputer();
+      return new DonatePersonalSeconds();
     },
     VERSION: CONFIG.VERSION,
     CONFIG: CONFIG,
@@ -836,5 +836,5 @@ const DonateComputerAPI = (function () {
 
 // Export for different module systems
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = DonateComputerAPI;
+  module.exports = DonatePersonalSecondsAPI;
 }

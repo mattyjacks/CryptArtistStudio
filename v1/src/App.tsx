@@ -8,15 +8,21 @@ import ValleyNet from "./programs/valley-net/ValleyNet";
 import GameStudio from "./programs/game-studio/GameStudio";
 import Commander from "./programs/commander/Commander";
 import Settings from "./programs/settings/Settings";
-import DonateComputer from "./programs/donate-computer/DonateComputer";
+import DonatePersonalSeconds from "./programs/donate-personal-seconds/DonatePersonalSeconds";
+import CloneTool from "./programs/clone-tool/CloneTool";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import TermsAcceptanceModal from "./components/TermsAcceptanceModal";
 import MobileNav from "./components/MobileNav";
 import WorkspaceProvider from "./components/WorkspaceProvider";
 import WorkspaceBar from "./components/WorkspaceBar";
+import GlobalMenuBar from "./components/GlobalMenuBar";
+import { ApiKeyProvider } from "./components/ApiKeyProvider";
 import { useIsMobileViewport, useDeviceType } from "./utils/platform";
 import { logger } from "./utils/logger";
+import { applyTheme } from "./utils/themes";
+import { initializePlatform } from "./utils/cross-platform";
+import { initializeSecurityHardening, initializeSecurityHardeningV2 } from "./utils/security";
 
 // ---------------------------------------------------------------------------
 // Types (kept for backward compatibility with existing components)
@@ -71,7 +77,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
             }}
             className="btn btn-cyan px-6 py-2"
           >
-            Return to Suite Launcher
+            Return to Suite Launcher [SLr]
           </button>
         </div>
       );
@@ -91,7 +97,7 @@ function NotFound() {
       <h1 className="text-4xl font-bold mb-2 gradient-text">404</h1>
       <p className="text-sm text-studio-secondary mb-6">This page doesn't exist in the suite.</p>
       <Link to="/" className="btn btn-cyan px-6 py-2 text-sm">
-        {"\u2190"} Back to Suite Launcher
+        {"\u2190"} Back to Suite Launcher [SLr]
       </Link>
     </div>
   );
@@ -126,7 +132,8 @@ const routeTitles: Record<string, string> = {
   "/game-studio": "GameStudio - CryptArtist Studio",
   "/commander": "CryptArt Commander - CryptArtist Studio",
   "/settings": "Settings - CryptArtist Studio",
-  "/donate-computer": "Donate Computer - CryptArtist Studio",
+  "/donate-personal-seconds": "DonatePersonalSeconds - CryptArtist Studio",
+  "/clone-tool": "Clone Tool - CryptArtist Studio",
   "/privacy": "Privacy Policy - CryptArtist Studio",
   "/terms": "Terms of Use - CryptArtist Studio",
 };
@@ -154,6 +161,11 @@ export default function App() {
   useEffect(() => {
     const accepted = localStorage.getItem(TERMS_ACCEPTED_KEY);
     setTermsAccepted(accepted === "true");
+    // Initialize active theme, platform, and security hardening on startup
+    applyTheme();
+    initializePlatform();
+    initializeSecurityHardening();
+    initializeSecurityHardeningV2();
   }, []);
 
   const handleAcceptTerms = () => {
@@ -173,6 +185,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <WorkspaceProvider>
+        <ApiKeyProvider>
+        <GlobalMenuBar />
         <WorkspaceBar />
         <div className={showBottomNav ? "pb-14" : ""}>
           <Routes>
@@ -184,13 +198,15 @@ export default function App() {
             <Route path="/game-studio" element={<GameStudio />} />
             <Route path="/commander" element={<Commander />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/donate-computer" element={<DonateComputer />} />
+            <Route path="/donate-personal-seconds" element={<DonatePersonalSeconds />} />
+            <Route path="/clone-tool" element={<CloneTool />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
         {showBottomNav && <MobileNav />}
+        </ApiKeyProvider>
       </WorkspaceProvider>
     </ErrorBoundary>
   );

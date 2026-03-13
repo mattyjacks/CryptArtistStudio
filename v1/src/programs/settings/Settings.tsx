@@ -4,6 +4,22 @@ import { invoke } from "@tauri-apps/api/core";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { safeGetRaw, safeSetRaw, safeGetRawJSON, safeStorageUsage } from "../../utils/storage";
+import {
+  AI_ACTIONS,
+  AI_MODES,
+  getActionModel,
+  getActionMode,
+  getDefaultModel,
+  getDefaultMode,
+  setActionModel,
+  setActionMode,
+  setDefaultModel,
+  setDefaultMode,
+  type AIActionKey,
+} from "../../utils/openrouter";
+import ThemeManager from "../../components/ThemeManager";
+import PluginManager from "../../components/PluginManager";
+import ModManager from "../../components/ModManager";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -55,6 +71,16 @@ const API_KEYS: ApiKeyEntry[] = [
     setCmd: "save_pexels_key",
     setParam: "key",
   },
+  {
+    id: "elevenlabs",
+    label: "ElevenLabs API Key",
+    icon: "\u{1F50A}",
+    description: "Powers Media Mogul voice generation, speech-to-text transcription, and sound effects generation.",
+    placeholder: "sk_...",
+    getCmd: "get_elevenlabs_key",
+    setCmd: "save_elevenlabs_key",
+    setParam: "key",
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -62,6 +88,7 @@ const API_KEYS: ApiKeyEntry[] = [
 // ---------------------------------------------------------------------------
 
 const OPENROUTER_MODELS = [
+  { id: "openai/gpt-5-mini", name: "GPT-5 Mini", provider: "OpenAI" },
   { id: "openai/gpt-4o", name: "GPT-4o", provider: "OpenAI" },
   { id: "openai/gpt-4o-mini", name: "GPT-4o Mini", provider: "OpenAI" },
   { id: "openai/o1", name: "o1", provider: "OpenAI" },
@@ -83,7 +110,7 @@ const OPENROUTER_MODELS = [
 // Settings Sections
 // ---------------------------------------------------------------------------
 
-type SettingsSection = "api-keys" | "openrouter" | "appearance" | "shortcuts" | "data" | "about";
+type SettingsSection = "api-keys" | "openrouter" | "appearance" | "themes" | "plugins" | "mods" | "shortcuts" | "data" | "about";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -101,7 +128,20 @@ export default function Settings() {
   const [saving, setSaving] = useState<string | null>(null);
 
   // OpenRouter
-  const [orDefaultModel, setOrDefaultModel] = useState(() => safeGetRaw("cryptartist_openrouter_model", "openai/gpt-4o"));
+  const [orDefaultModel, setOrDefaultModel] = useState(() => getDefaultModel());
+  const [orDefaultMode, setOrDefaultMode] = useState(() => getDefaultMode());
+  const [actionModels, setActionModels] = useState<Record<AIActionKey, string>>(() => {
+    return AI_ACTIONS.reduce((acc, action) => {
+      acc[action.id] = getActionModel(action.id);
+      return acc;
+    }, {} as Record<AIActionKey, string>);
+  });
+  const [actionModes, setActionModes] = useState<Record<AIActionKey, "cheap" | "fast" | "good" | "smart">>(() => {
+    return AI_ACTIONS.reduce((acc, action) => {
+      acc[action.id] = getActionMode(action.id);
+      return acc;
+    }, {} as Record<AIActionKey, "cheap" | "fast" | "good" | "smart">);
+  });
   const [orTestResult, setOrTestResult] = useState<string | null>(null);
   const [orTesting, setOrTesting] = useState(false);
 
@@ -225,13 +265,21 @@ export default function Settings() {
 
   // Save OpenRouter default model
   useEffect(() => {
-    safeSetRaw("cryptartist_openrouter_model", orDefaultModel);
+    setDefaultModel(orDefaultModel);
   }, [orDefaultModel]);
+
+  // Save default AI mode
+  useEffect(() => {
+    setDefaultMode(orDefaultMode);
+  }, [orDefaultMode]);
 
   const sections: { id: SettingsSection; label: string; icon: string }[] = [
     { id: "api-keys", label: "API Keys", icon: "\u{1F511}" },
     { id: "openrouter", label: "OpenRouter", icon: "\u{1F310}" },
     { id: "appearance", label: "Appearance", icon: "\u{1F3A8}" },
+    { id: "themes", label: "Themes", icon: "\u{1F308}" },
+    { id: "plugins", label: "Plugins", icon: "\u{1F9E9}" },
+    { id: "mods", label: "Mods", icon: "\u{1F680}" },
     { id: "shortcuts", label: "Shortcuts", icon: "\u2328\uFE0F" },
     { id: "data", label: "Data & Storage", icon: "\u{1F4BE}" },
     { id: "about", label: "About", icon: "\u{2139}\uFE0F" },
@@ -402,7 +450,67 @@ export default function Settings() {
                     <option key={m.id} value={m.id}>{m.provider} - {m.name}</option>
                   ))}
                 </select>
-                <p className="text-[9px] text-studio-muted mt-2">This model will be used by default when programs access OpenRouter. Each program can override this.</p>
+                <p className="text-[9px] text-studio-muted mt-2">
+                  Global default for all AI features. Recommended: GPT-5 Mini for balanced speed and cost.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="text-[12px] font-semibold text-studio-text mb-2">Default AI Mode</div>
+                <select
+                  value={orDefaultMode}
+                  onChange={(e) => setOrDefaultMode(e.target.value as "cheap" | "fast" | "good" | "smart")}
+                  className="input text-[11px] py-1.5 w-full"
+                >
+                  {AI_MODES.map((m) => (
+                    <option key={m.id} value={m.id}>{m.icon} {m.label}</option>
+                  ))}
+                </select>
+                <p className="text-[9px] text-studio-muted mt-2">
+                  💳 Cheap: lowest token cost. ⚡ Fast: fastest completion. 🦄 Good: positive, clever, funny tone. 🧠 Smart: intelligent and precise default.
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="text-[12px] font-semibold text-studio-text mb-2">Per-Action AI Defaults</div>
+                <p className="text-[9px] text-studio-muted mb-3">
+                  Configure model and mode per action. Any unset action falls back to global defaults above.
+                </p>
+                <div className="flex flex-col gap-2">
+                  {AI_ACTIONS.map((action) => (
+                    <div key={action.id} className="p-2.5 rounded-lg bg-studio-bg border border-studio-border">
+                      <div className="text-[10px] text-studio-text mb-2">{action.label}</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <select
+                          value={actionModels[action.id]}
+                          onChange={(e) => {
+                            const model = e.target.value;
+                            setActionModels((prev) => ({ ...prev, [action.id]: model }));
+                            setActionModel(action.id, model);
+                          }}
+                          className="input text-[10px] py-1"
+                        >
+                          {OPENROUTER_MODELS.map((m) => (
+                            <option key={m.id} value={m.id}>{m.provider} - {m.name}</option>
+                          ))}
+                        </select>
+                        <select
+                          value={actionModes[action.id]}
+                          onChange={(e) => {
+                            const mode = e.target.value as "cheap" | "fast" | "good" | "smart";
+                            setActionModes((prev) => ({ ...prev, [action.id]: mode }));
+                            setActionMode(action.id, mode);
+                          }}
+                          className="input text-[10px] py-1"
+                        >
+                          {AI_MODES.map((m) => (
+                            <option key={m.id} value={m.id}>{m.icon} {m.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Test connection */}
@@ -477,6 +585,15 @@ export default function Settings() {
             </div>
           )}
 
+          {/* Themes Section */}
+          {activeSection === "themes" && <ThemeManager />}
+
+          {/* Plugins Section */}
+          {activeSection === "plugins" && <PluginManager />}
+
+          {/* Mods Section */}
+          {activeSection === "mods" && <ModManager />}
+
           {/* Improvement 303: Shortcuts Section */}
           {activeSection === "shortcuts" && (
             <div className="max-w-2xl">
@@ -484,7 +601,7 @@ export default function Settings() {
               <p className="text-[11px] text-studio-muted mb-6">Quick reference for all global keyboard shortcuts.</p>
               <div className="flex flex-col gap-1">
                 {[
-                  { keys: "1-7", desc: "Quick-launch programs from Suite Launcher" },
+                  { keys: "1-7", desc: "Quick-launch programs from Suite Launcher [SLr]" },
                   { keys: "Ctrl+S", desc: "Save current project" },
                   { keys: "Ctrl+Z", desc: "Undo" },
                   { keys: "Ctrl+Shift+Z", desc: "Redo" },
@@ -743,6 +860,8 @@ export default function Settings() {
         </div>
         <div className="flex items-center gap-3">
           <span>Default OR model: {orDefaultModel.split("/").pop()}</span>
+          <span>|</span>
+          <span>Mode: {orDefaultMode}</span>
           <span>|</span>
           <span>{exportCount} exports</span>
           <span>|</span>

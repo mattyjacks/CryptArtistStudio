@@ -14,6 +14,7 @@ use clap::{Parser, Subcommand};
 use std::io::Read;
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
+use reqwest::multipart;
 
 // ---------------------------------------------------------------------------
 // Security: Input validation helpers
@@ -468,6 +469,220 @@ async fn get_openrouter_key(state: tauri::State<'_, AppState>) -> Result<String,
     Ok(state.get_openrouter_key())
 }
 
+// ---------------------------------------------------------------------------
+// ElevenLabs API Key + Audio Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn save_elevenlabs_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    validate_api_key(&key)?;
+    log_cmd!("save_elevenlabs_key", "Saving ElevenLabs API key (length: {})", key.len());
+    state.set_elevenlabs_key(key).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+async fn get_elevenlabs_key(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    log_cmd!("get_elevenlabs_key", "Retrieving ElevenLabs API key");
+    Ok(state.get_elevenlabs_key())
+}
+
+#[tauri::command]
+async fn elevenlabs_list_voices(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    let api_key = state.get_elevenlabs_key();
+    if api_key.is_empty() {
+        return Err("No ElevenLabs API key configured. Set it in Settings.".to_string());
+    }
+    let client = http_client_with_timeout();
+    let res = client
+        .get("https://api.elevenlabs.io/v1/voices")
+        .header("xi-api-key", api_key)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let status = res.status();
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    if !status.is_success() {
+        return Err(format!("ElevenLabs voices error {}: {}", status, text));
+    }
+    Ok(text)
+}
+
+#[tauri::command]
+async fn elevenlabs_list_models(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    let api_key = state.get_elevenlabs_key();
+    if api_key.is_empty() {
+        return Err("No ElevenLabs API key configured. Set it in Settings.".to_string());
+    }
+    let client = http_client_with_timeout();
+    let res = client
+        .get("https://api.elevenlabs.io/v1/models")
+        .header("xi-api-key", api_key)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    let status = res.status();
+    let text = res.text().await.map_err(|e| e.to_string())?;
+    if !status.is_success() {
+        return Err(format!("ElevenLabs models error {}: {}", status, text));
+    }
+    Ok(text)
+}
+
+#[tauri::command]
+async fn elevenlabs_text_to_speech(
+    text: String,
+    voice_id: String,
+    model_id: Option<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    validate_prompt_length(&text)?;
+    if voice_id.trim().is_empty() || voice_id.len() > 128 {
+        return Err("Invalid voice_id".to_string());
+    }
+    let api_key = state.get_elevenlabs_key();
+    if api_key.is_empty() {
+        return Err("No ElevenLabs API key configured. Set it in Settings.".to_string());
+    }
+    let client = http_client_with_timeout();
+    let model = model_id.unwrap_or_else(|| "eleven_multilingual_v2".to_string());
+    let res = client
+        .post(format!("https://api.elevenlabs.io/v1/text-to-speech/{}", voice_id))
+        .header("xi-api-key", api_key)
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({
+            "text": text,
+            "model_id": model,
+            "voice_settings": {
+                "stability": 0.45,
+                "similarity_boost": 0.75,
+                "style": 0.35,
+                "use_speaker_boost": true
+            }
+        }))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !res.status().is_success() {
+        let status = res.status();
+        let body = res.text().await.unwrap_or_default();
+        return Err(format!("ElevenLabs TTS error {}: {}", status, body));
+    }
+
+    let bytes = res.bytes().await.map_err(|e| e.to_string())?;
+    let ffmpeg_path = state.get_ffmpeg_path();
+    let parent_dir = ffmpeg_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let audio_path = parent_dir.join(format!("elevenlabs_tts_{}.mp3", timestamp));
+    std::fs::write(&audio_path, bytes).map_err(|e| e.to_string())?;
+    Ok(audio_path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+async fn elevenlabs_generate_sound_effect(
+    prompt: String,
+    duration_seconds: Option<u32>,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    validate_prompt_length(&prompt)?;
+    let api_key = state.get_elevenlabs_key();
+    if api_key.is_empty() {
+        return Err("No ElevenLabs API key configured. Set it in Settings.".to_string());
+    }
+    let duration = duration_seconds.unwrap_or(5).clamp(1, 22);
+    let client = http_client_with_timeout();
+    let res = client
+        .post("https://api.elevenlabs.io/v1/sound-generation")
+        .header("xi-api-key", api_key)
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({
+            "text": prompt,
+            "duration_seconds": duration,
+            "prompt_influence": 0.8
+        }))
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !res.status().is_success() {
+        let status = res.status();
+        let body = res.text().await.unwrap_or_default();
+        return Err(format!("ElevenLabs SFX error {}: {}", status, body));
+    }
+
+    let bytes = res.bytes().await.map_err(|e| e.to_string())?;
+    let ffmpeg_path = state.get_ffmpeg_path();
+    let parent_dir = ffmpeg_path.parent().unwrap_or_else(|| std::path::Path::new("."));
+    let timestamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let audio_path = parent_dir.join(format!("elevenlabs_sfx_{}.mp3", timestamp));
+    std::fs::write(&audio_path, bytes).map_err(|e| e.to_string())?;
+    Ok(audio_path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+async fn elevenlabs_speech_to_text(
+    file_path: String,
+    model_id: Option<String>,
+    language_code: Option<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    let safe = sanitize_path(&file_path)?;
+    if !safe.exists() {
+        return Err("Audio file not found".to_string());
+    }
+    let metadata = std::fs::metadata(&safe).map_err(|e| e.to_string())?;
+    if metadata.len() > MAX_FILE_READ_SIZE {
+        return Err(format!("Audio file too large: {} bytes", metadata.len()));
+    }
+    let api_key = state.get_elevenlabs_key();
+    if api_key.is_empty() {
+        return Err("No ElevenLabs API key configured. Set it in Settings.".to_string());
+    }
+
+    let file_name = safe
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("audio.wav")
+        .to_string();
+    let bytes = std::fs::read(&safe).map_err(|e| e.to_string())?;
+    let part = multipart::Part::bytes(bytes).file_name(file_name);
+    let mut form = multipart::Form::new()
+        .part("file", part)
+        .text("model_id", model_id.unwrap_or_else(|| "scribe_v1".to_string()));
+    if let Some(lang) = language_code {
+        if !lang.trim().is_empty() {
+            form = form.text("language_code", lang);
+        }
+    }
+
+    let client = http_client_with_timeout();
+    let res = client
+        .post("https://api.elevenlabs.io/v1/speech-to-text")
+        .header("xi-api-key", api_key)
+        .multipart(form)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+
+    if !res.status().is_success() {
+        let status = res.status();
+        let body = res.text().await.unwrap_or_default();
+        return Err(format!("ElevenLabs STT error {}: {}", status, body));
+    }
+    let json: serde_json::Value = res.json().await.map_err(|e| e.to_string())?;
+    let text = json["text"].as_str().unwrap_or_default().to_string();
+    if text.is_empty() {
+        return Err("No transcript text returned by ElevenLabs".to_string());
+    }
+    Ok(text)
+}
+
 #[tauri::command]
 async fn openrouter_chat(
     prompt: String,
@@ -549,6 +764,7 @@ async fn export_all_api_keys(
         "openai_api_key": state.get_api_key(),
         "pexels_api_key": state.get_pexels_key(),
         "openrouter_api_key": state.get_openrouter_key(),
+        "elevenlabs_api_key": state.get_elevenlabs_key(),
         "givegigs_url": state.get_givegigs_url(),
         "givegigs_key": state.get_givegigs_key(),
     });
@@ -570,6 +786,7 @@ async fn import_all_api_keys(
     if let Some(k) = val["openai_api_key"].as_str() { if !k.is_empty() { state.set_api_key(k.to_string())?; count += 1; } }
     if let Some(k) = val["pexels_api_key"].as_str() { if !k.is_empty() { state.set_pexels_key(k.to_string())?; count += 1; } }
     if let Some(k) = val["openrouter_api_key"].as_str() { if !k.is_empty() { state.set_openrouter_key(k.to_string())?; count += 1; } }
+    if let Some(k) = val["elevenlabs_api_key"].as_str() { if !k.is_empty() { state.set_elevenlabs_key(k.to_string())?; count += 1; } }
     if let Some(k) = val["givegigs_url"].as_str() { if !k.is_empty() { state.set_givegigs_url(k.to_string())?; count += 1; } }
     if let Some(k) = val["givegigs_key"].as_str() { if !k.is_empty() { state.set_givegigs_key(k.to_string())?; count += 1; } }
     Ok(format!("Imported {} keys successfully", count))
@@ -1753,6 +1970,13 @@ fn main() {
             get_openrouter_key,
             openrouter_chat,
             openrouter_list_models,
+            save_elevenlabs_key,
+            get_elevenlabs_key,
+            elevenlabs_list_voices,
+            elevenlabs_list_models,
+            elevenlabs_text_to_speech,
+            elevenlabs_generate_sound_effect,
+            elevenlabs_speech_to_text,
             export_all_api_keys,
             import_all_api_keys,
         ])

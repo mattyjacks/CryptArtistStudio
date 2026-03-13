@@ -2461,3 +2461,55 @@ body { overscroll-behavior-y: contain; }
 .mobile-nav-spacer { height: 56px; }
 .text-adaptive { font-size: clamp(11px, 2.5vw, 14px); }
 .text-adaptive-lg { font-size: clamp(14px, 3vw, 18px); }
+
+/* ============================================================================
+   THEME SYSTEM
+   ============================================================================ */
+
+/* Disable all animations when theme sets animationsEnabled: false */
+body.no-animations *,
+body.no-animations *::before,
+body.no-animations *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+/* Hide scrollbars when theme sets scrollbarStyle: hidden */
+body.scrollbar-hidden ::-webkit-scrollbar {
+  display: none;
+}
+body.scrollbar-hidden {
+  scrollbar-width: none;
+}
+
+/* Theme-aware selection color */
+::selection {
+  background: var(--selection-color, rgba(0, 210, 255, 0.25));
+  color: #fff;
+}
+
+/* Theme-aware font family overrides */
+html, body, #root {
+  font-family: var(--font-sans, 'Inter', system-ui, -apple-system, sans-serif);
+  font-size: var(--font-base-size, 13px);
+}
+code, pre, .font-mono {
+  font-family: var(--font-mono, 'JetBrains Mono', 'Fira Code', monospace);
+}
+
+/* Theme-aware glass effect */
+.glass-card {
+  background: var(--glass-bg, rgba(14, 14, 26, 0.85));
+  backdrop-filter: blur(var(--glass-blur, 12px));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.06));
+}
+
+/* Theme-aware card radius */
+.theme-card {
+  border-radius: var(--card-radius, 12px);
+  padding: var(--panel-padding, 12px);
+  gap: var(--theme-gap, 8px);
+}

@@ -67,72 +67,84 @@ export default function TermsAcceptanceModal({ onAccept }: TermsAcceptanceModalP
           {activeTab === "terms" && (
             <div className="text-sm text-studio-text leading-relaxed animate-fade-in">
               <h2 className="text-base font-bold mb-3">Terms of Use</h2>
-              <p className="text-xs text-studio-muted mb-4">Last updated: March 13, 2026</p>
+              <p className="text-xs text-studio-muted mb-4">Last updated: March 13, 2026 - Version 1.69.420.3</p>
 
               <p className="mb-3">
                 These Terms of Use ("Terms") govern your use of the CryptArtist Studio desktop
                 application and related websites (mattyjacks.com, givegigs.com) (collectively,
-                the "Service"), operated from New Hampshire, United States. By installing, accessing,
-                or using the Service, you agree to be bound by these Terms.
+                the "Service"), operated by <strong>MattyJacks</strong>, a sole proprietorship in
+                New Hampshire, United States. By installing, accessing, or using the Service, you
+                agree to be bound by these Terms.
               </p>
 
               <h3 className="font-bold mt-4 mb-2">1. Acceptance of Terms</h3>
               <p className="mb-3">
                 By using CryptArtist Studio, you affirm that you are at least 13 years of age and
-                are legally capable of entering into a binding agreement.
+                are legally capable of entering into a binding agreement. If under 18, your parent
+                or guardian must agree on your behalf.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">2. Description of Service</h3>
+              <h3 className="font-bold mt-4 mb-2">2. Sole Proprietorship</h3>
               <p className="mb-3">
-                CryptArtist Studio is a creative software suite that includes media editing,
-                code editing, screen recording, and AI agent tools. The Service integrates with
-                third-party APIs and services that you configure using your own credentials.
+                CryptArtist Studio is operated by MattyJacks, a sole proprietorship based in
+                New Hampshire, USA. All references to "we," "us," or "our" refer to MattyJacks.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">3. User Responsibilities</h3>
+              <h3 className="font-bold mt-4 mb-2">3. Third-Party Services</h3>
               <p className="mb-3">
-                You are responsible for maintaining the confidentiality of your API keys and credentials,
-                and for all activity under your keys. You agree to use the Service in compliance with
-                all applicable federal, state (including New Hampshire), and local laws.
+                The Service connects to: OpenAI API, OpenRouter, ElevenLabs, Pexels API,
+                Supabase/GiveGigs, Vercel, Cloudflare, and Google Analytics. Your use of these
+                is subject to their respective terms. Any third-party API fees are your responsibility.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">4. Third-Party Services</h3>
+              <h3 className="font-bold mt-4 mb-2">4. AI-Generated Content</h3>
               <p className="mb-3">
-                The Service connects to: OpenAI API, Pexels API, Supabase/GiveGigs, Vercel,
-                Cloudflare (including Turnstile), and Google Analytics. Your use of these is subject
-                to their respective terms. Any third-party API fees are your responsibility.
+                AI-generated content may be inaccurate, incomplete, or inappropriate. You are solely
+                responsible for reviewing and verifying all AI output. The Operator is not liable
+                for any damages from AI-generated content, including code, images, audio, or games.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">5. Donations</h3>
+              <h3 className="font-bold mt-4 mb-2">5. Video Game Cloner</h3>
               <p className="mb-3">
-                CryptArtist Studio is community-funded through voluntary donations at mattyjacks.com
-                and givegigs.com. All donations are entirely voluntary, made of the donor's own free will,
-                and no pressure or obligation is placed on any user. <strong>All donations are final
-                and non-refundable. Chargebacks are not permitted.</strong>
+                The Video Game Cloner generates original games based on public domain mechanics.
+                <strong> You are solely responsible for games you produce.</strong> The Operator is not
+                liable for any IP claims and will actively report copyright infringement.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">6. Disclaimer of Warranties</h3>
+              <h3 className="font-bold mt-4 mb-2">6. Donations</h3>
+              <p className="mb-3">
+                Entirely voluntary. No features are gated. <strong>All donations are final
+                and non-refundable. Chargebacks are not permitted.</strong> Not tax-deductible.
+              </p>
+
+              <h3 className="font-bold mt-4 mb-2">7. Disclaimer of Warranties</h3>
               <p className="mb-3 uppercase text-[10px]">
                 The Service is provided "as is" and "as available" without warranties of any kind,
-                either express or implied. We do not warrant that the Service will be uninterrupted,
-                error-free, or secure.
+                either express or implied. The Operator makes no warranties regarding AI-generated
+                content, security, or fitness for any purpose.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">7. Limitation of Liability</h3>
+              <h3 className="font-bold mt-4 mb-2">8. Limitation of Liability</h3>
               <p className="mb-3 uppercase text-[10px]">
-                To the maximum extent permitted by New Hampshire law, in no event shall CryptArtist
-                Studio be liable for any indirect, incidental, special, consequential, or punitive
-                damages arising out of your use of the Service.
+                To the maximum extent permitted by New Hampshire law, MattyJacks shall not be liable
+                for any direct, indirect, incidental, special, consequential, or punitive damages.
+                Total liability shall not exceed $50 or amounts paid in the prior 12 months, whichever is less.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">8. Governing Law</h3>
+              <h3 className="font-bold mt-4 mb-2">9. Dispute Resolution</h3>
               <p className="mb-3">
-                These Terms shall be governed by the laws of the State of New Hampshire, United States.
-                Any legal action shall be brought exclusively in New Hampshire courts.
+                Disputes resolved by binding arbitration in New Hampshire (AAA rules). No class actions.
+                Jury trial waived. Informal resolution required first (30 days).
+              </p>
+
+              <h3 className="font-bold mt-4 mb-2">10. Governing Law</h3>
+              <p className="mb-3">
+                Governed by New Hampshire law. Exclusive jurisdiction in New Hampshire courts.
+                Licensed under CryptArtist Custom License v1.69.420.3.
               </p>
 
               <p className="text-xs text-studio-muted mt-6">
-                For the full Terms of Use, visit the Terms of Use page within the application.
+                For the full Terms of Use (29 sections), visit the Terms of Use page within the application.
                 Contact: Matt@MattyJacks.com | MattyJacks.com/Contact
               </p>
             </div>
@@ -141,59 +153,57 @@ export default function TermsAcceptanceModal({ onAccept }: TermsAcceptanceModalP
           {activeTab === "privacy" && (
             <div className="text-sm text-studio-text leading-relaxed animate-fade-in">
               <h2 className="text-base font-bold mb-3">Privacy Policy</h2>
-              <p className="text-xs text-studio-muted mb-4">Last updated: March 13, 2026</p>
+              <p className="text-xs text-studio-muted mb-4">Last updated: March 13, 2026 - Version 1.69.420.3</p>
 
               <p className="mb-3">
-                CryptArtist Studio ("we," "us," or "our") is operated from New Hampshire, United States.
-                This Privacy Policy explains how we collect, use, and safeguard your information.
+                CryptArtist Studio is operated by <strong>MattyJacks</strong>, a sole proprietorship
+                in New Hampshire, United States. This Privacy Policy explains how we collect, use,
+                disclose, and safeguard your information.
               </p>
 
               <h3 className="font-bold mt-4 mb-2">1. Information We Collect</h3>
-              <p className="mb-2"><strong>You provide:</strong> API keys (stored locally on your device), contact info if you reach out, donation payment info (processed by third-party payment processors).</p>
-              <p className="mb-3"><strong>Collected automatically:</strong> Google Analytics (anonymized usage data, cookies), Vercel Analytics & Observability (performance metrics, error logs, IP addresses), Cloudflare (IP, headers, Turnstile bot detection), and our own analytics suite (anonymized usage patterns).</p>
+              <p className="mb-2"><strong>You provide:</strong> API keys (stored locally, encrypted), contact info if you reach out, donation payment info (processed by third-party processors - we never see card numbers).</p>
+              <p className="mb-2"><strong>Collected automatically:</strong> Google Analytics (anonymized), Vercel Analytics (performance), Cloudflare (security, Turnstile bot detection), our own analytics (anonymized patterns).</p>
+              <p className="mb-3"><strong>We do NOT collect:</strong> biometric data, GPS location, SSNs, government IDs, or files outside the app's directories. We do not sell your data.</p>
 
               <h3 className="font-bold mt-4 mb-2">2. Third-Party Services</h3>
               <p className="mb-3">
-                When you use features relying on third-party APIs (OpenAI, Pexels, Supabase), your data
-                is transmitted to those services under their privacy policies. We also use Vercel for
-                hosting, Cloudflare for security and performance (including Cloudflare Turnstile for
-                bot detection), and Google Analytics for usage analytics.
+                Data transmitted to: OpenAI, OpenRouter, ElevenLabs, Pexels, Supabase - under their
+                privacy policies. We do not intercept, log, or store your AI conversations.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">3. How We Use Information</h3>
+              <h3 className="font-bold mt-4 mb-2">3. Data Storage</h3>
               <p className="mb-3">
-                To provide and improve the Service, process your requests, analyze usage, detect
-                security threats, respond to inquiries, and comply with legal obligations.
+                All project files, API keys, and creative content stored <strong>locally on your device
+                only</strong>. We do not operate cloud storage for user data. Analytics retained max 26 months.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">4. Data Sharing</h3>
+              <h3 className="font-bold mt-4 mb-2">4. Your Rights</h3>
               <p className="mb-3">
-                We do not sell your personal information. We share data only with service providers
-                that help operate the Service, when required by law (including NH RSA 359-C), or
-                to protect rights, property, or safety.
+                Access, correction, deletion (within 30 days), portability, opt-out of tracking,
+                restrict processing, non-discrimination. Covers NH, CCPA/CPRA, GDPR, VCDPA, CPA, CTDPA, UCPA.
+                Contact Matt@MattyJacks.com.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">5. Your Rights</h3>
+              <h3 className="font-bold mt-4 mb-2">5. Children (COPPA)</h3>
               <p className="mb-3">
-                Under New Hampshire law you may request access to, correction of, or deletion of your
-                personal information, and opt out of analytics. Contact Matt@MattyJacks.com or
-                MattyJacks.com/Contact.
+                Not directed to children under 13. Ages 13-18 require parental supervision.
+                We will delete any data collected from children under 13 immediately upon discovery.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">6. Security Breach Notification</h3>
+              <h3 className="font-bold mt-4 mb-2">6. Breach Notification</h3>
               <p className="mb-3">
-                Per NH RSA 359-C:20, we will notify affected New Hampshire residents of any security
-                breach involving personal information without unreasonable delay.
+                Per NH RSA 359-C:20, affected residents notified without unreasonable delay.
+                GDPR-covered individuals notified within 72 hours.
               </p>
 
-              <h3 className="font-bold mt-4 mb-2">7. Linked Websites</h3>
+              <h3 className="font-bold mt-4 mb-2">7. Do Not Track</h3>
               <p className="mb-3">
-                The Service is linked with mattyjacks.com and givegigs.com. We encourage you to review
-                their privacy practices.
+                We respect DNT browser signals and limit tracking when enabled.
               </p>
 
               <p className="text-xs text-studio-muted mt-6">
-                For the full Privacy Policy, visit the Privacy Policy page within the application.
+                For the full Privacy Policy (13 sections), visit the Privacy Policy page within the application.
                 Contact: Matt@MattyJacks.com | MattyJacks.com/Contact
               </p>
             </div>

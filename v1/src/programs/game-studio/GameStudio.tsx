@@ -7,6 +7,11 @@ import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../util
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { useWorkspace } from "../../utils/workspace";
+import { chatWithAI, getActionModel, setActionModel } from "../../utils/openrouter";
+import { useApiKeys } from "../../utils/apiKeys";
+import { useInteropEmit, useInterop } from "../../utils/interop";
+import { useCrossClipboard } from "../../utils/crossClipboard";
+import { notifySuccess } from "../../utils/notifications";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -280,9 +285,39 @@ export default function GameStudio() {
         setTerminalOutput((prev) => [...prev, `[error] Failed to detect Godot: ${err}`]);
       });
 
-    // Load shared API key
-    invoke<string>("get_api_key").catch(() => {});
   }, []);
+
+  // Interop: shared API keys, event bus, cross-clipboard
+  const apiKeys = useApiKeys();
+  const emit = useInteropEmit("game-studio");
+  const clip = useCrossClipboard("game-studio");
+
+  // Listen for code snippets from VibeCodeWorker
+  useInterop("code:snippet-created", (event) => {
+    const data = event.data as { code?: string; language?: string; name?: string };
+    if (data?.code && (data?.language === "gdscript" || data?.language === "gd")) {
+      setTerminalOutput((prev) => [
+        ...prev,
+        `$ Received GDScript from ${event.source}: ${data.name || "snippet"}`,
+        "$ Use 'Apply to File' to add it to your project.",
+      ]);
+      setAiMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `Received code from ${event.source}:\n\n\`\`\`gdscript\n${data.code}\n\`\`\``, timestamp: Date.now() },
+      ]);
+    }
+  }, { target: "game-studio" });
+
+  // Listen for media assets from MediaMogul
+  useInterop("media:exported", (event) => {
+    const data = event.data as { path?: string; type?: string };
+    if (data?.path) {
+      setTerminalOutput((prev) => [
+        ...prev,
+        `$ Received ${data.type || "media"} asset from ${event.source}: ${(data.path || "").split(/[\\/]/).pop()}`,
+      ]);
+    }
+  }, { target: "game-studio" });
 
   // --- File operations ---
   const loadDirectory = useCallback(async (dirPath: string): Promise<FileNode[]> => {
@@ -473,6 +508,7 @@ export default function GameStudio() {
       setOpenTabs((prev) => prev.map((t) => (t.path === tab.path ? { ...t, dirty: false } : t)));
       setTerminalOutput((prev) => [...prev, `$ Saved: ${tab.name}`]);
       toast.success(`Saved ${tab.name}`);
+      emit("code:file-saved", { path: tab.path, name: tab.name, program: "game-studio" });
     } catch (err) {
       setTerminalOutput((prev) => [...prev, `[error] Save failed: ${err}`]);
       toast.error("Save failed");
@@ -520,14 +556,7 @@ Be specific with Godot node types, signals, and the scene tree hierarchy.${conte
 
 User: ${currentInput}`;
 
-      // Try OpenRouter first, fall back to OpenAI
-      const orModel = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
-      let reply: string;
-      try {
-        reply = await invoke<string>("openrouter_chat", { prompt, model: orModel });
-      } catch {
-        reply = await invoke<string>("ai_chat", { prompt });
-      }
+      const reply = await chatWithAI(prompt, { action: "game-dev" });
       setAiMessages((prev) => [...prev, { role: "assistant", content: reply, timestamp: Date.now() }]);
 
       // Auto-detect if AI generated code and offer to save it
@@ -644,6 +673,8 @@ User: ${currentInput}`;
           wsCtx.markClean(active.id);
         }
         toast.success("Game project saved!");
+        emit("workspace:saved", { program: "game-studio", path: savePath });
+        notifySuccess("game-studio", "Game Project Saved", `Saved to ${(savePath as string).split(/[\\/]/).pop()}`);
       }
     } catch (err) {
       toast.error("Failed to save project");
@@ -1070,12 +1101,12 @@ User: ${currentInput}`;
                   <div className="flex-1" />
                   {/* Improvement 346: Model selector */}
                   <select
-                    value={localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o"}
-                    onChange={(e) => localStorage.setItem("cryptartist_openrouter_model", e.target.value)}
+                    value={getActionModel("game-dev")}
+                    onChange={(e) => setActionModel("game-dev", e.target.value)}
                     className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer"
                     title="OpenRouter model for AI generation"
                   >
-                    {["openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "meta-llama/llama-3.1-70b-instruct", "mistralai/mistral-large"].map((m) => (
+                    {["openai/gpt-5-mini", "openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet", "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "deepseek/deepseek-chat", "deepseek/deepseek-r1", "meta-llama/llama-3.1-70b-instruct", "mistralai/mistral-large"].map((m) => (
                       <option key={m} value={m}>{m.split("/").pop()}</option>
                     ))}
                   </select>

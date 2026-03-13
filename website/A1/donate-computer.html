@@ -270,7 +270,7 @@
 &lt;script src=<span class="string">"donate-computer-api.js"</span>&gt;&lt;/script&gt;
 
 <span class="comment">// Create an instance and start donating</span>
-<span class="key">const</span> dc = DonateComputerAPI.create();
+<span class="key">const</span> dc = DonatePersonalSecondsAPI.create();
 
 <span class="key">await</span> dc.init({
   password: <span class="string">"my-secure-password-123"</span>,
@@ -312,8 +312,8 @@ dc.submitTask({
           </thead>
           <tbody>
             <tr>
-              <td><code>DonateComputerAPI.create()</code></td>
-              <td>Create a new DonateComputer instance</td>
+              <td><code>DonatePersonalSecondsAPI.create()</code></td>
+              <td>Create a new DonatePersonalSeconds instance</td>
             </tr>
             <tr>
               <td><code>dc.init(options)</code></td>
@@ -395,7 +395,7 @@ dc.submitTask({
         <div class="accordion-item">
           <button class="accordion-trigger">Can I use this from my own website or app?<span class="accordion-arrow">&#x25BC;</span></button>
           <div class="accordion-content"><div class="accordion-body">
-            Yes! The Donate Computer API is fully open and free. Just include <code>donate-computer-api.js</code> in your page and call <code>DonateComputerAPI.create()</code>. See the Developer API section above for full documentation.
+            Yes! The Donate Computer API is fully open and free. Just include <code>donate-computer-api.js</code> in your page and call <code>DonatePersonalSecondsAPI.create()</code>. See the Developer API section above for full documentation.
           </div></div>
         </div>
       </div>

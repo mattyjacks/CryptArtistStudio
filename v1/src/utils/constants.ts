@@ -8,7 +8,7 @@
 // ---------------------------------------------------------------------------
 
 export const APP_NAME = "CryptArtist Studio";
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "1.69.420.4";
 export const APP_AUTHOR = "Matt";
 export const APP_WEBSITE = "https://mattyjacks.com";
 export const APP_DONATE = "https://givegigs.com";
@@ -53,13 +53,13 @@ export const PROGRAM_ICONS: Record<ProgramId, string> = {
 };
 
 export const PROGRAM_VERSIONS: Record<ProgramId, string> = {
-  "media-mogul": "0.1.0",
-  "vibecode-worker": "0.1.0",
-  "demo-recorder": "0.1.0",
-  "valley-net": "0.1.0",
-  "game-studio": "0.1.0",
-  "commander": "0.1.0",
-  "settings": "0.1.0",
+  "media-mogul": "1.69.420.4",
+  "vibecode-worker": "1.69.420.4",
+  "demo-recorder": "1.69.420.4",
+  "valley-net": "1.69.420.4",
+  "game-studio": "1.69.420.4",
+  "commander": "1.69.420.4",
+  "settings": "1.69.420.4",
 };
 
 // ---------------------------------------------------------------------------
@@ -108,11 +108,11 @@ export const API_PROVIDERS = ["openai", "anthropic", "google", "openrouter", "lo
 export type ApiProvider = typeof API_PROVIDERS[number];
 
 export const AI_MODELS: Record<ApiProvider, string[]> = {
-  openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o1", "o1-mini"],
+  openai: ["gpt-5-mini", "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "o1", "o1-mini"],
   anthropic: ["claude-3.5-sonnet", "claude-3-opus", "claude-3-haiku"],
   google: ["gemini-pro-1.5", "gemini-2.0-flash-001"],
   openrouter: [
-    "openai/gpt-4o", "openai/gpt-4o-mini", "openai/o1",
+    "openai/gpt-5-mini", "openai/gpt-4o", "openai/gpt-4o-mini", "openai/o1",
     "anthropic/claude-3.5-sonnet", "anthropic/claude-3-opus", "anthropic/claude-3-haiku",
     "google/gemini-pro-1.5", "google/gemini-2.0-flash-001",
     "meta-llama/llama-3.1-405b-instruct", "meta-llama/llama-3.1-70b-instruct",

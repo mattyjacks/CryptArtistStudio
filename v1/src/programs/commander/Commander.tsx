@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { logSecurityEvent, sanitizeFilePath } from "../../utils/security";
+import { chatWithAI, getActionModel } from "../../utils/openrouter";
 
 const MAX_CMD_HISTORY = 500; // Vuln 60: Max command history entries
 const MAX_DISPLAY_HISTORY = 200; // Vuln 60: Max display history
@@ -236,7 +237,7 @@ export default function Commander() {
       } else if (cmd === "chat") {
         if (!args) { addEntry(trimmed, "Usage: chat <prompt>", "error"); return; }
         addEntry(trimmed, "Thinking...", "info");
-        const reply = await invoke<string>("ai_chat", { prompt: args });
+        const reply = await chatWithAI(args, { action: "commander-chat" });
         addEntry("", reply);
       } else if (cmd === "or") {
         if (args === "models") {
@@ -246,9 +247,9 @@ export default function Commander() {
           return;
         }
         if (!args) { addEntry(trimmed, "Usage: or <prompt> | or models", "error"); return; }
-        const model = localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o";
+        const model = getActionModel("commander-openrouter");
         addEntry(trimmed, "Sending to " + model + "...", "info");
-        const orReply = await invoke<string>("openrouter_chat", { prompt: args, model });
+        const orReply = await chatWithAI(args, { action: "commander-openrouter", model, useOpenRouterOnly: true });
         addEntry("", orReply);
       } else if (cmd === "pexels") {
         if (!args) { addEntry(trimmed, "Usage: pexels <query>", "error"); return; }
@@ -681,7 +682,7 @@ export default function Commander() {
               <pre className="text-[10px] text-studio-secondary font-mono bg-studio-bg p-3 rounded">
 {`curl -X POST http://localhost:9420/api/openrouter/chat \\
   -H "Content-Type: application/json" \\
-  -d '{"prompt": "Hello!", "model": "openai/gpt-4o"}'`}
+  -d '{"prompt": "Hello!", "model": "openai/gpt-5-mini"}'`}
               </pre>
             </div>
 
@@ -712,7 +713,7 @@ export default function Commander() {
           <span>|</span>
           <span>#{totalCmdCount}</span>
           <span>|</span>
-          <span>OR: {localStorage.getItem("cryptartist_openrouter_model")?.split("/").pop() || "gpt-4o"}</span>
+          <span>OR: {getActionModel("commander-openrouter").split("/").pop() || "gpt-5-mini"}</span>
         </div>
       </footer>
     </div>

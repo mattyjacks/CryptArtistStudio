@@ -6,6 +6,11 @@ import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../util
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { useWorkspace } from "../../utils/workspace";
+import { chatWithAI, getActionModel, setActionModel } from "../../utils/openrouter";
+import { useApiKeys } from "../../utils/apiKeys";
+import { useInteropEmit, useInterop } from "../../utils/interop";
+import { useCrossClipboard } from "../../utils/crossClipboard";
+import { notifySuccess, notifyError } from "../../utils/notifications";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -170,12 +175,13 @@ export default function ValleyNet() {
   ]);
   // Improvement 292: Multi-model support (OpenRouter-powered)
   const [availableModels] = useState([
+    "openai/gpt-5-mini",
     "openai/gpt-4o", "openai/gpt-4o-mini", "anthropic/claude-3.5-sonnet",
     "anthropic/claude-3-haiku", "google/gemini-pro-1.5", "google/gemini-2.0-flash-001",
     "meta-llama/llama-3.1-70b-instruct", "deepseek/deepseek-chat", "deepseek/deepseek-r1",
     "mistralai/mistral-large", "qwen/qwen-2.5-72b-instruct",
   ]);
-  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o");
+  const [selectedModel, setSelectedModel] = useState(() => getActionModel("valleynet-agent"));
   const [useOpenRouter, setUseOpenRouter] = useState(true);
   // Improvement 293: Cost tracking
   const [costEstimate, setCostEstimate] = useState(0.0);
@@ -202,6 +208,21 @@ export default function ValleyNet() {
     { label: "Schedule", prompt: "Help me schedule a meeting for " },
     { label: "Code Help", prompt: "Write code to " },
   ];
+
+  // Interop: shared API keys, event bus, cross-clipboard
+  const apiKeys = useApiKeys();
+  const emit = useInteropEmit("valley-net");
+  const clip = useCrossClipboard("valley-net");
+
+  // Listen for pipeline triggers or cross-program task requests
+  useInterop("agent:task-started", (event) => {
+    if (event.source !== "valley-net") {
+      const data = event.data as { task?: string };
+      if (data?.task) {
+        setChatInput(data.task);
+      }
+    }
+  }, { target: "valley-net" });
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -263,17 +284,9 @@ Be proactive, thorough, and provide actionable results. Use markdown formatting.
 User task: ${userMsg.content}`;
 
       // Try OpenRouter first if enabled, fall back to OpenAI
-      let reply: string;
-      if (useOpenRouter) {
-        try {
-          reply = await invoke<string>("openrouter_chat", { prompt, model: selectedModel });
-        } catch {
-          // Fall back to OpenAI direct
-          reply = await invoke<string>("ai_chat", { prompt });
-        }
-      } else {
-        reply = await invoke<string>("ai_chat", { prompt });
-      }
+      const reply = useOpenRouter
+        ? await chatWithAI(prompt, { action: "valleynet-agent", model: selectedModel })
+        : await invoke<string>("ai_chat", { prompt });
       // Improvement 293: Estimate cost (rough estimate)
       const tokensEst = Math.ceil((prompt.length + reply.length) / 4);
       setCostEstimate((prev) => prev + tokensEst * 0.000003);
@@ -509,7 +522,10 @@ User task: ${userMsg.content}`;
         <span className="text-studio-muted">Model:</span>
         <select
           value={selectedModel}
-          onChange={(e) => { setSelectedModel(e.target.value); localStorage.setItem("cryptartist_openrouter_model", e.target.value); }}
+          onChange={(e) => {
+            setSelectedModel(e.target.value);
+            setActionModel("valleynet-agent", e.target.value);
+          }}
           className="bg-transparent text-[10px] text-studio-cyan outline-none cursor-pointer max-w-[160px]"
         >
           {availableModels.map((m) => (

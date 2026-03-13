@@ -2,14 +2,28 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useGlobalShortcuts } from "../utils/keyboard";
 import { logger } from "../utils/logger";
+import { toast } from "../utils/toast";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-import { toast } from "../utils/toast";
+import { getDefaultModel } from "../utils/openrouter";
 import { parseCryptArt } from "../utils/cryptart";
 import { useWorkspace, programLabel, programRoute } from "../utils/workspace";
 import { sanitizeSearchQuery } from "../utils/security"; // Vuln 47
 
 const programs = [
+  {
+    id: "suite-launcher",
+    name: "Suite Launcher",
+    code: "SLr",
+    emoji: "\u{1F5FA}\uFE0F",
+    description: "The home screen - launch any program, open .CryptArt files, and view system status",
+    gradient: "from-teal-600/20 to-emerald-600/20",
+    borderHover: "hover:border-teal-500/40",
+    accentColor: "text-teal-400",
+    version: "v1.0.0",
+    shortcut: "Home",
+    tags: ["home", "launcher", "suite", "start", "programs"],
+  },
   {
     id: "media-mogul",
     name: "Media Mogul",
@@ -89,17 +103,30 @@ const programs = [
     tags: ["api", "cli", "scripting", "automation", "command"],
   },
   {
-    id: "donate-computer",
-    name: "Donate Computer",
-    code: "DCo",
-    emoji: "\u{1F4BB}",
-    description: "Donate your GPU, CPU, and RAM to the community cloud - free P2P compute for everyone",
-    gradient: "from-green-600/20 to-cyan-600/20",
-    borderHover: "hover:border-green-500/40",
-    accentColor: "text-green-400",
+    id: "donate-personal-seconds",
+    name: "DonatePersonalSeconds",
+    code: "DPS",
+    emoji: "\u{1F5E1}\uFE0F",
+    description: "Encrypted P2P compute sharing + Human Task Marketplace. Donate GPU/CPU/RAM or post tasks for humans.",
+    gradient: "from-red-600/20 via-orange-600/20 to-yellow-600/20",
+    borderHover: "hover:border-orange-500/40",
+    accentColor: "text-orange-400",
     version: "v1.0.0",
     shortcut: "7",
-    tags: ["donate", "compute", "gpu", "cpu", "p2p", "cloud"],
+    tags: ["donate", "compute", "gpu", "cpu", "p2p", "encrypted", "human-tasks"],
+  },
+  {
+    id: "clone-tool",
+    name: "Clone Tool",
+    code: "CLN",
+    emoji: "\u{1F4E6}",
+    description: "Create .exe, .dmg, .deb installers from your current config. Custom app icons and branding.",
+    gradient: "from-violet-600/20 to-fuchsia-600/20",
+    borderHover: "hover:border-violet-500/40",
+    accentColor: "text-violet-400",
+    version: "v0.1.0",
+    shortcut: "9",
+    tags: ["build", "installer", "exe", "dmg", "deploy", "clone"],
   },
   {
     id: "settings",
@@ -111,7 +138,7 @@ const programs = [
     borderHover: "hover:border-slate-500/40",
     accentColor: "text-slate-400",
     version: "v0.1.0",
-    shortcut: "8",
+    shortcut: "0",
     tags: ["settings", "config", "keys", "openrouter", "api"],
   },
 ];
@@ -236,7 +263,7 @@ export default function SuiteLauncher() {
     if (stored) setLastOpened(stored);
     // Improvement 321: Check AI key status
     invoke<string>("get_api_key").then((k) => setAiStatus((prev) => ({ ...prev, openai: k.length > 0 }))).catch(() => {});
-    invoke<string>("get_openrouter_key").then((k) => setAiStatus((prev) => ({ ...prev, openrouter: k.length > 0, model: localStorage.getItem("cryptartist_openrouter_model") || "openai/gpt-4o" }))).catch(() => {});
+    invoke<string>("get_openrouter_key").then((k) => setAiStatus((prev) => ({ ...prev, openrouter: k.length > 0, model: getDefaultModel() }))).catch(() => {});
   }, []);
 
   // Improvement 126: Toggle favorite
@@ -258,7 +285,7 @@ export default function SuiteLauncher() {
       localStorage.setItem("cryptartist_launch_counts", JSON.stringify(next));
       return next;
     });
-    setTimeout(() => navigate(`/${prog.id}`), 300);
+    setTimeout(() => navigate(prog.id === "suite-launcher" ? "/" : `/${prog.id}`), 300);
   }, [navigate]);
 
   // Multi-file .CryptArt open handler
