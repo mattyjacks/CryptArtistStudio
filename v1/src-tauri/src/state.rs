@@ -221,6 +221,8 @@ pub struct AppState {
     pub project: Mutex<ProjectData>,
     pub api_key: Mutex<String>,
     pub pexels_key: Mutex<String>,
+    pub givegigs_url: Mutex<String>,
+    pub givegigs_key: Mutex<String>,
 }
 
 impl AppState {
@@ -229,6 +231,8 @@ impl AppState {
             project: Mutex::new(ProjectData::default()),
             api_key: Mutex::new(String::new()),
             pexels_key: Mutex::new(String::new()),
+            givegigs_url: Mutex::new(String::new()),
+            givegigs_key: Mutex::new(String::new()),
         }
     }
 
@@ -270,6 +274,32 @@ impl AppState {
 
     pub fn get_pexels_key(&self) -> String {
         self.pexels_key
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    pub fn set_givegigs_url(&self, url: String) -> Result<(), String> {
+        let mut val = self.givegigs_url.lock().map_err(|e| e.to_string())?;
+        *val = url;
+        Ok(())
+    }
+
+    pub fn get_givegigs_url(&self) -> String {
+        self.givegigs_url
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .clone()
+    }
+
+    pub fn set_givegigs_key(&self, key: String) -> Result<(), String> {
+        let mut val = self.givegigs_key.lock().map_err(|e| e.to_string())?;
+        *val = key;
+        Ok(())
+    }
+
+    pub fn get_givegigs_key(&self) -> String {
+        self.givegigs_key
             .lock()
             .unwrap_or_else(|e| e.into_inner())
             .clone()

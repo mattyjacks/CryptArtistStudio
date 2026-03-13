@@ -833,3 +833,121 @@ textarea.input {
   padding: 0 12px;
   letter-spacing: 0.02em;
 }
+
+/* ============================================================================
+   MOBILE RESPONSIVE
+   ============================================================================ */
+
+/* Safe area for iOS notch / Android navigation */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Touch-friendly tap targets on mobile */
+@media (max-width: 767px) {
+  .btn, .btn-accent, .btn-cyan, .btn-ghost, .btn-icon {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .input, select.input, textarea.input {
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  .status-bar {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh;
+    margin: 5vh auto;
+  }
+
+  .panel-header {
+    padding: 8px 10px;
+  }
+
+  .panel-body {
+    padding: 8px 10px;
+  }
+
+  /* Stack grid cards vertically */
+  .grid.lg\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid.sm\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid.lg\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in, .animate-slide-up {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --border-default: #666;
+    --border-bright: #999;
+    --text-primary: #fff;
+    --text-secondary: #ddd;
+  }
+}
+
+/* Print styles */
+@media print {
+  .status-bar, .modal-overlay, nav, footer, .btn {
+    display: none !important;
+  }
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* Focus visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-bright);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(0, 210, 255, 0.3);
+  color: var(--text-primary);
+}

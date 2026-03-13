@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 interface SettingsModalProps {
@@ -20,7 +20,19 @@ export default function SettingsModal({
   const [pexelsInput, setPexelsInput] = useState(pexelsApiKey);
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [tab, setTab] = useState<"api" | "project" | "performance">("api");
+  const [tab, setTab] = useState<"api" | "givegigs" | "project" | "performance">("api");
+  const [givegigUrl, setGivegigUrl] = useState("");
+  const [givegigKey, setGivegigKey] = useState("");
+  const [giveGigsSaved, setGiveGigsSaved] = useState(false);
+
+  useEffect(() => {
+    invoke<[string, string]>("get_givegigs_config")
+      .then(([url, key]) => {
+        if (url) setGivegigUrl(url);
+        if (key) setGivegigKey(key);
+      })
+      .catch((err) => console.error("Failed to load GiveGigs config:", err));
+  }, []);
 
   const handleSave = async () => {
     try {
@@ -64,6 +76,7 @@ export default function SettingsModal({
           {(
             [
               ["api", "🔑 API Keys"],
+              ["givegigs", "🌴 GiveGigs"],
               ["project", "📁 Project"],
               ["performance", "⚡ Performance"],
             ] as const
@@ -192,6 +205,93 @@ export default function SettingsModal({
                 <p className="text-[9px] text-studio-muted mt-1">
                   Your API key never leaves your machine. It's stored in memory
                   only and is not sent to any server except OpenAI's API.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {tab === "givegigs" && (
+            <div className="animate-fade-in">
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">{"\u{1F310}"}</span>
+                  <h3 className="text-[13px] font-bold text-studio-text">GiveGigs Media Integration</h3>
+                </div>
+                <p className="text-[10px] text-studio-muted mb-3 leading-relaxed">
+                  Connect to your GiveGigs.com Supabase media bucket to upload and manage media assets
+                  directly from CryptArtist Studio.
+                </p>
+
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-studio-text block mb-1">Supabase Project URL</label>
+                    <input
+                      className="input font-mono text-[11px] w-full"
+                      type="text"
+                      placeholder="https://your-project.supabase.co"
+                      value={givegigUrl}
+                      onChange={(e) => setGivegigUrl(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-semibold text-studio-text block mb-1">Supabase Anon Key</label>
+                    <input
+                      className="input font-mono text-[11px] w-full"
+                      type={showKey ? "text" : "password"}
+                      placeholder="eyJhbGciOi..."
+                      value={givegigKey}
+                      onChange={(e) => setGivegigKey(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await invoke("save_givegigs_config", { url: givegigUrl.trim(), key: givegigKey.trim() });
+                        setGiveGigsSaved(true);
+                        setTimeout(() => setGiveGigsSaved(false), 2000);
+                      } catch (err) {
+                        console.error("Failed to save GiveGigs config", err);
+                      }
+                    }}
+                    className={`btn ${giveGigsSaved ? "btn-cyan" : "btn-accent"} self-start`}
+                  >
+                    {giveGigsSaved ? "\u2713 Saved!" : "Save GiveGigs Config"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-studio-surface border border-studio-border mb-3">
+                <div className="text-[11px] font-semibold text-studio-text mb-1">{"\u{1F4B0}"} Donate & Support</div>
+                <p className="text-[10px] text-studio-muted mb-2">
+                  CryptArtist Studio is built with love. Support the project!
+                </p>
+                <div className="flex gap-2">
+                  <a
+                    href="https://mattyjacks.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn text-[10px] flex-1 justify-center"
+                  >
+                    mattyjacks.com
+                  </a>
+                  <a
+                    href="https://givegigs.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn text-[10px] flex-1 justify-center"
+                  >
+                    givegigs.com
+                  </a>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg bg-studio-cyan/5 border border-studio-cyan/15">
+                <span className="text-[10px] text-studio-cyan font-semibold">
+                  {"\u{1F4A1}"} About GiveGigs
+                </span>
+                <p className="text-[9px] text-studio-muted mt-1">
+                  GiveGigs.com uses Supabase for media storage. Once connected, you can browse,
+                  upload, and import media assets from your GiveGigs bucket directly into Media Mogul.
                 </p>
               </div>
             </div>

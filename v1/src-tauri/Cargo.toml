@@ -22,3 +22,13 @@ zip = "2"
 futures-util = "0.3"
 tauri-plugin-dialog = "2"
 clap = { version = "4.6.0", features = ["derive"] }
+tiny_http = "0.12"
+base64 = "0.22"
+chrono = "0.4"
+uuid = { version = "1", features = ["v4"] }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+# Desktop-only dependencies (none currently)
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+# Mobile-only dependencies (none currently)
