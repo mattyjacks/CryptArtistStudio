@@ -478,19 +478,28 @@ export default function SuiteLauncher() {
         </div>
 
         {/* Open .CryptArt Files button */}
-        <div className="w-full max-w-6xl mb-3 px-2 sm:px-0 flex items-center gap-3 animate-fade-in">
+        <div className="w-full max-w-6xl mb-3 px-2 sm:px-0 flex items-center justify-between animate-fade-in">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleOpenCryptArtFiles}
+              className="btn text-[11px] px-4 py-1.5 border-studio-cyan/30 text-studio-cyan hover:bg-studio-cyan/10 transition-all"
+            >
+              {"\u{1F4C2}"} Open .CryptArt Files...
+            </button>
+            {ws.workspaces.length > 0 && (
+              <span className="text-[10px] text-studio-muted">
+                {ws.workspaces.length} workspace{ws.workspaces.length !== 1 ? "s" : ""} open
+                {ws.groups.length > 0 && ` - ${ws.groups.length} group${ws.groups.length !== 1 ? "s" : ""}`}
+              </span>
+            )}
+          </div>
           <button
-            onClick={handleOpenCryptArtFiles}
-            className="btn text-[11px] px-4 py-1.5 border-studio-cyan/30 text-studio-cyan hover:bg-studio-cyan/10 transition-all"
+            onClick={() => navigate("/dps-leaderboard")}
+            className="text-[11px] px-3 py-1.5 rounded-lg border border-orange-500/30 text-orange-400 hover:bg-orange-500/10 transition-all flex items-center gap-1.5"
+            title="View the Donate Personal Seconds Leaderboard"
           >
-            {"\u{1F4C2}"} Open .CryptArt Files...
+            {"\u{1F3C6}"} DPS Leaderboard
           </button>
-          {ws.workspaces.length > 0 && (
-            <span className="text-[10px] text-studio-muted">
-              {ws.workspaces.length} workspace{ws.workspaces.length !== 1 ? "s" : ""} open
-              {ws.groups.length > 0 && ` - ${ws.groups.length} group${ws.groups.length !== 1 ? "s" : ""}`}
-            </span>
-          )}
         </div>
 
         {/* Active Workspaces Overview */}

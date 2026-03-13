@@ -150,7 +150,7 @@ async function encryptData(data: string, key: CryptoKey): Promise<{ ct: ArrayBuf
 }
 
 async function decryptData(ct: ArrayBuffer, iv: Uint8Array, key: CryptoKey): Promise<string> {
-  const decrypted = await crypto.subtle.decrypt({ name: ENCRYPTION_ALGO, iv }, key, ct);
+  const decrypted = await crypto.subtle.decrypt({ name: ENCRYPTION_ALGO, iv: new Uint8Array(iv) }, key, ct);
   return new TextDecoder().decode(decrypted);
 }
 

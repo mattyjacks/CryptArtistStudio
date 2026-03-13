@@ -1,7 +1,7 @@
 {
   "name": "cryptartist-studio",
   "private": true,
-  "version": "1.69.420.4",
+  "version": "1.69.420",
   "type": "module",
   "scripts": {
     "dev": "vite",

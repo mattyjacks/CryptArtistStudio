@@ -1417,7 +1417,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
         // Vuln 23: Validate Content-Type on POST requests
         if method == "POST" {
             let content_type = request.headers().iter()
-                .find(|h| h.field.as_str().eq_ignore_ascii_case("content-type"))
+                .find(|h| h.field.as_str().as_str().eq_ignore_ascii_case("content-type"))
                 .map(|h| h.value.as_str().to_string())
                 .unwrap_or_default();
             if !content_type.is_empty() && !content_type.contains("application/json") {
@@ -1466,7 +1466,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                 // Security: validate path
                 if let Err(e) = sanitize_path(&path) {
                     (403, serde_json::json!({"error": e}).to_string())
-                } else
+                } else {
                 match std::fs::read_dir(&path) {
                     Ok(entries) => {
                         let items: Vec<serde_json::Value> = entries
@@ -1484,7 +1484,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                         (200, serde_json::json!(items).to_string())
                     }
                     Err(e) => (400, serde_json::json!({"error": e.to_string()}).to_string()),
-                }
+                } }
             }
             ("GET", "/read") => {
                 let params: std::collections::HashMap<String, String> = url
@@ -1521,7 +1521,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                 let bytes_read = request.as_reader().take(MAX_REQUEST_BODY_SIZE as u64).read_to_string(&mut body_str).unwrap_or(0);
                 if bytes_read >= MAX_REQUEST_BODY_SIZE {
                     (413, serde_json::json!({"error": "Request body too large"}).to_string())
-                } else
+                } else {
                 match serde_json::from_str::<serde_json::Value>(&body_str) {
                     Ok(val) => {
                         let path = val["path"].as_str().unwrap_or("");
@@ -1540,7 +1540,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
                         }
                     }
                     Err(e) => (400, serde_json::json!({"error": format!("Invalid JSON: {}", e)}).to_string()),
-                }
+                } }
             }
             ("POST", "/chat") => {
                 let mut body_str = String::new();
@@ -1575,7 +1575,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
             }
         };
 
-        let response = tiny_http::Response::from_string(&body)
+        let response = tiny_http::Response::from_string::<String>(body.clone())
             .with_status_code(status)
             .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap())
             .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"http://localhost"[..]).unwrap())

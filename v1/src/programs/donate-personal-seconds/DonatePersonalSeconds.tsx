@@ -150,7 +150,7 @@ async function encryptData(data: string, key: CryptoKey): Promise<{ ct: ArrayBuf
 }
 
 async function decryptData(ct: ArrayBuffer, iv: Uint8Array, key: CryptoKey): Promise<string> {
-  const decrypted = await crypto.subtle.decrypt({ name: ENCRYPTION_ALGO, iv }, key, ct);
+  const decrypted = await crypto.subtle.decrypt({ name: ENCRYPTION_ALGO, iv: new Uint8Array(iv) }, key, ct);
   return new TextDecoder().decode(decrypted);
 }
 
@@ -688,11 +688,19 @@ export default function DonatePersonalSeconds() {
                     <button onClick={handleBorrow} className="px-6 py-3 rounded-xl font-bold text-sm text-studio-text bg-studio-panel border border-studio-border hover:border-cyan-500/30 hover:-translate-y-0.5 transition-all shadow-lg shadow-cyan-500/10">
                       {"\u26A1"} Borrow Compute
                     </button>
+                    <button onClick={() => navigate("/dps-leaderboard")} className="px-6 py-3 rounded-xl font-bold text-sm text-amber-400 bg-amber-400/10 border border-amber-400/30 hover:bg-amber-400/20 hover:-translate-y-0.5 transition-all shadow-lg shadow-amber-500/10">
+                      {"\u{1F3C6}"} View Leaderboard
+                    </button>
                   </>
                 ) : (
-                  <button onClick={handleStop} className="px-6 py-3 rounded-xl font-bold text-sm text-red-400 bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-all">
-                    {"\u23F9"} Stop Session
-                  </button>
+                  <>
+                    <button onClick={handleStop} className="px-6 py-3 rounded-xl font-bold text-sm text-red-400 bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-all">
+                      {"\u23F9"} Stop Session
+                    </button>
+                    <button onClick={() => navigate("/dps-leaderboard")} className="px-6 py-3 rounded-xl font-bold text-sm text-amber-400 bg-amber-400/10 border border-amber-400/30 hover:bg-amber-400/20 transition-all">
+                      {"\u{1F3C6}"} Leaderboard
+                    </button>
+                  </>
                 )}
               </div>
 

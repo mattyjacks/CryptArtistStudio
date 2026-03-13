@@ -10,6 +10,17 @@
 
 # CryptArtist Studio - AI Conversation Prompts (March 2026)
 
+## P2P Networking & Donate Personal Seconds
+**Prompt 16:**
+> make there be a leaderboard for personal seconds donated for @[v1/src/programs/donate-personal-seconds]on the website, with links to it on multiple places. Note that this initial tracking system is flawed, so don't be surprised if people game the system.
+
+## Icon Generation & Release Build
+**Prompt 14:**
+> Give me 5 generated images to pick from for the logo of "CryptArtist Studio 💀🎨" and upload them to the proper folder that they would then be generated from for the other pictures involved. Pick the best one for the logo of CryptArtist Studio. The logo is a combination of a skull emoji and a painter's art pallette emoji.
+
+**Prompt 15:**
+> I like your option. Now generate the app for windows, with the proper logo, make an .exe for me to release on Github. Also update @[prompts/all-prompts.md]
+
 ## Initial Project Setup
 **Prompt 0:**
 > In a new folder /v1/ make the following program: CryptArtist Studio.

@@ -9,6 +9,7 @@ import GameStudio from "./programs/game-studio/GameStudio";
 import Commander from "./programs/commander/Commander";
 import Settings from "./programs/settings/Settings";
 import DonatePersonalSeconds from "./programs/donate-personal-seconds/DonatePersonalSeconds";
+import DPSLeaderboard from "./programs/donate-personal-seconds/DPSLeaderboard";
 import CloneTool from "./programs/clone-tool/CloneTool";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
@@ -133,6 +134,7 @@ const routeTitles: Record<string, string> = {
   "/commander": "CryptArt Commander - CryptArtist Studio",
   "/settings": "Settings - CryptArtist Studio",
   "/donate-personal-seconds": "DonatePersonalSeconds - CryptArtist Studio",
+  "/dps-leaderboard": "DPS Leaderboard - CryptArtist Studio",
   "/clone-tool": "Clone Tool - CryptArtist Studio",
   "/privacy": "Privacy Policy - CryptArtist Studio",
   "/terms": "Terms of Use - CryptArtist Studio",
@@ -199,6 +201,7 @@ export default function App() {
             <Route path="/commander" element={<Commander />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/donate-personal-seconds" element={<DonatePersonalSeconds />} />
+            <Route path="/dps-leaderboard" element={<DPSLeaderboard />} />
             <Route path="/clone-tool" element={<CloneTool />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<TermsOfUse />} />

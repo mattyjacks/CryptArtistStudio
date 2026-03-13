@@ -1,0 +1,34 @@
+﻿cargo :    Compiling cryptartist-studio v1.69.420 
+(C:\GitHub5\CryptArtistStudio\v1\src-tauri)
+At line:1 char:1
++ cargo build 2> build_errors.txt
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (   Compiling cr...o\v1 
+   \src-tauri):String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+error[E0308]: mismatched types
+    --> src\main.rs:1420:65
+     |
+1420 |                 .find(|h| 
+h.field.as_str().eq_ignore_ascii_case("content-type"))
+     |                                            
+-------------------- ^^^^^^^^^^^^^^ expected `&AsciiStr`, found 
+`&str`
+     |                                            |
+     |                                            arguments to this 
+method are incorrect
+     |
+     = note: expected reference `&ascii::ascii_str::AsciiStr`
+                found reference `&'static str`
+note: method defined here
+    --> C:\Users\ventu\.cargo\registry\src\index.crates.io-1949cf8c6
+b5b557f\ascii-1.1.0\src\ascii_str.rs:267:12
+     |
+ 267 |     pub fn eq_ignore_ascii_case(&self, other: &Self) -> bool 
+{
+     |            ^^^^^^^^^^^^^^^^^^^^
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `cryptartist-studio` (bin 
+"cryptartist-studio") due to 1 previous error
