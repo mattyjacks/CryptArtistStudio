@@ -6,6 +6,7 @@
 
 mod ai_integration;
 mod ffmpeg_installer;
+mod logger;
 mod state;
 
 use state::AppState;
@@ -142,13 +143,22 @@ enum CryptArtCommands {
 
 #[tauri::command]
 async fn check_ffmpeg_installed(state: tauri::State<'_, AppState>) -> Result<bool, String> {
+    log_cmd!("check_ffmpeg_installed", "Checking FFmpeg installation");
     let ffmpeg_path = state.get_ffmpeg_path();
-    Ok(ffmpeg_path.exists())
+    let exists = ffmpeg_path.exists();
+    log_cmd!("check_ffmpeg_installed", "FFmpeg installed: {}", exists);
+    Ok(exists)
 }
 
 #[tauri::command]
 async fn install_ffmpeg(app: tauri::AppHandle) -> Result<String, String> {
-    ffmpeg_installer::download_ffmpeg(&app).await
+    log_cmd!("install_ffmpeg", "Starting FFmpeg installation");
+    let result = ffmpeg_installer::download_ffmpeg(&app).await;
+    match &result {
+        Ok(msg) => log_cmd!("install_ffmpeg", "FFmpeg installed: {}", msg),
+        Err(e) => log_error!("install_ffmpeg", "FFmpeg install failed: {}", e),
+    }
+    result
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +169,7 @@ async fn install_ffmpeg(app: tauri::AppHandle) -> Result<String, String> {
 async fn get_project_state(
     state: tauri::State<'_, AppState>,
 ) -> Result<state::ProjectData, String> {
+    log_cmd!("get_project_state", "Fetching project state");
     Ok(state.get_project_data())
 }
 
@@ -168,11 +179,15 @@ async fn get_project_state(
 
 #[tauri::command]
 async fn save_api_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
-    state.set_api_key(key).map_err(|e| e.to_string())
+    log_cmd!("save_api_key", "Saving OpenAI API key (length: {})", key.len());
+    let result = state.set_api_key(key).map_err(|e| e.to_string());
+    if result.is_ok() { log_cmd!("save_api_key", "API key saved"); }
+    result
 }
 
 #[tauri::command]
 async fn get_api_key(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    log_cmd!("get_api_key", "Retrieving API key");
     Ok(state.get_api_key())
 }
 
@@ -182,13 +197,20 @@ async fn get_api_key(state: tauri::State<'_, AppState>) -> Result<String, String
 
 #[tauri::command]
 async fn ai_chat(prompt: String, state: tauri::State<'_, AppState>) -> Result<String, String> {
+    log_cmd!("ai_chat", "AI chat request (prompt: {} chars)", prompt.len());
     let api_key = state.get_api_key();
     if api_key.is_empty() {
+        log_warn!("ai_chat", "No API key configured");
         return Err(
             "No API key configured. Please set your OpenAI API key in Settings.".to_string(),
         );
     }
-    ai_integration::chat_completion(&api_key, &prompt).await
+    let result = ai_integration::chat_completion(&api_key, &prompt).await;
+    match &result {
+        Ok(reply) => log_cmd!("ai_chat", "AI replied ({} chars)", reply.len()),
+        Err(e) => log_error!("ai_chat", "AI chat error: {}", e),
+    }
+    result
 }
 
 #[tauri::command]
@@ -196,13 +218,20 @@ async fn ai_generate_image(
     prompt: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    log_cmd!("ai_generate_image", "Image generation request: {}", &prompt[..prompt.len().min(100)]);
     let api_key = state.get_api_key();
     if api_key.is_empty() {
+        log_warn!("ai_generate_image", "No API key configured");
         return Err(
             "No API key configured. Please set your OpenAI API key in Settings.".to_string(),
         );
     }
-    ai_integration::generate_image(&api_key, &prompt).await
+    let result = ai_integration::generate_image(&api_key, &prompt).await;
+    match &result {
+        Ok(url) => log_cmd!("ai_generate_image", "Image generated: {}", &url[..url.len().min(80)]),
+        Err(e) => log_error!("ai_generate_image", "Image generation failed: {}", e),
+    }
+    result
 }
 
 #[tauri::command]
@@ -210,8 +239,10 @@ async fn ai_analyze_scene(
     description: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    log_cmd!("ai_analyze_scene", "Scene analysis request ({} chars)", description.len());
     let api_key = state.get_api_key();
     if api_key.is_empty() {
+        log_warn!("ai_analyze_scene", "No API key configured");
         return Err("No API key configured.".to_string());
     }
     let prompt = format!(
@@ -231,8 +262,10 @@ async fn ai_generate_subtitles(
     transcript: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    log_cmd!("ai_generate_subtitles", "Subtitle generation request ({} chars)", transcript.len());
     let api_key = state.get_api_key();
     if api_key.is_empty() {
+        log_warn!("ai_generate_subtitles", "No API key configured");
         return Err("No API key configured.".to_string());
     }
     let prompt = format!(
@@ -250,8 +283,10 @@ async fn ai_suggest_effects(
     style: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    log_cmd!("ai_suggest_effects", "Effects suggestion for style: {}", style);
     let api_key = state.get_api_key();
     if api_key.is_empty() {
+        log_warn!("ai_suggest_effects", "No API key configured");
         return Err("No API key configured.".to_string());
     }
     let prompt = format!(
@@ -271,8 +306,10 @@ async fn ai_generate_tts(
     text: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    log_cmd!("ai_generate_tts", "TTS request ({} chars)", text.len());
     let api_key = state.get_api_key();
     if api_key.is_empty() {
+        log_warn!("ai_generate_tts", "No API key configured");
         return Err("No API key configured.".to_string());
     }
     // Return base64 encoded mp3 or a path to a saved file. We'll save it to the project dir.
@@ -283,11 +320,13 @@ async fn ai_generate_tts(
 
 #[tauri::command]
 async fn save_pexels_key(key: String, state: tauri::State<'_, AppState>) -> Result<(), String> {
+    log_cmd!("save_pexels_key", "Saving Pexels API key (length: {})", key.len());
     state.set_pexels_key(key).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 async fn get_pexels_key(state: tauri::State<'_, AppState>) -> Result<String, String> {
+    log_cmd!("get_pexels_key", "Retrieving Pexels API key");
     Ok(state.get_pexels_key())
 }
 
@@ -305,7 +344,11 @@ pub struct DirEntry {
 
 #[tauri::command]
 async fn read_directory(path: String) -> Result<Vec<DirEntry>, String> {
-    let entries = std::fs::read_dir(&path).map_err(|e| format!("Failed to read directory: {}", e))?;
+    log_cmd!("read_directory", "Reading directory: {}", path);
+    let entries = std::fs::read_dir(&path).map_err(|e| {
+        log_error!("read_directory", "Failed to read directory {}: {}", path, e);
+        format!("Failed to read directory: {}", e)
+    })?;
     let mut result = Vec::new();
     for entry in entries {
         if let Ok(entry) = entry {
@@ -337,16 +380,30 @@ async fn read_directory(path: String) -> Result<Vec<DirEntry>, String> {
 
 #[tauri::command]
 async fn read_text_file(path: String) -> Result<String, String> {
-    std::fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {}", e))
+    log_cmd!("read_text_file", "Reading file: {}", path);
+    let result = std::fs::read_to_string(&path).map_err(|e| {
+        log_error!("read_text_file", "Failed to read {}: {}", path, e);
+        format!("Failed to read file: {}", e)
+    });
+    if let Ok(ref content) = result {
+        log_cmd!("read_text_file", "Read {} bytes from {}", content.len(), path);
+    }
+    result
 }
 
 #[tauri::command]
 async fn write_text_file(path: String, contents: String) -> Result<(), String> {
+    log_cmd!("write_text_file", "Writing {} bytes to: {}", contents.len(), path);
     // Create parent directories if needed
     if let Some(parent) = std::path::Path::new(&path).parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create directories: {}", e))?;
     }
-    std::fs::write(&path, contents).map_err(|e| format!("Failed to write file: {}", e))
+    let result = std::fs::write(&path, contents).map_err(|e| {
+        log_error!("write_text_file", "Failed to write {}: {}", path, e);
+        format!("Failed to write file: {}", e)
+    });
+    if result.is_ok() { log_cmd!("write_text_file", "Write successful: {}", path); }
+    result
 }
 
 // ---------------------------------------------------------------------------
@@ -359,6 +416,7 @@ async fn save_givegigs_config(
     key: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<(), String> {
+    log_cmd!("save_givegigs_config", "Saving GiveGigs config (url: {})", url);
     state.set_givegigs_url(url).map_err(|e| e.to_string())?;
     state.set_givegigs_key(key).map_err(|e| e.to_string())?;
     Ok(())
@@ -368,6 +426,7 @@ async fn save_givegigs_config(
 async fn get_givegigs_config(
     state: tauri::State<'_, AppState>,
 ) -> Result<(String, String), String> {
+    log_cmd!("get_givegigs_config", "Retrieving GiveGigs config");
     Ok((state.get_givegigs_url(), state.get_givegigs_key()))
 }
 
@@ -381,8 +440,10 @@ async fn search_pexels(
     search_type: String, // "image" or "video"
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
+    log_cmd!("search_pexels", "Pexels search: type={} query={}", search_type, query);
     let api_key = state.get_pexels_key();
     if api_key.is_empty() {
+        log_warn!("search_pexels", "No Pexels API key configured");
         return Err("No Pexels API key configured.".to_string());
     }
 
@@ -414,6 +475,7 @@ async fn search_pexels(
 
 #[tauri::command]
 async fn godot_detect() -> Result<serde_json::Value, String> {
+    log_cmd!("godot_detect", "Detecting Godot installation");
     // Try to find Godot executable on PATH or common locations
     let candidates = if cfg!(target_os = "windows") {
         vec![
@@ -468,6 +530,7 @@ async fn godot_detect() -> Result<serde_json::Value, String> {
 
 #[tauri::command]
 async fn godot_create_project(path: String, name: String, template: String) -> Result<String, String> {
+    log_cmd!("godot_create_project", "Creating Godot project: name={} template={} path={}", name, template, path);
     let project_dir = std::path::Path::new(&path).join(&name);
     std::fs::create_dir_all(&project_dir).map_err(|e| format!("Failed to create project directory: {}", e))?;
 
@@ -626,6 +689,7 @@ func _process(delta: float) -> void:
 
 #[tauri::command]
 async fn godot_run_project(godot_path: String, project_path: String) -> Result<String, String> {
+    log_cmd!("godot_run_project", "Running Godot: {} at {}", godot_path, project_path);
     let child = std::process::Command::new(&godot_path)
         .arg("--path")
         .arg(&project_path)
@@ -637,6 +701,7 @@ async fn godot_run_project(godot_path: String, project_path: String) -> Result<S
 
 #[tauri::command]
 async fn godot_export(godot_path: String, project_path: String, preset: String, output: String) -> Result<String, String> {
+    log_cmd!("godot_export", "Exporting Godot project: preset={} output={}", preset, output);
     let result = std::process::Command::new(&godot_path)
         .arg("--headless")
         .arg("--path")
@@ -657,6 +722,7 @@ async fn godot_export(godot_path: String, project_path: String, preset: String, 
 
 #[tauri::command]
 async fn godot_list_scenes(project_path: String) -> Result<Vec<String>, String> {
+    log_cmd!("godot_list_scenes", "Listing scenes in: {}", project_path);
     let mut scenes = Vec::new();
     fn walk_scenes(dir: &std::path::Path, scenes: &mut Vec<String>) {
         if let Ok(entries) = std::fs::read_dir(dir) {
@@ -679,6 +745,7 @@ async fn godot_list_scenes(project_path: String) -> Result<Vec<String>, String> 
 
 #[tauri::command]
 async fn godot_list_scripts(project_path: String) -> Result<Vec<String>, String> {
+    log_cmd!("godot_list_scripts", "Listing scripts in: {}", project_path);
     let mut scripts = Vec::new();
     fn walk_scripts(dir: &std::path::Path, scripts: &mut Vec<String>) {
         if let Ok(entries) = std::fs::read_dir(dir) {
@@ -705,6 +772,7 @@ async fn godot_list_scripts(project_path: String) -> Result<Vec<String>, String>
 
 #[tauri::command]
 async fn get_platform_info() -> Result<serde_json::Value, String> {
+    log_cmd!("get_platform_info", "Fetching platform info");
     Ok(serde_json::json!({
         "os": std::env::consts::OS,
         "arch": std::env::consts::ARCH,
@@ -720,11 +788,43 @@ async fn get_platform_info() -> Result<serde_json::Value, String> {
 
 #[tauri::command]
 async fn health_check() -> Result<serde_json::Value, String> {
+    log_cmd!("health_check", "Health check OK");
     Ok(serde_json::json!({
         "status": "ok",
         "version": env!("CARGO_PKG_VERSION"),
         "timestamp": chrono::Utc::now().to_rfc3339(),
     }))
+}
+
+// ---------------------------------------------------------------------------
+// Logging Commands (exposed to frontend)
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn log_from_frontend(level: String, source: String, message: String) -> Result<(), String> {
+    match level.as_str() {
+        "debug" => logger::logger().debug(&source, &message),
+        "info" => logger::logger().info(&source, &message),
+        "warn" => logger::logger().warn(&source, &message),
+        "error" => logger::logger().error(&source, &message),
+        _ => logger::logger().frontend(&source, &message),
+    }
+    Ok(())
+}
+
+#[tauri::command]
+async fn get_log_session() -> Result<Vec<String>, String> {
+    Ok(logger::logger().read_session())
+}
+
+#[tauri::command]
+async fn get_log_recent() -> Result<Vec<String>, String> {
+    Ok(logger::logger().read_recent())
+}
+
+#[tauri::command]
+async fn get_log_paths() -> Result<serde_json::Value, String> {
+    Ok(logger::logger().get_log_paths())
 }
 
 // ---------------------------------------------------------------------------
@@ -758,6 +858,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
     for mut request in server.incoming_requests() {
         let url = request.url().to_string();
         let method = request.method().to_string();
+        log_api!(&format!("{} {}", method, url), "Request received");
 
         let (status, body) = match (method.as_str(), url.split('?').next().unwrap_or("")) {
             ("GET", "/health") => {
@@ -878,6 +979,7 @@ fn run_api_server(port: u16, api_key: Option<String>) {
             .with_status_code(status)
             .with_header(tiny_http::Header::from_bytes(&b"Content-Type"[..], &b"application/json"[..]).unwrap())
             .with_header(tiny_http::Header::from_bytes(&b"Access-Control-Allow-Origin"[..], &b"*"[..]).unwrap());
+        log_api!(&format!("{} {}", method, url), "Response: {} ({} bytes)", status, body.len());
         let _ = request.respond(response);
     }
 }
@@ -887,34 +989,46 @@ fn run_api_server(port: u16, api_key: Option<String>) {
 // ---------------------------------------------------------------------------
 
 fn main() {
+    // Initialize the logging system FIRST
+    logger::init_logger();
+    log_info!("main", "CryptArtist Studio v{} starting", env!("CARGO_PKG_VERSION"));
+
     let cli = Cli::parse();
     
     // Headless CLI execution
     if let Some(cmd) = cli.command {
+        log_cli!("main", "CLI mode activated");
         match cmd {
             Commands::New { path } => {
+                log_cli!("new", "Creating new project at {:?}", path);
                 let proj = state::ProjectData::default();
                 if let Err(e) = proj.save(&path) {
+                    log_error!("new", "Error saving project: {}", e);
                     eprintln!("Error saving project: {}", e);
                     std::process::exit(1);
                 }
+                log_cli!("new", "Created new project at {:?}", path);
                 println!("Created new project at {:?}", path);
             }
             Commands::Info { path } => {
+                log_cli!("info", "Inspecting project at {:?}", path);
                 match state::ProjectData::load(&path) {
                     Ok(proj) => {
+                        log_cli!("info", "Project '{}' - {}x{} - {} tracks - {} media items", proj.name, proj.resolution.0, proj.resolution.1, proj.tracks.len(), proj.media_pool.len());
                         println!("Project Name: {}", proj.name);
                         println!("Resolution: {}x{}", proj.resolution.0, proj.resolution.1);
                         println!("Tracks: {}", proj.tracks.len());
                         println!("Media Items: {}", proj.media_pool.len());
                     }
                     Err(e) => {
+                        log_error!("info", "Failed to load project {:?}: {}", path, e);
                         eprintln!("Failed to load project {:?}: {}", path, e);
                         std::process::exit(1);
                     }
                 }
             }
             Commands::AddMedia { project, media, media_type } => {
+                log_cli!("add-media", "Adding {} media from {:?} to {:?}", media_type, media, project);
                 match state::ProjectData::load(&project) {
                     Ok(mut proj) => {
                         let name = media.file_name().unwrap_or_default().to_string_lossy().into_owned();
@@ -928,35 +1042,46 @@ fn main() {
                         };
                         proj.media_pool.push(item);
                         if let Err(e) = proj.save(&project) {
+                            log_error!("add-media", "Error saving project: {}", e);
                             eprintln!("Error saving project: {}", e);
                             std::process::exit(1);
                         }
+                        log_cli!("add-media", "Successfully added media to project");
                         println!("Successfully added media to project.");
                     }
                     Err(e) => {
+                        log_error!("add-media", "Failed to load project {:?}: {}", project, e);
                         eprintln!("Failed to load project {:?}: {}", project, e);
                         std::process::exit(1);
                     }
                 }
             }
             Commands::Chat { prompt, key, model: _model } => {
+                log_cli!("chat", "AI chat request (prompt length: {})", prompt.len());
                 let api_key = key.or_else(|| std::env::var("OPENAI_API_KEY").ok()).unwrap_or_default();
                 if api_key.is_empty() {
+                    log_error!("chat", "No API key provided");
                     eprintln!("Error: No API key. Use --key <KEY> or set OPENAI_API_KEY env var.");
                     std::process::exit(1);
                 }
                 let rt = tokio::runtime::Runtime::new().unwrap();
                 match rt.block_on(ai_integration::chat_completion(&api_key, &prompt)) {
-                    Ok(reply) => println!("{}", reply),
+                    Ok(reply) => {
+                        log_cli!("chat", "AI replied ({} chars)", reply.len());
+                        println!("{}", reply);
+                    }
                     Err(e) => {
+                        log_error!("chat", "AI chat error: {}", e);
                         eprintln!("AI chat error: {}", e);
                         std::process::exit(1);
                     }
                 }
             }
             Commands::Pexels { query, search_type, key } => {
+                log_cli!("pexels", "Pexels search: type={} query={}", search_type, query);
                 let api_key = key.or_else(|| std::env::var("PEXELS_API_KEY").ok()).unwrap_or_default();
                 if api_key.is_empty() {
+                    log_error!("pexels", "No Pexels API key provided");
                     eprintln!("Error: No API key. Use --key <KEY> or set PEXELS_API_KEY env var.");
                     std::process::exit(1);
                 }
@@ -971,49 +1096,99 @@ fn main() {
                     let res = client.get(&url).header("Authorization", &api_key).send().await.map_err(|e| e.to_string())?;
                     res.text().await.map_err(|e| e.to_string())
                 }) {
-                    Ok(text) => println!("{}", text),
+                    Ok(text) => {
+                        log_cli!("pexels", "Pexels returned {} chars", text.len());
+                        println!("{}", text);
+                    }
                     Err(e) => {
+                        log_error!("pexels", "Pexels search error: {}", e);
                         eprintln!("Pexels search error: {}", e);
                         std::process::exit(1);
                     }
                 }
             }
             Commands::CryptArt { action } => {
+                log_cli!("cryptart", "CryptArt CLI action");
                 match action {
                     CryptArtCommands::Create { program, name, path } => {
-                        let valid = ["media-mogul", "vibecode-worker", "demo-recorder", "valley-net", "game-studio"];
-                        if !valid.contains(&program.as_str()) {
-                            eprintln!("Invalid program '{}'. Valid: {:?}", program, valid);
-                            std::process::exit(1);
+                        log_cli!("cryptart-create", "Creating .CryptArt: program={} name={} path={:?}", program, name, path);
+                        let known = ["media-mogul", "vibecode-worker", "demo-recorder", "valley-net", "game-studio"];
+                        if !known.contains(&program.as_str()) {
+                            eprintln!("Warning: '{}' is not a known program ({:?}). Creating anyway.", program, known);
                         }
                         let now = chrono::Utc::now().to_rfc3339();
                         let cryptart = serde_json::json!({
+                            "$cryptart": 1,
                             "program": program,
-                            "version": "0.1.0",
                             "name": name,
                             "createdAt": now,
                             "updatedAt": now,
+                            "appVersion": env!("CARGO_PKG_VERSION"),
+                            "meta": {
+                                "website": "https://mattyjacks.com"
+                            },
                             "data": {}
                         });
                         match std::fs::write(&path, serde_json::to_string_pretty(&cryptart).unwrap()) {
-                            Ok(_) => println!("Created .CryptArt file at {:?}", path),
+                            Ok(_) => {
+                                log_cli!("cryptart-create", "Created .CryptArt file at {:?}", path);
+                                println!("Created .CryptArt file at {:?}", path);
+                            }
                             Err(e) => {
+                                log_error!("cryptart-create", "Error creating file: {}", e);
                                 eprintln!("Error creating file: {}", e);
                                 std::process::exit(1);
                             }
                         }
                     }
                     CryptArtCommands::Inspect { path } => {
+                        log_cli!("cryptart-inspect", "Inspecting {:?}", path);
                         match std::fs::read_to_string(&path) {
                             Ok(content) => {
                                 match serde_json::from_str::<serde_json::Value>(&content) {
                                     Ok(val) => {
+                                        // Detect format generation
+                                        let format_ver = val.get("$cryptart").and_then(|v| v.as_u64()).unwrap_or(0);
+                                        if format_ver >= 1 {
+                                            println!("Format:     .CryptArt v{}", format_ver);
+                                        } else {
+                                            println!("Format:     .CryptArt (legacy pre-v1)");
+                                        }
                                         println!("Program:    {}", val["program"].as_str().unwrap_or("unknown"));
-                                        println!("Version:    {}", val["version"].as_str().unwrap_or("unknown"));
+                                        // Support both old "version" and new "appVersion"
+                                        let app_ver = val.get("appVersion")
+                                            .or_else(|| val.get("version"))
+                                            .and_then(|v| v.as_str())
+                                            .unwrap_or("unknown");
+                                        println!("App Ver:    {}", app_ver);
                                         println!("Name:       {}", val["name"].as_str().unwrap_or("unnamed"));
                                         println!("Created:    {}", val["createdAt"].as_str().unwrap_or("unknown"));
                                         println!("Updated:    {}", val["updatedAt"].as_str().unwrap_or("unknown"));
+                                        if let Some(id) = val.get("id").and_then(|v| v.as_str()) {
+                                            println!("ID:         {}", id);
+                                        }
+                                        if let Some(meta) = val.get("meta").and_then(|v| v.as_object()) {
+                                            if let Some(website) = meta.get("website").and_then(|v| v.as_str()) {
+                                                println!("Website:    {}", website);
+                                            }
+                                            if let Some(author) = meta.get("author").and_then(|v| v.as_str()) {
+                                                println!("Author:     {}", author);
+                                            }
+                                            if let Some(desc) = meta.get("description").and_then(|v| v.as_str()) {
+                                                println!("Desc:       {}", desc);
+                                            }
+                                            if let Some(tags) = meta.get("tags").and_then(|v| v.as_array()) {
+                                                let tag_strs: Vec<&str> = tags.iter().filter_map(|t| t.as_str()).collect();
+                                                println!("Tags:       {}", tag_strs.join(", "));
+                                            }
+                                        }
                                         println!("Data keys:  {:?}", val["data"].as_object().map(|o| o.keys().collect::<Vec<_>>()).unwrap_or_default());
+                                        if let Some(ext) = val.get("extensions").and_then(|v| v.as_object()) {
+                                            println!("Extensions: {:?}", ext.keys().collect::<Vec<_>>());
+                                        }
+                                        if let Some(hist) = val.get("history").and_then(|v| v.as_array()) {
+                                            println!("History:    {} entries", hist.len());
+                                        }
                                     }
                                     Err(e) => {
                                         eprintln!("Invalid JSON: {}", e);
@@ -1030,18 +1205,25 @@ fn main() {
                 }
             }
             Commands::Serve { port, api_key } => {
+                log_cli!("serve", "Starting API server on port {}", port);
                 run_api_server(port, api_key);
             }
             Commands::ReadFile { path } => {
+                log_cli!("read-file", "Reading {:?}", path);
                 match std::fs::read_to_string(&path) {
-                    Ok(content) => print!("{}", content),
+                    Ok(content) => {
+                        log_cli!("read-file", "Read {} bytes from {:?}", content.len(), path);
+                        print!("{}", content);
+                    }
                     Err(e) => {
+                        log_error!("read-file", "Error reading file: {}", e);
                         eprintln!("Error reading file: {}", e);
                         std::process::exit(1);
                     }
                 }
             }
             Commands::WriteFile { path, content } => {
+                log_cli!("write-file", "Writing to {:?}", path);
                 let data = content.unwrap_or_else(|| {
                     let mut buf = String::new();
                     std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf).unwrap_or(0);
@@ -1051,14 +1233,19 @@ fn main() {
                     let _ = std::fs::create_dir_all(parent);
                 }
                 match std::fs::write(&path, &data) {
-                    Ok(_) => println!("Written {} bytes to {:?}", data.len(), path),
+                    Ok(_) => {
+                        log_cli!("write-file", "Written {} bytes to {:?}", data.len(), path);
+                        println!("Written {} bytes to {:?}", data.len(), path);
+                    }
                     Err(e) => {
+                        log_error!("write-file", "Error writing file: {}", e);
                         eprintln!("Error writing file: {}", e);
                         std::process::exit(1);
                     }
                 }
             }
             Commands::Ls { path } => {
+                log_cli!("ls", "Listing directory {:?}", path);
                 match std::fs::read_dir(&path) {
                     Ok(entries) => {
                         let items: Vec<serde_json::Value> = entries
@@ -1081,6 +1268,7 @@ fn main() {
                 }
             }
             Commands::ListPrograms => {
+                log_cli!("list-programs", "Listing available programs");
                 println!("CryptArtist Studio Programs:");
                 println!("  📺 Media Mogul      [MMo]  - Video editor, image editor, AI media studio");
                 println!("  👩🏻‍💻 VibeCodeWorker  [VCW]  - Vibe-coding IDE powered by your API keys");
@@ -1089,6 +1277,7 @@ fn main() {
                 println!("  🎮 GameStudio       [GSt]  - Media Mogul + VibeCodeWorker + Godot 4.4");
             }
             Commands::Export { project, output, format } => {
+                log_cli!("export", "Exporting {:?} to {:?} (format: {})", project, output, format);
                 match std::fs::read_to_string(&project) {
                     Ok(content) => {
                         match format.as_str() {
@@ -1120,6 +1309,7 @@ fn main() {
                 }
             }
             Commands::SysInfo => {
+                log_cli!("sysinfo", "Displaying system info");
                 println!("CryptArtist Studio v{}", env!("CARGO_PKG_VERSION"));
                 println!("OS:          {}", std::env::consts::OS);
                 println!("Arch:        {}", std::env::consts::ARCH);
@@ -1132,6 +1322,8 @@ fn main() {
     }
 
     // Normal GUI execution
+    log_info!("main", "Starting GUI mode");
+    log_info!("main", "Log directory: {}", logger::logger().get_log_dir());
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
@@ -1164,6 +1356,10 @@ fn main() {
             godot_export,
             godot_list_scenes,
             godot_list_scripts,
+            log_from_frontend,
+            get_log_session,
+            get_log_recent,
+            get_log_paths,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CryptArtist Studio");

@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from "react";
+import { logger } from "./logger";
 
 // ---------------------------------------------------------------------------
 // Global keyboard shortcuts system
@@ -30,6 +31,7 @@ export function useKeyboardShortcuts(shortcuts: Shortcut[]) {
             if (!s.ctrl && !s.meta) continue;
           }
           e.preventDefault();
+          logger.action("keyboard", `Shortcut: ${s.description}`);
           s.action();
           return;
         }

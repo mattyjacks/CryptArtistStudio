@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { save as saveDialog, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
+import { toast } from "../../utils/toast";
+import { logger } from "../../utils/logger";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,6 +32,7 @@ interface InputLogEntry {
 
 export default function DemoRecorder() {
   const navigate = useNavigate();
+  useEffect(() => { logger.info("DemoRecorder", "Program loaded"); }, []);
   const [recording, setRecording] = useState(false);
   const [paused, setPaused] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -164,6 +167,7 @@ export default function DemoRecorder() {
       setElapsed(0);
     } catch (err) {
       console.error("Screen capture failed:", err);
+      toast.error("Screen capture failed or was cancelled");
       // User cancelled the screen picker - that's fine
     }
   };
@@ -225,6 +229,7 @@ export default function DemoRecorder() {
         }
       } catch (err) {
         console.error("Failed to save input log:", err);
+        toast.error("Failed to save input log");
       }
     }
 
@@ -274,6 +279,7 @@ export default function DemoRecorder() {
       }
     } catch (err) {
       console.error("Save project failed:", err);
+      toast.error("Failed to save project");
     }
   };
 
@@ -296,6 +302,7 @@ export default function DemoRecorder() {
       }
     } catch (err) {
       console.error("Open project failed:", err);
+      toast.error("Failed to open project");
     }
   };
 

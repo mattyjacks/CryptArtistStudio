@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useGlobalShortcuts } from "../utils/keyboard";
+import { logger } from "../utils/logger";
 
 const programs = [
   {
@@ -99,7 +100,7 @@ export default function SuiteLauncher() {
           {programs.map((prog) => (
             <button
               key={prog.id}
-              onClick={() => navigate(`/${prog.id}`)}
+              onClick={() => { logger.programLaunch(prog.id); navigate(`/${prog.id}`); }}
               className={`
                 group relative flex flex-col items-center text-center p-8 rounded-xl
                 bg-gradient-to-br ${prog.gradient}

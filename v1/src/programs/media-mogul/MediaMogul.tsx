@@ -13,6 +13,7 @@ import SettingsModal from "../../components/SettingsModal";
 import FFmpegSetup from "../../components/FFmpegSetup";
 import type { ChatMessage } from "../../App";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
+import { logger } from "../../utils/logger";
 
 export type MogulWorkspace = "edit" | "node-mode" | "color" | "audio" | "ai" | "deliver" | "podcast";
 
@@ -28,6 +29,7 @@ const workspaces: { id: MogulWorkspace; label: string; icon: string }[] = [
 
 export default function MediaMogul() {
   const navigate = useNavigate();
+  useEffect(() => { logger.info("MediaMogul", "Program loaded"); }, []);
   const [workspace, setWorkspace] = useState<MogulWorkspace>("edit");
   const [showSettings, setShowSettings] = useState(false);
   const [ffmpegReady, setFfmpegReady] = useState(true);

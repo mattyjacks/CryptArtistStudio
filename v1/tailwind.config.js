@@ -25,6 +25,7 @@ export default {
           accent: '#e94560',
           cyan: '#00d2ff',
           purple: '#7b2ff7',
+          red: '#e94560',
           green: '#4ade80',
           yellow: '#fbbf24',
           orange: '#f97316',

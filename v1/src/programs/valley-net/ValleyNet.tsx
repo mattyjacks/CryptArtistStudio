@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { save as saveDialog, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
+import { logger } from "../../utils/logger";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,6 +72,7 @@ const defaultIntegrations: Integration[] = [
 
 export default function ValleyNet() {
   const navigate = useNavigate();
+  useEffect(() => { logger.info("ValleyNet", "Program loaded"); }, []);
   const [activePanel, setActivePanel] = useState<"skills" | "integrations" | "history">("skills");
   const [skills, setSkills] = useState<Skill[]>(defaultSkills);
   const [integrations, setIntegrations] = useState<Integration[]>(defaultIntegrations);

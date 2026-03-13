@@ -337,3 +337,35 @@ To be able to make videogames automatically.
 
 
 Spend maximum context on this.
+
+---
+
+## Automatic Logging System (Prompt 20 - March 13, 2026)
+
+add automatic logging to every single thing, making a constant "last 1000 lines" log file, and also a constant "every line ever" log file, and a "last 100 lines since last run" as .txt files with better names.
+
+---
+
+## Future-Proof .CryptArt File Format (Prompt 21 - March 13, 2026)
+
+Make the .JSON files better organized for .CryptArt files. Use best practices, and ensure maximum compatibility across all current, past, and future .CryptArt files. Make it so I never need to upgrade the base of the .CryptArt files so it can live forever.
+
+---
+
+## VibeCodeWorker Feature Complete + CryptArt JSON Expansion (Prompt 22 - March 13, 2026)
+
+Add more features to VibeCodeWorker, make it fully feature complete and include automatic program testing and website testing like Google Antigravity has.
+
+Add more fields to the JSON, including everything you can think of, but make it so that not-including-everything it still works.
+
+---
+
+## Comprehensive README + Prompt Archive (Prompt 23 - March 13, 2026)
+
+https://github.com/mattyjacks/CryptArtistStudio   This is the github for CryptArtistStudio.
+
+Make a 2,000 line README.md in multiple steps, including everything possible about the program.
+
+The program is open source.
+
+Add every prompt so far, including this one, to prompts/all-prompts.md

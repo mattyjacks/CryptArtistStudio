@@ -11,6 +11,7 @@ import TermsOfUse from "./pages/TermsOfUse";
 import TermsAcceptanceModal from "./components/TermsAcceptanceModal";
 import MobileNav from "./components/MobileNav";
 import { useIsMobileViewport } from "./utils/platform";
+import { logger } from "./utils/logger";
 
 // ---------------------------------------------------------------------------
 // Types (kept for backward compatibility with existing components)
@@ -43,6 +44,7 @@ export default function App() {
   const handleAcceptTerms = () => {
     localStorage.setItem(TERMS_ACCEPTED_KEY, "true");
     setTermsAccepted(true);
+    logger.action("App", "Terms accepted");
   };
 
   // Still loading

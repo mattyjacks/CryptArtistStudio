@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import Editor from "@monaco-editor/react";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
+import { logger } from "../../utils/logger";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -89,6 +90,7 @@ function isImageFile(name: string): boolean {
 
 export default function GameStudio() {
   const navigate = useNavigate();
+  useEffect(() => { logger.info("GameStudio", "Program loaded"); }, []);
 
   // --- Godot state ---
   const [godotInfo, setGodotInfo] = useState<GodotInfo | null>(null);
@@ -105,7 +107,6 @@ export default function GameStudio() {
 
   // --- Pane layout ---
   const [layout, setLayout] = useState<PaneLayout>("split");
-  const [leftPaneWidth, setLeftPaneWidth] = useState(50); // percentage
 
   // --- AI state ---
   const [aiMessages, setAiMessages] = useState<AIChatMsg[]>([
@@ -202,7 +203,7 @@ export default function GameStudio() {
       if (selected && typeof selected === "string") {
         // Check if it's a Godot project
         const hasProjectGodot = await invoke<string>("read_text_file", {
-          path: selected + (selected.endsWith("\\") || selected.endsWith("/") ? "" : "\\") + "project.godot",
+          path: selected.replace(/[\\/]$/, "") + "/project.godot",
         }).catch(() => null);
 
         setProjectPath(selected);
@@ -439,7 +440,7 @@ User: ${currentInput}`;
       toast.error("No project open - open or create a Godot project first");
       return;
     }
-    const filePath = projectPath + (projectPath.endsWith("\\") || projectPath.endsWith("/") ? "" : "\\") + "scripts\\" + filename;
+    const filePath = projectPath.replace(/[\\/]$/, "") + "/scripts/" + filename;
     try {
       await invoke("write_text_file", { path: filePath, contents: code });
       toast.success(`Saved ${filename} to project scripts`);
@@ -883,7 +884,7 @@ User: ${currentInput}`;
                     {previewFile ? (
                       <div className="text-center">
                         <img
-                          src={`https://asset.localhost/${previewFile}`}
+                          src={convertFileSrc(previewFile)}
                           alt="Preview"
                           className="max-w-full max-h-[60vh] rounded-lg border border-studio-border"
                           onError={(e) => {
