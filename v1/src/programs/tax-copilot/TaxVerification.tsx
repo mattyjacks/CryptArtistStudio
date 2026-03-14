@@ -4,9 +4,13 @@ import { toast } from "../../utils/toast";
 interface VerificationResult {
     verified: boolean;
     chain?: string;
-    amount_usd_at_time?: number;
-    timestamp?: string;
-    audit_trail_valid?: boolean;
+    amount_eth?: number;
+    amount_wei?: string;
+    amount_sol?: number;
+    block_number?: number;
+    slot?: number;
+    block_time?: number;
+    gas_used?: number;
     message?: string;
     error?: string;
 }
@@ -18,6 +22,14 @@ export default function TaxVerification() {
     const [isVerifying, setIsVerifying] = useState(false);
     const [result, setResult] = useState<VerificationResult | null>(null);
     const [history, setHistory] = useState<(VerificationResult & { wallet: string; tx: string })[]>([]);
+
+    const handleClear = () => {
+        setWalletAddress("");
+        setTxHash("");
+        setResult(null);
+        setHistory([]);
+        toast.success("Audit history cleared.");
+    };
 
     const handleVerify = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,8 +52,13 @@ export default function TaxVerification() {
                 }),
             });
 
-            if (!response.ok) throw new Error("Backend server error");
             const data: VerificationResult = await response.json();
+            
+            // Handle backend error even if status 200 (custom error handling)
+            if (!data.verified && !data.error) {
+                 data.error = "Verification failed.";
+            }
+
             setResult(data);
             setHistory(prev => [{ ...data, wallet: walletAddress, tx: txHash }, ...prev]);
 
@@ -62,11 +79,21 @@ export default function TaxVerification() {
             <div className="max-w-4xl mx-auto w-full">
 
                 {/* Header */}
-                <div className="mb-8">
-                    <h2 className="text-2xl font-bold mb-2">Blockchain Audit Verification</h2>
-                    <p className="text-studio-secondary text-sm">
-                        Cryptographically verify crypto payouts on Ethereum or Solana by querying the on-chain ledger via Web3 RPC.
-                    </p>
+                <div className="mb-8 flex justify-between items-start">
+                    <div>
+                        <h2 className="text-2xl font-bold mb-2">Blockchain Audit Verification</h2>
+                        <p className="text-studio-secondary text-sm">
+                            Cryptographically verify crypto payouts on Ethereum or Solana by querying the on-chain ledger via Web3 RPC.
+                        </p>
+                    </div>
+                    {history.length > 0 && (
+                        <button 
+                            onClick={handleClear}
+                            className="text-xs text-red-400 hover:text-red-300 underline"
+                        >
+                            Clear History
+                        </button>
+                    )}
                 </div>
 
                 {/* Verification Form */}
@@ -78,7 +105,7 @@ export default function TaxVerification() {
                                 type="text"
                                 value={walletAddress}
                                 onChange={(e) => setWalletAddress(e.target.value)}
-                                placeholder="0x742d35Cc6634C0532925a3b844Bc9e7595f..."
+                                placeholder={chain === "ethereum" ? "0x742d35..." : "5eykt4Us..."}
                                 className="w-full input bg-studio-bg border-studio-border px-4 py-2.5 rounded-lg text-sm font-mono"
                             />
                         </div>
@@ -88,7 +115,7 @@ export default function TaxVerification() {
                                 type="text"
                                 value={txHash}
                                 onChange={(e) => setTxHash(e.target.value)}
-                                placeholder="0xabc123..."
+                                placeholder={chain === "ethereum" ? "0xabc123..." : "5wHu1qw..."}
                                 className="w-full input bg-studio-bg border-studio-border px-4 py-2.5 rounded-lg text-sm font-mono"
                             />
                         </div>
@@ -108,9 +135,20 @@ export default function TaxVerification() {
                         </div>
                         <div className="flex-1" />
                         <button
+                            type="button"
+                            onClick={() => {
+                                setWalletAddress("");
+                                setTxHash("");
+                                setResult(null);
+                            }}
+                            className="btn btn-ghost px-4 py-2.5 rounded-lg text-sm mr-2"
+                        >
+                            Reset Form
+                        </button>
+                        <button
                             type="submit"
                             disabled={isVerifying || !walletAddress.trim() || !txHash.trim()}
-                            className="btn btn-cyan px-8 py-2.5 rounded-lg shadow-lg disabled:opacity-50 mt-4"
+                            className="btn btn-cyan px-8 py-2.5 rounded-lg shadow-lg disabled:opacity-50"
                         >
                             {isVerifying ? (
                                 <span className="flex items-center gap-2">
@@ -146,12 +184,17 @@ export default function TaxVerification() {
                                             <p className="text-sm font-medium capitalize">{result.chain}</p>
                                         </div>
                                         <div className="bg-studio-bg/50 rounded-lg p-3 border border-studio-border">
-                                            <p className="text-xs text-studio-muted">Amount (USD at time)</p>
-                                            <p className="text-sm font-medium text-studio-green">${result.amount_usd_at_time?.toFixed(2)}</p>
+                                            <p className="text-xs text-studio-muted">Amount</p>
+                                            <p className="text-sm font-medium text-studio-green">
+                                                {result.chain === "solana" 
+                                                    ? `${result.amount_sol?.toFixed(4)} SOL` 
+                                                    : `${result.amount_eth?.toFixed(4)} ETH`
+                                                }
+                                            </p>
                                         </div>
                                         <div className="bg-studio-bg/50 rounded-lg p-3 border border-studio-border">
-                                            <p className="text-xs text-studio-muted">Timestamp</p>
-                                            <p className="text-sm font-medium">{result.timestamp}</p>
+                                            <p className="text-xs text-studio-muted">{result.chain === "solana" ? "Slot" : "Block"}</p>
+                                            <p className="text-sm font-medium">{result.slot || result.block_number}</p>
                                         </div>
                                     </div>
                                 )}
@@ -171,9 +214,12 @@ export default function TaxVerification() {
                                     <span className="font-mono text-xs text-studio-secondary truncate max-w-[200px]">{entry.tx}</span>
                                     <span className="text-studio-muted">on</span>
                                     <span className="capitalize">{entry.chain || chain}</span>
-                                    {entry.amount_usd_at_time && (
-                                        <span className="text-studio-green ml-auto">${entry.amount_usd_at_time.toFixed(2)}</span>
-                                    )}
+                                    <span className="text-studio-green ml-auto">
+                                        {entry.chain === "solana" && entry.amount_sol 
+                                            ? `${entry.amount_sol.toFixed(4)} SOL`
+                                            : entry.amount_eth ? `${entry.amount_eth.toFixed(4)} ETH` : ""
+                                        }
+                                    </span>
                                 </div>
                             ))}
                         </div>

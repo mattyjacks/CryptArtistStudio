@@ -1,0 +1,13 @@
+{
+  "batch_id": "batch_1773510682",
+  "created_at": 1773510682.882785,
+  "file_count": 1,
+  "files": [
+    {
+      "filename": "fw8ben.pdf",
+      "status": "processing",
+      "size": 99064,
+      "path": "/Users/russ/Documents/GitHub/CryptArtistStudio/v1/tax-backend/data/batches/batch_1773510682/fw8ben.pdf"
+    }
+  ]
+}
