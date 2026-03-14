@@ -36,10 +36,22 @@ export default function TaxBatchUpload({ onComplete }: { onComplete: (batchId: s
             if (!response.ok) throw new Error("Backend server error");
 
             const data = await response.json();
+            if (!data?.batch_id) {
+                throw new Error("Backend did not return a batch id");
+            }
+
+            toast.success(
+                data.message ||
+                `Queued ${files.length} document${files.length === 1 ? "" : "s"} for AI extraction.`
+            );
+
             onComplete(data.batch_id);
 
         } catch (err: any) {
             toast.error(`Upload failed: ${err.message}. Is the Python backend running?`);
+        } finally {
+            // Always clear uploading state once the backend responds,
+            // even if the user has navigated away and comes back later.
             setIsUploading(false);
         }
     };

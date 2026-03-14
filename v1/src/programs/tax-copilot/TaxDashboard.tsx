@@ -11,6 +11,8 @@ interface TransactionRow {
     linkedW8: string;
     rules: string;
     verified: boolean;
+    status?: "processing" | "ready";
+    filename?: string;
 }
 
 interface TaxReport {
@@ -21,17 +23,11 @@ interface TaxReport {
     note?: string;
 }
 
-const FALLBACK_ROWS: TransactionRow[] = [
-    { id: 1, date: "2023-11-15", vendor: "Cloud Services LLC", entity: "C-Corp", amount: 1500.00, method: "Crypto (USDC)", linkedW8: "W8BEN_4921", rules: "NH BET Applicable", verified: true },
-    { id: 2, date: "2023-11-18", vendor: "John Doe", entity: "Individual", amount: 450.00, method: "PayPal", linkedW8: "W8BEN_1102", rules: "Cavite BIR 1701Q", verified: false },
-    { id: 3, date: "2023-11-22", vendor: "Jane Smith", entity: "Individual", amount: 2200.00, method: "Xoom", linkedW8: "Missing", rules: "Pending W8", verified: false },
-    { id: 4, date: "2023-12-01", vendor: "Crypto Dev DAO", entity: "LLC", amount: 5000.00, method: "Crypto (ETH)", linkedW8: "W8BEN_8812", rules: "NH BPT Applicable", verified: true },
-];
-
 export default function TaxDashboard({ batchId }: { batchId: string | null }) {
     const [rows, setRows] = useState<TransactionRow[]>([]);
     const [taxReport, setTaxReport] = useState<TaxReport | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [deletingFilename, setDeletingFilename] = useState<string | null>(null);
     const [selectedRegion, setSelectedRegion] = useState<"new hampshire" | "cavite">("new hampshire");
 
     const fetchDashboardData = useCallback(async () => {
@@ -41,9 +37,9 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
             const response = await fetch(`/api/v1/ingestion/dashboard?batch_id=${encodeURIComponent(batchId)}`);
             if (!response.ok) throw new Error("Failed to fetch");
             const data = await response.json();
-            setRows(data.transactions || FALLBACK_ROWS);
+            setRows(data.transactions || []);
         } catch {
-            setRows(FALLBACK_ROWS);
+            setRows([]);
         } finally {
             setIsLoading(false);
         }
@@ -67,7 +63,45 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
         }
     }, [batchId, rows, selectedRegion]);
 
-    useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
+    const deleteFile = useCallback(async (filename: string) => {
+        if (!batchId) return;
+        setDeletingFilename(filename);
+        try {
+            const url = `/api/v1/ingestion/batch/${encodeURIComponent(batchId)}/files/${encodeURIComponent(filename)}`;
+            const response = await fetch(url, { method: "DELETE" });
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.detail || `Delete failed: ${response.status}`);
+            }
+            toast.success(`Removed ${filename}`);
+            await fetchDashboardData();
+        } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Failed to delete file");
+        } finally {
+            setDeletingFilename(null);
+        }
+    }, [batchId, fetchDashboardData]);
+
+    useEffect(() => {
+        // When the active batch changes, clear any stale rows and refetch
+        setRows([]);
+        setTaxReport(null);
+        fetchDashboardData();
+    }, [batchId, fetchDashboardData]);
+
+    // Lightweight polling: while any row is still "processing", refresh the
+    // dashboard every few seconds so AI status flips to "Ready" automatically.
+    useEffect(() => {
+        if (!batchId) return;
+        const hasProcessing = rows.some((r) => r.status === "processing");
+        if (!hasProcessing) return;
+
+        const id = window.setInterval(() => {
+            fetchDashboardData();
+        }, 4000);
+
+        return () => window.clearInterval(id);
+    }, [batchId, rows, fetchDashboardData]);
     useEffect(() => { if (rows.length > 0) fetchTaxReport(); }, [rows, fetchTaxReport]);
 
     return (
@@ -130,6 +164,11 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
                         <div className="flex items-center justify-center p-20">
                             <div className="w-10 h-10 border-4 border-t-studio-cyan border-studio-border rounded-full animate-spin" />
                         </div>
+                    ) : rows.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-20 text-center border border-dashed border-studio-border rounded-xl">
+                            <p className="text-studio-secondary">No data to show.</p>
+                            <p className="text-studio-muted text-sm mt-1">Upload documents in the Upload tab to see files here.</p>
+                        </div>
                     ) : (
                         <div className="bg-studio-surface/50 border border-studio-border rounded-xl overflow-hidden">
                             <table className="w-full text-left text-sm">
@@ -143,6 +182,8 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
                                         <th className="px-4 py-3 font-medium text-studio-muted">W-8BEN Link</th>
                                         <th className="px-4 py-3 font-medium text-studio-muted">On-Chain Audit</th>
                                         <th className="px-4 py-3 font-medium text-studio-muted">Tax Rules Engine</th>
+                                        <th className="px-4 py-3 font-medium text-studio-muted">AI Status</th>
+                                        <th className="px-4 py-3 font-medium text-studio-muted w-20">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-studio-border">
@@ -174,6 +215,29 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
                                                 )}
                                             </td>
                                             <td className="px-4 py-3 text-xs text-studio-secondary">{row.rules}</td>
+                                            <td className="px-4 py-3 text-xs">
+                                                {row.status === "processing" ? (
+                                                    <span className="flex items-center gap-2 text-studio-muted">
+                                                        <span className="w-3 h-3 border-2 border-t-studio-cyan border-studio-border rounded-full animate-spin" />
+                                                        <span>Processing…</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-studio-green">Ready</span>
+                                                )}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                {batchId && row.filename ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => deleteFile(row.filename!)}
+                                                        disabled={deletingFilename === row.filename}
+                                                        className="text-xs text-red-400 hover:text-red-300 disabled:opacity-50"
+                                                        title="Remove file from batch"
+                                                    >
+                                                        {deletingFilename === row.filename ? "…" : "Delete"}
+                                                    </button>
+                                                ) : null}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

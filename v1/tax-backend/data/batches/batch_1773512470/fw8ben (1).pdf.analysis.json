@@ -1,0 +1,12 @@
+{
+  "filename": "fw8ben (1).pdf",
+  "doc_type": "w8ben_individual",
+  "is_w8ben": true,
+  "text_length": 4800,
+  "preview": "Form  W-8BEN\n(Rev. October  2021)\nDepartment of the Treasury\nInternal Revenue Service Certificate of Foreign Status of Beneficial Owner for United\nStates Tax Withholding and Reporting (Individuals)\n\u25b6 For use by individuals. Entities must use Form W-8BEN-E.\n\u25b6 Go to www.irs.gov/FormW8BEN  for instructions and the latest information.\n\u25b6 Give this form to the withholding agent or payer. Do not send to the IRS.OMB No. 1545-1621\nDo NOT use this form if: Instead, use Form:\n\u2022 You are NOT an individual ................................. W-8BEN-E",
+  "w8ben": {
+    "name": "3      Permanent residence address (street, apt. or suite no., or rural route). Do not use a P.O. box or in-care-of address.",
+    "country_citizenship": "3      Permanent residence address (street, apt. or suite no., or rural route). Do not use a P.O. box or in-care-of address.",
+    "treaty_country": "the treaty country listed on line 9 of the form (if any)"
+  }
+}

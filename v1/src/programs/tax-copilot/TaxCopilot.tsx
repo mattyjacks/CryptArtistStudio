@@ -66,15 +66,22 @@ export default function TaxCopilot() {
             <header className="flex items-center justify-between px-6 py-4 border-b border-studio-border bg-studio-surface/50">
                 <div className="flex items-center gap-3">
                     <span className="text-3xl">📊</span>
-                    <div>
-                        <h1 className="text-xl font-bold gradient-text">Tax Copilot</h1>
-                        <div className="flex items-center gap-2">
-                            <p className="text-xs text-studio-secondary">Intelligent AI extraction & Blockchain Auditing</p>
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3">
+                            <h1 className="text-xl font-bold gradient-text">Tax Copilot</h1>
                             {backendStatus === "connected" ? (
                                 <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded border border-green-500/20">● API Online</span>
                             ) : (
                                 <span className="text-[10px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded border border-red-500/20" title="Ensure tax-backend/main.py is running">● API Offline</span>
                             )}
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <p className="text-xs text-studio-secondary">
+                                Intelligent AI extraction, RAG chat, and blockchain auditing for W‑8BEN workflows.
+                            </p>
+                            <div className="text-[10px] bg-studio-bg px-3 py-1 rounded-full border border-studio-border font-mono text-studio-muted">
+                                Batch: <span className="text-studio-cyan">{batchId || "None"}</span>
+                            </div>
                         </div>
                     </div>
                 </div>

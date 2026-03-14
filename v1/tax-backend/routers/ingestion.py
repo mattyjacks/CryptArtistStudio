@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Query
+from fastapi import APIRouter, UploadFile, File, BackgroundTasks, Query, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 import json
@@ -6,8 +6,8 @@ import time
 from pathlib import Path
 import os
 
-from services.ai_linking import link_w8ben_to_payout
 from services.tax_rules import apply_tax_rules
+from services.pipeline import analyze_document, mark_file_ready
 
 router = APIRouter()
 
@@ -22,12 +22,34 @@ BATCH_DIR = DATA_DIR / "batches"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 BATCH_DIR.mkdir(parents=True, exist_ok=True)
 
-def process_document_task(filename: str):
-    # Simulated OCR and LLM Extraction delay
-    time.sleep(2)
-    print(f"[{filename}] OCR Extracted tables. Identified as Bank Statement.")
-    # In a real app, this calls AWS Textract or LangChain here
-    pass
+
+def process_document_task(batch_id: str, filename: str) -> None:
+    """
+    Background pipeline for a single uploaded document.
+
+    Today this is intentionally lightweight:
+    - Reads the saved file from the batch folder
+    - Runs the heuristic analysis pipeline
+    - Writes a small <filename>.analysis.json blob next to the file
+
+    This keeps all work local to the user's machine and creates a
+    clear place to plug in real OCR/LLM/vector logic later.
+    """
+    batch_path = BATCH_DIR / batch_id
+    path = batch_path / filename
+    if not path.exists():
+        return
+
+    meta = analyze_document(path)
+    out_path = batch_path / f"{filename}.analysis.json"
+    try:
+        with out_path.open("w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+        # Flip the per-file status flag so the dashboard can reflect completion.
+        mark_file_ready(batch_id, filename)
+    except Exception:
+        # Best-effort: pipeline failures should not crash the server
+        print(f"[pipeline] Failed to write analysis for {path}")
 
 @router.post("/batch")
 async def upload_batch(background_tasks: BackgroundTasks, files: List[UploadFile] = File(...)):
@@ -59,8 +81,8 @@ async def upload_batch(background_tasks: BackgroundTasks, files: List[UploadFile
         with dest_path.open("wb") as f:
             f.write(content)
 
-        # Queue the heavy OCR extraction (simulated)
-        background_tasks.add_task(process_document_task, safe_name)
+        # Queue the document analysis pipeline
+        background_tasks.add_task(process_document_task, batch_id, safe_name)
 
         file_records.append(
             {
@@ -107,52 +129,97 @@ async def get_dashboard(batch_id: Optional[str] = Query(None)):
 
             for i, rec in enumerate(index.get("files", []), start=1):
                 name = rec["filename"]
-                # Simple synthetic amount based on file size for now
-                amount = float(max(rec.get("size", 0) // 1000, 1))
-                method = "Crypto (USDC)" if i % 2 == 0 else "PayPal"
+                status = rec.get("status", "processing")
                 date = time.strftime("%Y-%m-%d", time.localtime(index.get("created_at", time.time())))
 
-                link = link_w8ben_to_payout(name, method, amount)
+                # Try to enrich this neutral row with any metadata the
+                # pipeline has produced for the file (e.g. W‑8BEN details).
+                analysis_path = BATCH_DIR / index["batch_id"] / f"{name}.analysis.json"
+                vendor_label = name
+                entity = "Individual"
+                method = "Unknown"
+                rules_label = "Pending extraction"
+                linked = "Pending"
+
+                if analysis_path.exists():
+                    try:
+                        with analysis_path.open("r", encoding="utf-8") as af:
+                            meta = json.load(af)
+                        if meta.get("doc_type") == "w8ben_individual":
+                            w8 = meta.get("w8ben") or {}
+                            holder = w8.get("name") or name
+                            vendor_label = f"W‑8BEN — {holder}"
+                            rules_label = "Form W‑8BEN parsed"
+                            linked = "Self"
+                    except Exception:
+                        pass
+
                 transactions.append(
                     {
                         "id": i,
                         "date": date,
-                        "vendor": name,
-                        "entity": "Individual",
-                        "amount": amount,
+                        "vendor": vendor_label,
+                        "entity": entity,
+                        "amount": 0.0,
                         "method": method,
-                        "linkedW8": link["w8ben_document_id"] if link["status"] == "linked" else "Missing",
-                        "rules": "Pending",
-                        "verified": link.get("requires_blockchain_audit", False),
+                        "linkedW8": linked,
+                        "rules": rules_label,
+                        "verified": False,
+                        "status": status,
+                        "filename": name,
                     }
                 )
 
-    # Fallback demo data if no batch or missing metadata
-    if not transactions:
-        raw_extractions = [
-            {"name": "Cloud Services LLC", "entity": "C-Corp", "amount": 1500.00, "method": "Crypto (USDC)", "date": "2023-11-15"},
-            {"name": "John Doe", "entity": "Individual", "amount": 450.00, "method": "PayPal", "date": "2023-11-18"},
-            {"name": "Jane Smith", "entity": "Individual", "amount": 2200.00, "method": "Xoom", "date": "2023-11-22"},
-            {"name": "Crypto Dev DAO", "entity": "LLC", "amount": 5000.00, "method": "Crypto (ETH)", "date": "2023-12-01"},
-        ]
-
-        for i, ext in enumerate(raw_extractions, 1):
-            link = link_w8ben_to_payout(ext["name"], ext["method"], ext["amount"])
-            transactions.append(
-                {
-                    "id": i,
-                    "date": ext["date"],
-                    "vendor": ext["name"],
-                    "entity": ext["entity"],
-                    "amount": ext["amount"],
-                    "method": ext["method"],
-                    "linkedW8": link["w8ben_document_id"] if link["status"] == "linked" else "Missing",
-                    "rules": "Pending",
-                    "verified": link.get("requires_blockchain_audit", False),
-                }
-            )
-
     return {"batch_id": batch_id, "transactions": transactions}
+
+
+def _safe_filename(name: str) -> bool:
+    """Ensure filename has no path components (no traversal)."""
+    if not name or ".." in name or "/" in name or "\\" in name:
+        return False
+    return Path(name).name == name
+
+
+@router.delete("/batch/{batch_id}/files/{filename}")
+async def delete_batch_file(batch_id: str, filename: str):
+    """
+    Remove a single file from a batch: deletes the file and its analysis JSON,
+    and updates index.json. Use the exact filename returned in the dashboard.
+    """
+    if not _safe_filename(filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    batch_path = BATCH_DIR / batch_id
+    index_path = batch_path / "index.json"
+    if not batch_path.exists() or not index_path.exists():
+        raise HTTPException(status_code=404, detail="Batch not found")
+
+    file_path = batch_path / filename
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found in batch")
+
+    analysis_path = batch_path / f"{filename}.analysis.json"
+    try:
+        file_path.unlink()
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Could not delete file: {e}")
+    if analysis_path.exists():
+        try:
+            analysis_path.unlink()
+        except OSError:
+            pass
+
+    with index_path.open("r", encoding="utf-8") as f:
+        index = json.load(f)
+    files = index.get("files", [])
+    new_files = [r for r in files if r.get("filename") != filename]
+    if len(new_files) == len(files):
+        raise HTTPException(status_code=404, detail="File not found in batch index")
+    index["files"] = new_files
+    index["file_count"] = len(new_files)
+    with index_path.open("w", encoding="utf-8") as f:
+        json.dump(index, f, indent=2)
+
+    return {"message": f"Deleted {filename}", "batch_id": batch_id, "files_remaining": len(new_files)}
 
 
 class TaxRulesRequest(BaseModel):
