@@ -1,0 +1,24 @@
+{
+  "$cryptart": 1,
+  "program": "game-studio",
+  "name": "GameStudioTest1",
+  "createdAt": "2026-03-14T05:18:21.599Z",
+  "updatedAt": "2026-03-14T05:18:21.599Z",
+  "appVersion": "0.1.0",
+  "meta": {
+    "website": "https://mattyjacks.com"
+  },
+  "data": {
+    "projectPath": "C:\\GitHub5\\CryptArtistStudio\\test\\gamestudiotest1\\GameStudioTest1",
+    "projectName": "GameStudioTest1",
+    "layout": "split",
+    "openFiles": [],
+    "activeFile": null,
+    "scenes": [
+      "C:\\GitHub5\\CryptArtistStudio\\test\\gamestudiotest1\\GameStudioTest1\\scenes\\main.tscn"
+    ],
+    "scripts": [
+      "C:\\GitHub5\\CryptArtistStudio\\test\\gamestudiotest1\\GameStudioTest1\\scripts\\main.gd"
+    ]
+  }
+}
