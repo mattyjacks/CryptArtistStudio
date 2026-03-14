@@ -3,8 +3,11 @@ uvicorn
 python-multipart
 pydantic
 sqlalchemy
+psycopg2-binary
 web3
 langchain
 langchain_openai
 pandas
 python-dotenv
+pytest
+httpx

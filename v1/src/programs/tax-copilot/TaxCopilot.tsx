@@ -4,9 +4,10 @@ import { toast } from "../../utils/toast";
 import TaxBatchUpload from "./TaxBatchUpload";
 import TaxDashboard from "./TaxDashboard";
 import TaxChat from "./TaxChat";
+import TaxVerification from "./TaxVerification";
 import { useGlobalShortcuts } from "../../utils/keyboard";
 
-export type TaxTab = "upload" | "dashboard" | "chat";
+export type TaxTab = "upload" | "dashboard" | "verification" | "chat";
 
 export default function TaxCopilot() {
     const navigate = useNavigate();
@@ -49,6 +50,12 @@ export default function TaxCopilot() {
                         📋 Data Dashboard
                     </button>
                     <button
+                        onClick={() => setActiveTab("verification")}
+                        className={`px-4 py-1.5 text-sm rounded-md transition-all ${activeTab === "verification" ? "bg-studio-green/20 text-green-400 font-medium" : "text-studio-muted hover:text-studio-text"}`}
+                    >
+                        🔗 Verification
+                    </button>
+                    <button
                         onClick={() => setActiveTab("chat")}
                         className={`px-4 py-1.5 text-sm rounded-md transition-all ${activeTab === "chat" ? "bg-studio-purple/20 text-studio-purple font-medium" : "text-studio-muted hover:text-studio-text"}`}
                     >
@@ -69,6 +76,7 @@ export default function TaxCopilot() {
             <main className="flex-1 overflow-hidden relative">
                 {activeTab === "upload" && <TaxBatchUpload onComplete={handleUploadComplete} />}
                 {activeTab === "dashboard" && <TaxDashboard batchId={batchId} />}
+                {activeTab === "verification" && <TaxVerification />}
                 {activeTab === "chat" && <TaxChat batchId={batchId} />}
             </main>
 
