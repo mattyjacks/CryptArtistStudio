@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { chatWithAI } from "../../utils/openrouter";
 
 export default function TaxChat({ batchId }: { batchId: string | null }) {
     const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([
@@ -22,19 +23,17 @@ export default function TaxChat({ batchId }: { batchId: string | null }) {
         setIsTyping(true);
 
         try {
-            // Connect to the Python FastAPI RAG endpoint
-            const response = await fetch("http://127.0.0.1:8080/api/v1/rag", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ query: userMsg, batch_id: batchId })
-            });
+            const prompt = batchId
+                ? `[Tax Copilot RAG]\nBatch ID: ${batchId}\n\nUser question:\n${userMsg}`
+                : `[Tax Copilot RAG]\nNo active batch ID.\n\nUser question:\n${userMsg}`;
 
-            if (!response.ok) throw new Error("Failed to connect to AI Engine");
-            const data = await response.json();
-
-            setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+            const reply = await chatWithAI(prompt, { action: "general" });
+            setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
         } catch (err: any) {
-            setMessages(prev => [...prev, { role: 'assistant', content: `❌ Error: ${err.message}. Ensure the Python backend is running.` }]);
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `❌ Error: ${err.message || "Unknown error"}. Check your API key in Settings.`
+            }]);
         } finally {
             setIsTyping(false);
         }
@@ -46,9 +45,9 @@ export default function TaxChat({ batchId }: { batchId: string | null }) {
                 <div className="space-y-4">
                     {messages.map((msg, i) => (
                         <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm leading-relaxed ${msg.role === 'user'
-                                    ? 'bg-studio-cyan text-studio-bg rounded-br-none'
-                                    : 'bg-studio-surface border border-studio-border text-studio-text rounded-bl-none'
+                            <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm leading-relaxed whitespace-pre-wrap ${msg.role === 'user'
+                                ? 'bg-studio-cyan text-studio-bg rounded-br-none'
+                                : 'bg-studio-surface border border-studio-border text-studio-text rounded-bl-none'
                                 }`}>
                                 {msg.content}
                             </div>
