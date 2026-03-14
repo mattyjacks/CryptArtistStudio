@@ -38,7 +38,7 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
         if (!batchId) return;
         setIsLoading(true);
         try {
-            const response = await fetch(`http://127.0.0.1:8080/api/v1/ingestion/dashboard?batch_id=${encodeURIComponent(batchId)}`);
+            const response = await fetch(`/api/v1/ingestion/dashboard?batch_id=${encodeURIComponent(batchId)}`);
             if (!response.ok) throw new Error("Failed to fetch");
             const data = await response.json();
             setRows(data.transactions || FALLBACK_ROWS);
@@ -54,7 +54,7 @@ export default function TaxDashboard({ batchId }: { batchId: string | null }) {
         try {
             const totalReceipts = rows.reduce((sum, r) => sum + r.amount, 0);
             const entityType = rows.length > 0 ? rows[0].entity : "Individual";
-            const response = await fetch("http://127.0.0.1:8080/api/v1/ingestion/apply-rules", {
+            const response = await fetch("/api/v1/ingestion/apply-rules", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ entity_type: entityType, gross_receipts: totalReceipts, region: selectedRegion }),

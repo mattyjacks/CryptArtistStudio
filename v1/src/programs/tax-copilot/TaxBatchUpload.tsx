@@ -28,7 +28,7 @@ export default function TaxBatchUpload({ onComplete }: { onComplete: (batchId: s
             }
 
             // Send to Python Backend
-            const response = await fetch("http://127.0.0.1:8080/api/v1/ingestion/batch", {
+            const response = await fetch("/api/v1/ingestion/batch", {
                 method: "POST",
                 body: formData,
             });

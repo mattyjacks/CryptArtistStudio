@@ -10,17 +10,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS setup to allow the Tauri frontend (localhost:1420) to communicate with us
-origins = [
-    "http://localhost:1420",
-    "http://127.0.0.1:1420",
-    "tauri://localhost",
-]
+# CORS setup to allow the Tauri frontend to communicate with us
+# allowing all origins for local tool to prevent 'Load failed' errors
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
