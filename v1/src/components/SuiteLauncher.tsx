@@ -208,6 +208,7 @@ const tips = [
   "Clone Tool builds .exe, .dmg, and .deb installers from your config",
   "Install plugins, mods, and themes from ZIP files in Settings",
   "Try Lucky AI mode for serendipitous AI responses",
+  "Press Ctrl + K to instantly search projects by name or ID",
 ];
 
 export default function SuiteLauncher() {
@@ -524,7 +525,7 @@ export default function SuiteLauncher() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(sanitizeSearchQuery(e.target.value, 200))}
               className="input w-full pl-9 pr-4 py-2 text-sm rounded-lg bg-studio-surface border-studio-border"
-              enterKeyHint="search" placeholder="Search programs... (or press 1-7 to launch)" autoComplete="off" spellCheck={false}
+              enterKeyHint="search" placeholder="Search programs... (or press 1-7 to launch, Ctrl+K for projects)" autoComplete="off" spellCheck={false}
             />
             {searchQuery && (
               <button type="button"

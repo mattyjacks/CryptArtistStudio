@@ -10,6 +10,40 @@
 
 # CryptArtist Studio - AI Conversation Prompts (March 2026)
 
+## Command Palette Search Logic (krish)
+**Prompt: 25**
+>Mission: Intelligent Project Navigation & Discovery
+
+Goal: Implement a Ctrl + K Command Palette for ValleyNet and CryptArt Commander that intelligently switches between Name and ID searches.
+
+Technical Requirements:
+
+Dual-Mode Search Logic:
+
+Numeric Input: If the user enters only numbers, the search should prioritize the 42-character security IDs or 69-character project IDs.
+
+Alpha/String Input: If letters are present, the engine should perform a fuzzy search on Project Names.
+
+Global Hotkey & UI:
+
+Bind Ctrl + K to toggle the search overlay.
+
+Discovery Feature: Add a subtle "Hint" or "Tooltip" in the main dashboard for new users: "Press Ctrl + K to search by name or ID."
+
+Smart Selection (Fuzzy + Levenshtein):
+
+Use fuse.js for name matching.
+
+If a string matches exactly one ID or Name, open it immediately on Enter.
+
+If multiple results exist, render a Drop-down/Drop-up with keyboard navigation (Arrows + Enter).
+
+Verification:
+
+Agentic Browser Test: The agent must launch the app, press Ctrl + K, type a partial numeric ID, and verify the correct project is highlighted.
+
+Unit Test: Ensure the regex correctly distinguishes between "Numerical Only" (ID search) and "Alphanumeric" (Name search).
+
 
 ## CryptArtist Studio - Standardizing Cryptographic IDs (krish)
 **Prompt: 25:**
