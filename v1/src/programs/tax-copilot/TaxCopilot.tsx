@@ -9,13 +9,34 @@ import { useGlobalShortcuts } from "../../utils/keyboard";
 
 export type TaxTab = "upload" | "dashboard" | "verification" | "chat";
 
+const BATCH_ID_STORAGE_KEY = "tax_copilot_batch_id";
+
+function getStoredBatchId(): string | null {
+    try {
+        const s = window.localStorage.getItem(BATCH_ID_STORAGE_KEY);
+        return s && s.trim() ? s : null;
+    } catch {
+        return null;
+    }
+}
+
 export default function TaxCopilot() {
     const navigate = useNavigate();
     useGlobalShortcuts(navigate);
 
     const [activeTab, setActiveTab] = useState<TaxTab>("upload");
-    const [batchId, setBatchId] = useState<string | null>(null);
+    const [batchId, setBatchIdState] = useState<string | null>(getStoredBatchId);
     const [backendStatus, setBackendStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+
+    const setBatchId = useCallback((id: string | null) => {
+        setBatchIdState(id);
+        try {
+            if (id) window.localStorage.setItem(BATCH_ID_STORAGE_KEY, id);
+            else window.localStorage.removeItem(BATCH_ID_STORAGE_KEY);
+        } catch {
+            // ignore
+        }
+    }, []);
 
     useEffect(() => {
         const checkHealth = async () => {
@@ -36,7 +57,7 @@ export default function TaxCopilot() {
         setBatchId(newBatchId);
         toast.success("Batch uploaded successfully! AI is now processing documents.");
         setActiveTab("dashboard");
-    }, []);
+    }, [setBatchId]);
 
     return (
         <div className="flex flex-col h-full w-full bg-studio-bg text-studio-text animate-fade-in">
@@ -97,10 +118,18 @@ export default function TaxCopilot() {
 
             {/* Main Content Area */}
             <main className="flex-1 overflow-hidden relative">
-                {activeTab === "upload" && <TaxBatchUpload onComplete={handleUploadComplete} />}
-                {activeTab === "dashboard" && <TaxDashboard batchId={batchId} />}
-                {activeTab === "verification" && <TaxVerification />}
-                {activeTab === "chat" && <TaxChat batchId={batchId} />}
+                <div className={activeTab === "upload" ? "h-full" : "hidden"}>
+                    <TaxBatchUpload onComplete={handleUploadComplete} />
+                </div>
+                <div className={activeTab === "dashboard" ? "h-full" : "hidden"}>
+                    <TaxDashboard batchId={batchId} />
+                </div>
+                <div className={activeTab === "verification" ? "h-full" : "hidden"}>
+                    <TaxVerification />
+                </div>
+                <div className={activeTab === "chat" ? "h-full" : "hidden"}>
+                    <TaxChat batchId={batchId} />
+                </div>
             </main>
 
         </div>
