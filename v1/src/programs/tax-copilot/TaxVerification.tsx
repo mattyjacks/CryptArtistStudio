@@ -140,6 +140,7 @@ export default function TaxVerification() {
                                 setWalletAddress("");
                                 setTxHash("");
                                 setResult(null);
+                                setHistory([]);
                             }}
                             className="btn btn-ghost px-4 py-2.5 rounded-lg text-sm mr-2"
                         >
