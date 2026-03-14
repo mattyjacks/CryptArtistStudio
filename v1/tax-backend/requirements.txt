@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+sqlalchemy
+web3
+langchain
+langchain_openai
+pandas
+python-dotenv
