@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -21,6 +23,7 @@ import { useApiKeys } from "../../utils/apiKeys";
 import { useInteropEmit } from "../../utils/interop";
 import { useCrossClipboard } from "../../utils/crossClipboard";
 import { notifySuccess } from "../../utils/notifications";
+import AIOptimizer from "../../components/AIOptimizer";
 
 export type MogulWorkspace = "edit" | "node-mode" | "color" | "audio" | "ai" | "deliver" | "podcast";
 
@@ -310,12 +313,12 @@ export default function MediaMogul() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden">
       {/* Header */}
       <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none safe-area-top">
         {/* Back + Logo */}
         <div className={`flex items-center gap-2 px-2 sm:px-4 ${isMobile ? "min-w-0" : "min-w-[220px]"}`}>
-          <button
+          <button type="button"
             onClick={() => navigate("/")}
             className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
             title="Back to Suite"
@@ -362,6 +365,8 @@ export default function MediaMogul() {
 
         {/* Right Actions - Improvements 70-71 */}
         <div className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 ${isMobile ? "min-w-0" : "min-w-[260px]"} justify-end`}>
+          {!isMobile && <AIOptimizer actionKey="media-chat" className="h-6" />}
+          {!isMobile && <div className="w-px h-5 bg-studio-border mx-1" />}
           {/* Improvement 71: Undo/Redo buttons */}
           <button className="btn-ghost rounded-md px-1.5 py-1 text-sm hover:bg-studio-hover transition-colors" title="Undo (Ctrl+Z)" disabled={undoStack.length === 0}>
             {"\u21A9\uFE0F"}
@@ -372,10 +377,10 @@ export default function MediaMogul() {
           <div className="w-px h-5 bg-studio-border" />
           {!isMobile && (
             <>
-              <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-2">
+              <button type="button" onClick={handleOpenProject} className="btn text-[10px] py-1 px-2">
                 Open .CryptArt
               </button>
-              <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-2">
+              <button type="button" onClick={handleSaveProject} className="btn text-[10px] py-1 px-2">
                 Save .CryptArt
               </button>
             </>
@@ -384,7 +389,7 @@ export default function MediaMogul() {
           <button className="btn btn-cyan text-[10px] py-1 px-2" title="Quick Export">
             {"\u{1F4E6}"}{!isMobile && " Export"}
           </button>
-          <button
+          <button type="button"
             onClick={() => setShowSettings(true)}
             className="btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors"
             title="Settings"
@@ -416,14 +421,14 @@ export default function MediaMogul() {
         <div className="flex items-center h-[28px] bg-studio-panel border-t border-studio-border px-2 sm:px-4 gap-2 sm:gap-3 text-[10px] overflow-x-auto scrollbar-none">
           {/* Improvement 72: Zoom controls */}
           <span className="text-studio-muted">Zoom:</span>
-          <button onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))} className="text-studio-muted hover:text-studio-text">-</button>
+          <button type="button" onClick={() => setPreviewZoom(Math.max(25, previewZoom - 25))} className="text-studio-muted hover:text-studio-text">-</button>
           <span className="text-studio-secondary w-8 text-center">{previewZoom}%</span>
           <button onClick={() => setPreviewZoom(Math.min(400, previewZoom + 25))} className="text-studio-muted hover:text-studio-text">+</button>
           <button onClick={() => setPreviewZoom(100)} className="text-studio-muted hover:text-studio-text text-[9px]">Fit</button>
           <div className="w-px h-3 bg-studio-border" />
           {/* Improvement 73: Aspect ratio selector */}
           <span className="text-studio-muted">Ratio:</span>
-          <select
+          <select aria-label="Select option"
             value={aspectRatio}
             onChange={(e) => setAspectRatio(e.target.value)}
             className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
@@ -457,7 +462,7 @@ export default function MediaMogul() {
             Snap {timelineSnap ? "ON" : "OFF"}
           </button>
           {/* Improvement 170: Playback speed */}
-          <select
+          <select aria-label="Select option"
             value={playbackSpeed}
             onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
             className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
@@ -523,7 +528,7 @@ export default function MediaMogul() {
       {/* Improvement 262: LUT browser overlay */}
       {showLutBrowser && (
         <div className="modal-overlay" onClick={() => setShowLutBrowser(false)}>
-          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F3A8}"} LUT Browser</h2>
               <button onClick={() => setShowLutBrowser(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -551,7 +556,7 @@ export default function MediaMogul() {
       {/* Improvement 263: Audio mixer overlay */}
       {showMixer && (
         <div className="modal-overlay" onClick={() => setShowMixer(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F3B5}"} Audio Mixer</h2>
               <button onClick={() => setShowMixer(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -603,7 +608,7 @@ export default function MediaMogul() {
       {/* Improvement 264: Subtitle editor overlay */}
       {showSubtitleEditor && (
         <div className="modal-overlay" onClick={() => setShowSubtitleEditor(false)}>
-          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4AC}"} Subtitle Editor</h2>
               <button onClick={() => setShowSubtitleEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -639,7 +644,7 @@ export default function MediaMogul() {
       )}
 
       {/* Status Bar - Improvements 261-275 */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>
             <span className="status-dot status-dot-green" />

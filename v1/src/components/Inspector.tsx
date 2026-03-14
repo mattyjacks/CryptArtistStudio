@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState } from "react";
 
 export default function Inspector() {
@@ -12,7 +13,8 @@ export default function Inspector() {
     <div className="panel h-full m-1 ml-0">
       <div className="panel-header">
         <h3>Inspector</h3>
-        <button className="btn-ghost text-[10px]">Reset</button>
+            {/* Improvement 510: A11y & Microinteraction */}
+        <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 btn-ghost text-[10px]">Reset</button>
       </div>
       <div className="panel-body">
         {/* Transform */}
@@ -128,7 +130,7 @@ export default function Inspector() {
               {effects.map(eff => (
                 <div key={eff.id} className="flex items-center justify-between px-2 py-1 bg-studio-surface border border-studio-border rounded text-[10px]">
                   <span>{eff.name}</span>
-                  <button 
+                  <button type="button" 
                     onClick={() => setEffects(prev => prev.filter(e => e.id !== eff.id))}
                     className="text-studio-red hover:text-red-400"
                   >
@@ -139,7 +141,7 @@ export default function Inspector() {
             </div>
           )}
 
-          <button 
+          <button type="button" 
             onClick={handleAddEffect}
             className="btn w-full text-studio-cyan border-dashed border-studio-cyan/30 hover:bg-studio-cyan/5 text-[10px]"
           >

@@ -20,7 +20,7 @@ export default function MobileNav() {
   const location = useLocation();
 
   return (
-    <nav
+    <nav aria-label="Mobile navigation"
       className="fixed bottom-0 left-0 right-0 z-50 bg-studio-panel/95 backdrop-blur-md border-t border-studio-border safe-area-bottom"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >

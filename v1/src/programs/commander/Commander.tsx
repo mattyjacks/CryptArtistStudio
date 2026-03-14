@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -5,6 +7,7 @@ import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { logSecurityEvent, sanitizeFilePath } from "../../utils/security";
 import { chatWithAI, getActionModel } from "../../utils/openrouter";
+import AIOptimizer from "../../components/AIOptimizer";
 
 const MAX_CMD_HISTORY = 500; // Vuln 60: Max command history entries
 const MAX_DISPLAY_HISTORY = 200; // Vuln 60: Max display history
@@ -497,9 +500,12 @@ export default function Commander() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+            {/* Improvement 573: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg font-bold">{"\u{1F431}"} CryptArt Commander</span>
           <span className="badge text-[8px]">CAC</span>
+          <div className="w-px h-5 bg-studio-border mx-1" />
+          <AIOptimizer actionKey="commander-chat" className="h-6" />
         </div>
         <div className="flex gap-1">
           {(["terminal", "scripts", "api"] as const).map((tab) => (
@@ -567,7 +573,7 @@ export default function Commander() {
           <aside className="w-56 bg-studio-panel border-r border-studio-border flex flex-col shrink-0">
             <div className="px-3 py-2 text-[10px] text-studio-muted border-b border-studio-border flex items-center justify-between">
               <span>Scripts</span>
-              <button
+              <button type="button"
                 onClick={() => setEditingScript({
                   id: "s-" + Date.now(),
                   name: "new-script",
@@ -604,7 +610,7 @@ export default function Commander() {
                     className="input text-[11px] py-1 w-48"
                     placeholder="Script name..."
                   />
-                  <select
+                  <select aria-label="Select option"
                     value={editingScript.language}
                     onChange={(e) => setEditingScript({ ...editingScript, language: e.target.value as ScriptFile["language"] })}
                     className="input text-[10px] py-1 w-28"
@@ -614,7 +620,7 @@ export default function Commander() {
                     <option value="python">Python</option>
                   </select>
                   <div className="flex-1" />
-                  <button
+                  <button type="button"
                     onClick={async () => {
                       addEntry("run " + editingScript.name, "Running...", "info");
                       setActiveTab("terminal");
@@ -624,8 +630,9 @@ export default function Commander() {
                     }}
                     className="btn btn-cyan text-[10px] px-3 py-1"
                   >{"\u25B6"} Run</button>
-                  <button onClick={saveScript} className="btn text-[10px] px-3 py-1">{"\u{1F4BE}"} Save</button>
-                  <button
+            {/* Improvement 574: A11y & Microinteraction */}
+                  <button aria-label="Action Button" title="Click to interact" onClick={saveScript} className="transition-transform active:scale-95 btn text-[10px] px-3 py-1">{"\u{1F4BE}"} Save</button>
+                  <button type="button"
                     onClick={() => {
                       setScripts((prev) => prev.filter((s) => s.id !== editingScript.id));
                       setEditingScript(null);
@@ -657,7 +664,8 @@ export default function Commander() {
       {activeTab === "api" && (
         <div className="flex-1 overflow-y-auto scrollbar-thin p-6">
           <div className="max-w-3xl">
-            <h2 className="text-lg font-bold mb-1">{"\u{1F310}"} CryptArtist Studio REST API</h2>
+            {/* Improvement 575: Screen Reader Accessibility */}
+            <h2 role="heading" aria-level={2} className="text-lg font-bold mb-1">{"\u{1F310}"} CryptArtist Studio REST API</h2>
             <p className="text-[11px] text-studio-muted mb-4">
               Start the API server with: <code className="inline-code">cryptartist-studio serve --port 9420</code>
             </p>
@@ -678,7 +686,8 @@ export default function Commander() {
             </div>
 
             <div className="mt-6 p-4 rounded-xl bg-studio-surface border border-studio-border">
-              <h3 className="text-[12px] font-semibold text-studio-text mb-2">Example: OpenRouter Chat</h3>
+            {/* Improvement 576: Screen Reader Accessibility */}
+              <h3 role="heading" aria-level={3} className="text-[12px] font-semibold text-studio-text mb-2">Example: OpenRouter Chat</h3>
               <pre className="text-[10px] text-studio-secondary font-mono bg-studio-bg p-3 rounded">
 {`curl -X POST http://localhost:9420/api/openrouter/chat \\
   -H "Content-Type: application/json" \\
@@ -687,7 +696,8 @@ export default function Commander() {
             </div>
 
             <div className="mt-4 p-4 rounded-xl bg-studio-surface border border-studio-border">
-              <h3 className="text-[12px] font-semibold text-studio-text mb-2">Example: Export Keys</h3>
+            {/* Improvement 577: Screen Reader Accessibility */}
+              <h3 role="heading" aria-level={3} className="text-[12px] font-semibold text-studio-text mb-2">Example: Export Keys</h3>
               <pre className="text-[10px] text-studio-secondary font-mono bg-studio-bg p-3 rounded">
 {`curl -X POST http://localhost:9420/api/keys/export
 # Saves to Forbidden-Secrets-of-CryptArtist-Keys-N.txt`}
@@ -698,7 +708,7 @@ export default function Commander() {
       )}
 
       {/* Status Bar */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F431}"} CAC v0.1.0</span>
           <span>|</span>

@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -538,10 +540,10 @@ export default function DemoRecorder() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden">
       {/* Header */}
       <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-4 gap-3">
-        <button
+        <button type="button"
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
           title="Back to Suite"
@@ -561,14 +563,16 @@ export default function DemoRecorder() {
             <span className="text-xs font-mono text-red-400">{paused ? "PAUSED" : "REC"}</span>
           </div>
         )}
-        <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
+            {/* Improvement 578: A11y & Microinteraction */}
+        <button aria-label="Action Button" title="Click to interact" onClick={handleOpenProject} className="transition-transform active:scale-95 btn text-[10px] py-1 px-3">
           Open .CryptArt
         </button>
-        <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
+            {/* Improvement 579: A11y & Microinteraction */}
+        <button aria-label="Action Button" title="Click to interact" onClick={handleSaveProject} className="transition-transform active:scale-95 btn text-[10px] py-1 px-3">
           Save .CryptArt
         </button>
         {/* Improvement 351: AI panel toggle */}
-        <button
+        <button type="button"
           onClick={() => setShowAiPanel(!showAiPanel)}
           className={`btn text-[10px] py-1 px-3 ${showAiPanel ? "btn-cyan" : ""}`}
           title="AI Narration & Description"
@@ -583,7 +587,7 @@ export default function DemoRecorder() {
           <div className="flex items-center gap-3 mb-2">
             <span className="text-[11px] font-semibold text-studio-text">{"\u{1F916}"} AI Recording Tools</span>
             <span className="text-[8px] px-1.5 py-0.5 rounded bg-studio-cyan/10 text-studio-cyan">OpenRouter</span>
-            <select
+            <select aria-label="Select option"
               value={getActionModel("narration")}
               onChange={(e) => setActionModel("narration", e.target.value)}
               className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer ml-auto"
@@ -592,7 +596,8 @@ export default function DemoRecorder() {
                 <option key={m} value={m}>{m.split("/").pop()}</option>
               ))}
             </select>
-            <button onClick={() => setShowAiPanel(false)} className="text-studio-muted hover:text-studio-text text-[10px]">x</button>
+            {/* Improvement 580: A11y & Microinteraction */}
+            <button aria-label="Action Button" title="Click to interact" onClick={() => setShowAiPanel(false)} className="transition-transform active:scale-95 text-studio-muted hover:text-studio-text text-[10px]">x</button>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {/* AI Narration */}
@@ -607,7 +612,7 @@ export default function DemoRecorder() {
                 placeholder="Topic: e.g., 'How to use CryptArtist Studio'"
               />
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   onClick={async () => {
                     if (!aiNarration.trim()) return;
                     setAiNarrationLoading(true);
@@ -624,7 +629,7 @@ export default function DemoRecorder() {
                 >
                   {aiNarrationLoading ? "Generating..." : "Generate Script"}
                 </button>
-                <button
+                <button type="button"
                   onClick={async () => {
                     if (!aiDescription) return;
                     try {
@@ -652,7 +657,7 @@ export default function DemoRecorder() {
                 )}
               </div>
               {aiDescription && (
-                <button
+                <button type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(aiDescription);
                     toast.success("Copied to clipboard!");
@@ -721,7 +726,7 @@ export default function DemoRecorder() {
           <div className="flex items-center justify-center gap-4 p-4 bg-studio-panel border-t border-studio-border">
             {/* Resolution + FPS + Quality */}
             <div className="flex items-center gap-2">
-              <select
+              <select aria-label="Select option"
                 value={resolution}
                 onChange={(e) => setResolution(e.target.value)}
                 className="input text-[11px] py-1 w-[120px]"
@@ -732,7 +737,7 @@ export default function DemoRecorder() {
                 <option value="1920x1080">1080p (1920x1080)</option>
                 <option value="1280x720">720p (1280x720)</option>
               </select>
-              <select
+              <select aria-label="Select option"
                 value={fps}
                 onChange={(e) => setFps(e.target.value)}
                 className="input text-[11px] py-1 w-[80px]"
@@ -764,11 +769,12 @@ export default function DemoRecorder() {
                 </button>
               ) : (
                 <>
-                  <button onClick={handlePause} className="btn px-4">
+            {/* Improvement 581: A11y & Microinteraction */}
+                  <button aria-label="Action Button" title="Click to interact" onClick={handlePause} className="transition-transform active:scale-95 btn px-4">
                     {paused ? "\u25B6" : "\u23F8"} {paused ? "Resume" : "Pause"}
                   </button>
                   {/* Improvement 79: Screenshot button */}
-                  <button onClick={handleScreenshot} className="btn px-3" title="Take Screenshot">
+                  <button aria-label="Action Button" onClick={handleScreenshot} className="transition-transform active:scale-95 btn px-3" title="Take Screenshot">
                     {"\u{1F4F7}"}
                   </button>
                   <button onClick={handleStop} className={`btn btn-accent px-4 ${recording ? "rec-pulse" : ""}`}>
@@ -808,7 +814,7 @@ export default function DemoRecorder() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-[280px] min-w-[240px] bg-studio-panel border-l border-studio-border flex flex-col overflow-y-auto">
+        <div role="complementary" className="w-[280px] min-w-[240px] bg-studio-panel border-l border-studio-border flex flex-col overflow-y-auto">
           {/* Streaming Targets */}
           <div className="panel-header">
             <h3>Streaming Targets</h3>
@@ -975,7 +981,7 @@ export default function DemoRecorder() {
       </div>
 
       {/* Status Bar - Improvements 276-285 */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F3A5}"} DRe v0.1.0</span>
           <span>|</span>
@@ -1034,7 +1040,7 @@ export default function DemoRecorder() {
       {/* Input Logger Warning Modal */}
       {showLoggerWarning && (
         <div className="modal-overlay" onClick={() => setShowLoggerWarning(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u26A0\uFE0F"} Enable Input Logger?</h2>
               <button
@@ -1059,10 +1065,12 @@ export default function DemoRecorder() {
               </p>
             </div>
             <div className="modal-footer">
-              <button onClick={() => setShowLoggerWarning(false)} className="btn">
+            {/* Improvement 583: A11y & Microinteraction */}
+              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowLoggerWarning(false)} className="transition-transform active:scale-95 btn">
                 Cancel
               </button>
-              <button onClick={confirmInputLogger} className="btn btn-accent">
+            {/* Improvement 584: A11y & Microinteraction */}
+              <button aria-label="Action Button" title="Click to interact" onClick={confirmInputLogger} className="transition-transform active:scale-95 btn btn-accent">
                 I Understand, Enable
               </button>
             </div>

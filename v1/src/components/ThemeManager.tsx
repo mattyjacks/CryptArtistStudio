@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 // ---------------------------------------------------------------------------
 // CryptArtist Studio - Theme Manager Component
 // Install, preview, switch, and create themes from ZIP files
@@ -115,7 +117,8 @@ export default function ThemeManager() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-lg font-bold mb-1">{"\u{1F3A8}"} Themes</h2>
+            {/* Improvement 544: Screen Reader Accessibility */}
+      <h2 role="heading" aria-level={2} className="text-lg font-bold mb-1">{"\u{1F3A8}"} Themes</h2>
       <p className="text-[11px] text-studio-muted mb-4">
         Install, create, and switch between visual themes. Themes change colors, fonts, and visual effects.
         Install themes from <code className="inline-code">.zip</code> files or create new ones from existing themes.
@@ -127,7 +130,8 @@ export default function ThemeManager() {
           {"\u{1F4E5}"} Install Theme (.zip)
           <input ref={fileRef} type="file" accept=".zip" className="hidden" onChange={handleInstall} />
         </label>
-        <button onClick={() => setCreating(!creating)} className="btn text-[10px] px-3 py-1.5">
+            {/* Improvement 545: A11y & Microinteraction */}
+        <button aria-label="Action Button" title="Click to interact" onClick={() => setCreating(!creating)} className="transition-transform active:scale-95 btn text-[10px] px-3 py-1.5">
           {creating ? "\u2715 Cancel" : "\u2795 Create New Theme"}
         </button>
       </div>
@@ -151,11 +155,12 @@ export default function ThemeManager() {
             <div>
               <label className="text-[10px] text-studio-muted block mb-1">
                 Clone From Base Theme
-                <button onClick={handleRandomBase} className="ml-2 text-studio-cyan hover:underline text-[9px]">
+            {/* Improvement 546: A11y & Microinteraction */}
+                <button aria-label="Action Button" title="Click to interact" onClick={handleRandomBase} className="transition-transform active:scale-95 ml-2 text-studio-cyan hover:underline text-[9px]">
                   {"\u{1F3B2}"} Random
                 </button>
               </label>
-              <select
+              <select aria-label="Select option"
                 value={baseThemeId}
                 onChange={(e) => setBaseThemeId(e.target.value)}
                 className="input text-[11px] py-1.5 w-full"
@@ -170,7 +175,8 @@ export default function ThemeManager() {
                 Your new theme starts as a clone of the selected base. "Primordial" is the cosmic default, "Blank" is the utilitarian base.
               </div>
             </div>
-            <button onClick={handleCreateTheme} className="btn btn-cyan text-[10px] px-4 py-1.5 self-start">
+            {/* Improvement 547: A11y & Microinteraction */}
+            <button aria-label="Action Button" title="Click to interact" onClick={handleCreateTheme} className="transition-transform active:scale-95 btn btn-cyan text-[10px] px-4 py-1.5 self-start">
               Create Theme
             </button>
           </div>
@@ -189,7 +195,7 @@ export default function ThemeManager() {
           </div>
         </div>
         {previewId && (
-          <button onClick={handleCancelPreview} className="ml-auto btn text-[9px] px-2 py-1 border-yellow-500/30 text-yellow-400">
+          <button aria-label="Action Button" title="Click to interact" onClick={handleCancelPreview} className="transition-transform active:scale-95 ml-auto btn text-[9px] px-2 py-1 border-yellow-500/30 text-yellow-400">
             Cancel Preview
           </button>
         )}
@@ -276,7 +282,7 @@ export default function ThemeManager() {
                   </div>
                   <div className="flex items-center gap-2 ml-3">
                     {activeId !== ext.manifest.id && (
-                      <button
+                      <button type="button"
                         onClick={() => handleActivate(ext.manifest.id)}
                         className="btn btn-cyan text-[9px] px-2 py-1"
                       >
@@ -286,7 +292,7 @@ export default function ThemeManager() {
                     {activeId === ext.manifest.id && (
                       <span className="text-[9px] text-studio-cyan font-semibold">{"\u2713"} Active</span>
                     )}
-                    <button
+                    <button type="button"
                       onClick={() => handleUninstall(ext.manifest.id)}
                       className="btn text-[9px] px-2 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
                     >

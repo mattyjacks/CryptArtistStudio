@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -14,6 +16,7 @@ import { useApiKeys } from "../../utils/apiKeys";
 import { useInteropEmit } from "../../utils/interop";
 import { useCrossClipboard } from "../../utils/crossClipboard";
 import { notifySuccess } from "../../utils/notifications";
+import AIOptimizer from "../../components/AIOptimizer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -992,7 +995,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
   const renderTree = (nodes: FileNode[], depth = 0): JSX.Element[] => {
     return nodes.map((node) => (
       <div key={node.path}>
-        <button
+        <button type="button"
           onClick={() => openFile(node)}
           className={`w-full text-left px-2 py-[3px] text-[11px] flex items-center gap-1.5 hover:bg-studio-hover rounded transition-colors ${
             activeTabPath === node.path ? "bg-studio-hover text-studio-text" : "text-studio-secondary"
@@ -1021,10 +1024,10 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden">
       {/* Header */}
       <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-2 sm:px-4 gap-1 sm:gap-2 safe-area-top">
-        <button
+        <button type="button"
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
           title="Back to Suite"
@@ -1032,7 +1035,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           {"\u2190"}{!isMobile && " Suite"}
         </button>
         {isMobile && (
-          <button
+          <button type="button"
             onClick={() => setShowMobileSidebar(!showMobileSidebar)}
             className="btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors"
             title="Toggle File Tree"
@@ -1049,12 +1052,12 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           </div>
         )}
         <div className="flex-1" />
-        <button onClick={handleOpenFolder} className="btn text-[10px] py-1 px-2 sm:px-3">
+        <button type="button" onClick={handleOpenFolder} className="btn text-[10px] py-1 px-2 sm:px-3">
           {"\u{1F4C2}"}{!isMobile && " Open Folder"}
         </button>
         {!isMobile && (
           <>
-            <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
+            <button type="button" onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
               Open .CryptArt
             </button>
             <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
@@ -1230,7 +1233,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                 Tab: {editorTabSize}
               </button>
               <div className="w-px h-3 bg-studio-border" />
-              <select
+              <select aria-label="Select option"
                 value={editorTheme}
                 onChange={(e) => setEditorTheme(e.target.value)}
                 className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
@@ -1487,7 +1490,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     className="input text-[11px] py-0.5 flex-1"
-                    placeholder="Search in files..."
+                    placeholder="Search in files..." autoComplete="off" spellCheck={false}
                   />
                   <input
                     type="text"
@@ -1538,9 +1541,12 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
 
         {/* AI Chat Panel */}
         <div className="w-[300px] min-w-[240px] bg-studio-panel border-l border-studio-border flex flex-col">
-          <div className="panel-header">
-            <h3>{"\u{1F916}"} AI Assistant</h3>
-            {aiLoading && <span className="text-[9px] text-studio-cyan animate-pulse">thinking...</span>}
+          <div className="panel-header flex items-center justify-between px-3 py-2 border-b border-studio-border">
+            <div className="flex items-center gap-2">
+              <h3 className="m-0 text-[11px] font-bold">{"\u{1F916}"} AI Assistant</h3>
+              {aiLoading && <span className="text-[9px] text-studio-cyan animate-pulse">thinking...</span>}
+            </div>
+            <AIOptimizer actionKey="coding-assistant" />
           </div>
 
           {/* Settings Panel (inline toggle) */}
@@ -1548,7 +1554,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
             <div className="p-3 border-b border-studio-border bg-studio-surface animate-fade-in">
               <h4 className="text-[10px] font-semibold uppercase text-studio-secondary mb-2">API Configuration</h4>
               <div className="flex flex-col gap-2">
-                <select
+                <select aria-label="Select option"
                   value={apiProvider}
                   onChange={(e) => setApiProvider(e.target.value)}
                   className="input text-[11px] py-1"
@@ -1575,7 +1581,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                     className="input text-[11px] py-1 flex-1"
                     placeholder="Model name (e.g. gpt-4o)"
                   />
-                  <select
+                  <select aria-label="Select option"
                     value={getDefaultModel()}
                     onChange={(e) => setDefaultModel(e.target.value)}
                     className="input text-[9px] py-1 w-28"
@@ -1681,7 +1687,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
       {/* Improvement 243: Snippets panel */}
       {showSnippets && (
         <div className="modal-overlay" onClick={() => setShowSnippets(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4CB}"} Code Snippets</h2>
               <button onClick={() => setShowSnippets(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1733,7 +1739,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
       {/* Improvement 248: Symbol outline panel */}
       {showOutline && (
         <div className="modal-overlay" onClick={() => setShowOutline(false)}>
-          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4D1}"} Symbol Outline</h2>
               <button onClick={() => setShowOutline(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1762,7 +1768,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
       )}
 
       {/* Status Bar - Improvements 241-260 */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"} VCW v0.1.0</span>
           {gitBranch && (

@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState } from "react";
 
 // ------- Demo track data -------
@@ -124,7 +125,7 @@ export default function Timeline({ currentFrame, setCurrentFrame }: TimelineProp
               </span>
               <span className="flex-1 truncate text-[11px]">{track.name}</span>
               <div className="flex gap-[2px]">
-                <button
+                <button type="button"
                   onClick={() => toggleMute(track.id)}
                   className={`text-[9px] w-4 h-4 rounded flex items-center justify-center ${
                     track.muted ? "bg-studio-accent/30 text-studio-accent" : "text-studio-muted hover:text-studio-secondary"
@@ -133,7 +134,7 @@ export default function Timeline({ currentFrame, setCurrentFrame }: TimelineProp
                 >
                   M
                 </button>
-                <button
+                <button type="button"
                   onClick={() => toggleSolo(track.id)}
                   className={`text-[9px] w-4 h-4 rounded flex items-center justify-center ${
                     track.solo ? "bg-studio-yellow/30 text-studio-yellow" : "text-studio-muted hover:text-studio-secondary"
@@ -142,7 +143,7 @@ export default function Timeline({ currentFrame, setCurrentFrame }: TimelineProp
                 >
                   S
                 </button>
-                <button
+                <button type="button"
                   onClick={() => toggleLock(track.id)}
                   className={`text-[9px] w-4 h-4 rounded flex items-center justify-center ${
                     track.locked ? "bg-studio-orange/30 text-studio-orange" : "text-studio-muted hover:text-studio-secondary"

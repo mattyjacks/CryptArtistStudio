@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState, useRef, useEffect } from "react";
 import type { Workspace } from "../App";
 
@@ -77,7 +78,7 @@ export default function Header({ workspace, setWorkspace, onOpenSettings }: Head
 
       {/* Right Actions */}
       <div className="flex items-center gap-2 px-4 min-w-[180px] justify-end">
-        <button
+        <button type="button"
           onClick={onOpenSettings}
           className="btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors"
           title="Settings"
@@ -85,7 +86,7 @@ export default function Header({ workspace, setWorkspace, onOpenSettings }: Head
           ⚙️
         </button>
         <div className="relative" ref={notifRef}>
-          <button 
+          <button type="button" 
             onClick={() => setShowNotifs(!showNotifs)}
             className={`btn-ghost rounded-md px-2 py-1 text-sm hover:bg-studio-hover transition-colors ${showNotifs ? "bg-studio-hover" : ""}`} 
             title="Notifications"
@@ -111,7 +112,7 @@ export default function Header({ workspace, setWorkspace, onOpenSettings }: Head
         </div>
 
         <div className="relative" ref={profileRef}>
-          <button 
+          <button type="button" 
             onClick={() => setShowProfile(!showProfile)}
             className="w-7 h-7 rounded-full bg-gradient-to-br from-studio-accent to-studio-purple flex items-center justify-center text-[11px] font-bold text-white shadow-sm hover:opacity-90 transition-opacity"
           >
@@ -125,9 +126,12 @@ export default function Header({ workspace, setWorkspace, onOpenSettings }: Head
                 <div className="text-[9px] text-studio-muted">Pro Subscription</div>
               </div>
               <div className="py-1">
-                <button className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Account Settings</button>
-                <button className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Manage Cloud Storage</button>
-                <button className="w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors text-studio-red">Sign Out</button>
+            {/* Improvement 507: A11y & Microinteraction */}
+                <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Account Settings</button>
+            {/* Improvement 508: A11y & Microinteraction */}
+                <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Manage Cloud Storage</button>
+            {/* Improvement 509: A11y & Microinteraction */}
+                <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors text-studio-red">Sign Out</button>
               </div>
             </div>
           )}

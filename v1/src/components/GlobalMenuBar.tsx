@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 // ---------------------------------------------------------------------------
 // CryptArtist Studio - Global Menu Bar
 // Top-bar menu: File, Edit, Selection, View, Go, Run, Terminal, Help, MattyJacks.com
@@ -213,10 +214,10 @@ export default function GlobalMenuBar() {
   );
 
   return (
-    <div ref={menuBarRef} className="shrink-0 z-[100]">
+    <nav ref={menuBarRef} className="shrink-0 z-[100]" aria-label="Main menu">
       {/* Desktop Menu Bar */}
       <div className="hidden sm:flex items-center h-7 bg-studio-panel border-b border-studio-border px-1 select-none">
-        <button
+        <button type="button"
           onClick={() => navigate("/")}
           className="px-2 h-full flex items-center text-[11px] hover:bg-studio-surface transition-colors rounded-sm"
           title="CryptArtist Studio"
@@ -226,7 +227,7 @@ export default function GlobalMenuBar() {
 
         {menus.map((menu) => (
           <div key={menu.label} className="relative">
-            <button
+            <button type="button"
               onClick={() => setOpenMenu(openMenu === menu.label ? null : menu.label)}
               onMouseEnter={() => { if (openMenu) setOpenMenu(menu.label); }}
               className={`px-2.5 h-7 text-[11px] transition-colors rounded-sm whitespace-nowrap ${
@@ -249,7 +250,7 @@ export default function GlobalMenuBar() {
 
       {/* Mobile Menu Bar */}
       <div className="flex sm:hidden items-center h-10 bg-studio-panel border-b border-studio-border px-2 select-none">
-        <button
+        <button type="button"
           onClick={() => setMobileOpen(!mobileOpen)}
           className="px-2 py-1 text-lg hover:bg-studio-surface rounded transition-colors"
         >
@@ -288,6 +289,6 @@ export default function GlobalMenuBar() {
           </div>
         </div>
       )}
-    </div>
+    </nav>
   );
 }

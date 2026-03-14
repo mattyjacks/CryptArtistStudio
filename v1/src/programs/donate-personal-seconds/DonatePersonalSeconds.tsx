@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "../../utils/logger";
@@ -547,7 +549,7 @@ export default function DonatePersonalSeconds() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+          <button type="button" onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg">{"\u{1F5E1}\uFE0F"}</span>
           <span className="text-sm font-bold bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
             DonatePersonalSeconds
@@ -634,18 +636,18 @@ export default function DonatePersonalSeconds() {
                       readOnly
                       className="flex-1 px-3 py-2 text-[11px] font-mono bg-studio-panel border border-studio-border rounded-l-lg text-studio-text"
                     />
-                    <button
+                    <button type="button"
                       onClick={() => { navigator.clipboard.writeText(password); addLog("Key copied to clipboard (auto-clear in 30s)", "crypto"); }}
                       className="px-3 py-2 bg-studio-panel border border-l-0 border-studio-border text-studio-secondary hover:text-cyan-400 transition-all text-sm"
                       title="Copy"
                     >{"\u{1F4CB}"}</button>
-                    <button
+                    <button type="button"
                       onClick={() => setPasswordVisible(!passwordVisible)}
                       className="px-3 py-2 bg-studio-panel border border-l-0 border-studio-border rounded-r-lg text-studio-secondary hover:text-cyan-400 transition-all text-sm"
                       title="Toggle visibility"
                     >{passwordVisible ? "\u{1F648}" : "\u{1F441}"}</button>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={() => { setPassword(generatePassword()); addLog("Connection key regenerated", "crypto"); }}
                     className="text-[10px] px-3 py-2 rounded-lg border border-studio-border text-studio-secondary hover:text-studio-text transition-all"
                   >Regenerate</button>
@@ -682,7 +684,7 @@ export default function DonatePersonalSeconds() {
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {!isRunning ? (
                   <>
-                    <button onClick={handleDonate} className="px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
+                    <button type="button" onClick={handleDonate} className="px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
                       {"\u{1F5E1}\uFE0F"} Donate Personal Seconds
                     </button>
                     <button onClick={handleBorrow} className="px-6 py-3 rounded-xl font-bold text-sm text-studio-text bg-studio-panel border border-studio-border hover:border-cyan-500/30 hover:-translate-y-0.5 transition-all shadow-lg shadow-cyan-500/10">
@@ -766,7 +768,7 @@ export default function DonatePersonalSeconds() {
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Category</label>
-                    <select value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value as HumanTaskCategory)} className="input text-[11px] py-1.5 w-full">
+                    <select aria-label="Select option" value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value as HumanTaskCategory)} className="input text-[11px] py-1.5 w-full">
                       {HUMAN_TASK_CATEGORIES.map((c) => (
                         <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
                       ))}
@@ -792,7 +794,7 @@ export default function DonatePersonalSeconds() {
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Priority</label>
-                    <select value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value as HumanTask["priority"])} className="input text-[11px] py-1.5 w-full">
+                    <select aria-label="Select option" value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value as HumanTask["priority"])} className="input text-[11px] py-1.5 w-full">
                       <option value="low">Low</option>
                       <option value="normal">Normal</option>
                       <option value="high">High</option>
@@ -1011,7 +1013,7 @@ export default function DonatePersonalSeconds() {
       </div>
 
       {/* Status Bar */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F5E1}\uFE0F"} DPS v1.0.0</span>
           <span>|</span>

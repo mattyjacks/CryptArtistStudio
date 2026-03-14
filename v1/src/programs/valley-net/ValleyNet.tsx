@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -11,6 +13,7 @@ import { useApiKeys } from "../../utils/apiKeys";
 import { useInteropEmit, useInterop } from "../../utils/interop";
 import { useCrossClipboard } from "../../utils/crossClipboard";
 import { notifySuccess, notifyError } from "../../utils/notifications";
+import AIOptimizer from "../../components/AIOptimizer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -419,10 +422,10 @@ User task: ${userMsg.content}`;
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden">
       {/* Header */}
       <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-4 gap-3">
-        <button
+        <button type="button"
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
           title="Back to Suite"
@@ -436,14 +439,14 @@ User task: ${userMsg.content}`;
           <span className="text-[9px] font-medium tracking-widest uppercase text-studio-muted leading-none mt-[2px]">VNt</span>
         </div>
         <div className="flex-1" />
-        <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
+        <button type="button" onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
           Open .CryptArt
         </button>
-        <button onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
+        <button type="button" onClick={handleSaveProject} className="btn text-[10px] py-1 px-3">
           Save .CryptArt
         </button>
         {/* Improvement 88: Export conversation */}
-        <button
+        <button type="button"
           onClick={() => {
             const text = messages.map((m) => `[${m.role === "user" ? "You" : "ValleyNet"}] ${m.content}`).join("\n\n");
             const blob = new Blob([text], { type: "text/plain" });
@@ -461,7 +464,7 @@ User task: ${userMsg.content}`;
           {"\u{1F4BE}"} Export
         </button>
         {/* Improvement 85: Clear chat */}
-        <button
+        <button type="button"
           onClick={() => {
             if (messages.length > 1) {
               setMessages([messages[0]]);
@@ -498,7 +501,7 @@ User task: ${userMsg.content}`;
         ))}
         <div className="w-px h-3 bg-studio-border" />
         <span className="text-studio-muted">Personality:</span>
-        <select
+        <select aria-label="Select option"
           value={personality}
           onChange={(e) => setPersonality(e.target.value as any)}
           className="bg-transparent text-[10px] text-studio-secondary outline-none cursor-pointer"
@@ -518,9 +521,11 @@ User task: ${userMsg.content}`;
           {skills.filter((s) => s.enabled).length} skills
         </span>
         <div className="w-px h-3 bg-studio-border" />
+        <AIOptimizer actionKey="valleynet-agent" className="h-6" />
+        <div className="w-px h-3 bg-studio-border" />
         {/* Improvement 334: Model picker */}
         <span className="text-studio-muted">Model:</span>
-        <select
+        <select aria-label="Select option"
           value={selectedModel}
           onChange={(e) => {
             setSelectedModel(e.target.value);
@@ -544,7 +549,7 @@ User task: ${userMsg.content}`;
           {useOpenRouter ? "OR" : "OAI"}
         </button>
         {/* Improvement 336: Response format */}
-        <select
+        <select aria-label="Select option"
           value={responseFormat}
           onChange={(e) => setResponseFormat(e.target.value as any)}
           className="bg-transparent text-[10px] text-studio-muted outline-none cursor-pointer"
@@ -754,7 +759,7 @@ User task: ${userMsg.content}`;
                 value={conversationSearch}
                 onChange={(e) => setConversationSearch(e.target.value)}
                 className="input text-[10px] py-0.5 flex-1"
-                placeholder="Search messages..."
+                placeholder="Search messages..." autoComplete="off" spellCheck={false}
               />
               <span className="text-[9px] text-studio-muted">{messages.length} msgs</span>
               {pinnedMessages.length > 0 && <span className="text-[9px] text-studio-yellow">{pinnedMessages.length} pinned</span>}
@@ -879,7 +884,7 @@ User task: ${userMsg.content}`;
       {/* Improvement 183: Agent memory overlay */}
       {showMemory && (
         <div className="modal-overlay" onClick={() => setShowMemory(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F9E0}"} Agent Memory</h2>
               <button onClick={() => setShowMemory(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -916,7 +921,7 @@ User task: ${userMsg.content}`;
       {/* Improvement 181: Workflow builder overlay */}
       {showWorkflowBuilder && (
         <div className="modal-overlay" onClick={() => setShowWorkflowBuilder(false)}>
-          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F527}"} Workflow Builder</h2>
               <button onClick={() => setShowWorkflowBuilder(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -955,7 +960,7 @@ User task: ${userMsg.content}`;
       {/* Improvement 287: Knowledge base overlay */}
       {showKnowledgeBase && (
         <div className="modal-overlay" onClick={() => setShowKnowledgeBase(false)}>
-          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4DA}"} Knowledge Base</h2>
               <button onClick={() => setShowKnowledgeBase(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -992,7 +997,7 @@ User task: ${userMsg.content}`;
       {/* Improvement 289: Tool use log overlay */}
       {showToolLog && (
         <div className="modal-overlay" onClick={() => setShowToolLog(false)}>
-          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F527}"} Tool Use Log</h2>
               <button onClick={() => setShowToolLog(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1019,7 +1024,7 @@ User task: ${userMsg.content}`;
       )}
 
       {/* Status Bar - Improvements 286-293 */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{activePersona ? personas.find((p) => p.id === activePersona)?.icon || "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F" : "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F"} VNet v0.1.0</span>
           <span>|</span>

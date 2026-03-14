@@ -26,7 +26,7 @@ export default function LoadingSpinner({ size = "md", message, fullScreen }: Loa
 
   if (fullScreen) {
     return (
-      <div className="flex items-center justify-center h-screen w-screen bg-studio-bg">
+      <div className="flex items-center justify-center h-full w-full bg-studio-bg">
         {spinner}
       </div>
     );

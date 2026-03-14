@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useGlobalShortcuts } from "../utils/keyboard";
@@ -9,6 +11,7 @@ import { getDefaultModel } from "../utils/openrouter";
 import { parseCryptArt } from "../utils/cryptart";
 import { useWorkspace, programLabel, programRoute } from "../utils/workspace";
 import { sanitizeSearchQuery } from "../utils/security"; // Vuln 47
+import AudioVisualizer from "./AudioVisualizer";
 
 const programs = [
   {
@@ -127,6 +130,32 @@ const programs = [
     version: "v0.1.0",
     shortcut: "9",
     tags: ["build", "installer", "exe", "dmg", "deploy", "clone"],
+  },
+  {
+    id: "luck-factory",
+    name: "Luck Factory",
+    code: "Lck",
+    emoji: "🍀",
+    description: "Establish your cryptographic luck signature for the AI.",
+    gradient: "from-emerald-600/20 to-teal-600/20",
+    borderHover: "hover:border-emerald-500/40",
+    accentColor: "text-emerald-400",
+    version: "v1.0.0",
+    shortcut: "8",
+    tags: ["luck", "ai", "rng"],
+  },
+  {
+    id: "random-program",
+    name: "Random Program",
+    code: "Rnd",
+    emoji: "🎲",
+    description: "Launch a random installed program from all programs or mods",
+    gradient: "from-rose-600/20 to-pink-600/20",
+    borderHover: "hover:border-rose-500/40",
+    accentColor: "text-rose-400",
+    version: "v1.0.0",
+    shortcut: "D",
+    tags: ["random", "launcher", "rng"],
   },
   {
     id: "settings",
@@ -275,17 +304,23 @@ export default function SuiteLauncher() {
     });
   };
 
-  // Improvement 128: Track launch counts + Improvement 140: launch animation
+  // Improvement 128: Track launch counts + Improvement 140: launch animation + Random Program support
   const launchProgram = useCallback((prog: typeof programs[0]) => {
-    setLaunching(prog.id);
-    logger.programLaunch(prog.id);
-    localStorage.setItem("cryptartist_last_opened", prog.id);
+    let targetProg = prog;
+    if (prog.id === "random-program") {
+      const launchable = programs.filter(p => p.id !== "random-program" && p.id !== "suite-launcher");
+      targetProg = launchable[Math.floor(Math.random() * launchable.length)];
+    }
+
+    setLaunching(targetProg.id);
+    logger.programLaunch(targetProg.id);
+    localStorage.setItem("cryptartist_last_opened", targetProg.id);
     setLaunchCounts((prev) => {
-      const next = { ...prev, [prog.id]: (prev[prog.id] || 0) + 1 };
+      const next = { ...prev, [targetProg.id]: (prev[targetProg.id] || 0) + 1 };
       localStorage.setItem("cryptartist_launch_counts", JSON.stringify(next));
       return next;
     });
-    setTimeout(() => navigate(prog.id === "suite-launcher" ? "/" : `/${prog.id}`), 300);
+    setTimeout(() => navigate(targetProg.id === "suite-launcher" ? "/" : `/${targetProg.id}`), 300);
   }, [navigate]);
 
   // Multi-file .CryptArt open handler
@@ -352,6 +387,11 @@ export default function SuiteLauncher() {
     return ["all", ...Array.from(tagSet).slice(0, 8)];
   }, []);
 
+  const randomCarouselPrograms = useMemo(() => {
+    const shuffled = [...programs].sort(() => Math.random() - 0.5);
+    return [...shuffled, ...shuffled]; // Double up for infinite scrolling
+  }, []);
+
   // Improvement 226+228: Search/filter/sort programs
   const filteredPrograms = useMemo(() => {
     let result = programs.filter((prog) => {
@@ -372,9 +412,28 @@ export default function SuiteLauncher() {
   }, [searchQuery, activeCategory, sortBy, launchCounts, favorites]);
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden text-studio-text relative">
+      <AudioVisualizer />
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 50s linear infinite;
+        }
+        .animate-marquee:hover {
+          animation-play-state: paused;
+        }
+        .truncate-2-lines {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
       {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8">
+      <div className="flex-1 flex flex-col items-center justify-start py-8 px-4 sm:px-8 overflow-y-auto scrollbar-thin scroll-smooth w-full relative z-10">
         {/* Logo */}
         <div className="flex items-center gap-4 mb-3 animate-fade-in">
           <span className="text-6xl" role="img" aria-label="CryptArtist logo">
@@ -385,7 +444,8 @@ export default function SuiteLauncher() {
         {greeting && (
           <p className="text-[11px] text-studio-muted mb-1 animate-fade-in">{greeting}, Matt {"\u{1F44B}"}</p>
         )}
-        <h1 className="text-3xl font-bold tracking-tight text-studio-text mb-1 animate-fade-in">
+            {/* Improvement 516: Screen Reader Accessibility */}
+        <h1 role="heading" aria-level={1} className="text-3xl font-bold tracking-tight text-studio-text mb-1 animate-fade-in">
           CryptArtist Studio
         </h1>
         <p className="text-sm text-studio-secondary mb-6 animate-fade-in text-center max-w-lg">
@@ -409,6 +469,30 @@ export default function SuiteLauncher() {
           </a>
         </p>
 
+        {/* Featured Infinite Carousel */}
+        <div className="w-full overflow-hidden relative mb-10 animate-fade-in group pointer-events-auto">
+          <div className="text-[11px] font-semibold text-studio-muted mb-3 flex items-center justify-center gap-2">
+            <span className="w-8 h-px bg-studio-border"></span>
+            Featured Programs
+            <span className="w-8 h-px bg-studio-border"></span>
+          </div>
+          <div className="flex gap-4 w-max animate-marquee pb-2 px-4 hover:will-change-transform">
+            {randomCarouselPrograms.map((prog, i) => (
+              <button 
+                key={`${prog.id}-${i}`} 
+                onClick={() => launchProgram(prog)} 
+                className={`flex items-center gap-3 px-5 py-4 rounded-2xl border border-studio-border hover:border-studio-cyan/40 bg-gradient-to-br ${prog.gradient} w-[280px] shrink-0 transition-transform active:scale-95 text-left`}
+              >
+                <span className="text-4xl shrink-0 group-hover:scale-110 transition-transform block">{prog.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-studio-text truncate text-sm">{prog.name}</div>
+                  <div className="text-[10px] text-studio-secondary truncate-2-lines mt-0.5 leading-tight">{prog.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Improvement 226: Search + category + sort + view */}
         <div className="w-full max-w-2xl mb-4 animate-fade-in space-y-2">
           <div className="relative">
@@ -420,10 +504,10 @@ export default function SuiteLauncher() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(sanitizeSearchQuery(e.target.value, 200))}
               className="input w-full pl-9 pr-4 py-2 text-sm rounded-lg bg-studio-surface border-studio-border"
-              placeholder="Search programs... (or press 1-7 to launch)"
+              placeholder="Search programs... (or press 1-7 to launch)" autoComplete="off" spellCheck={false}
             />
             {searchQuery && (
-              <button
+              <button type="button"
                 onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-studio-muted hover:text-studio-text text-xs"
               >
@@ -448,7 +532,7 @@ export default function SuiteLauncher() {
             ))}
             <div className="flex-1" />
             {/* Improvement 228: Sort */}
-            <select
+            <select aria-label="Select option"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
               className="bg-transparent text-[9px] text-studio-muted outline-none cursor-pointer"
@@ -459,7 +543,7 @@ export default function SuiteLauncher() {
               <option value="favorites">Favorites First</option>
             </select>
             {/* Improvement 229: View toggle */}
-            <button
+            <button type="button"
               onClick={() => setViewMode((v) => v === "grid" ? "list" : "grid")}
               className="text-[10px] text-studio-muted hover:text-studio-text px-1"
               title={viewMode === "grid" ? "Switch to list view" : "Switch to grid view"}
@@ -467,7 +551,7 @@ export default function SuiteLauncher() {
               {viewMode === "grid" ? "\u2630" : "\u25A6"}
             </button>
             {/* Improvement 227: What's new */}
-            <button
+            <button type="button"
               onClick={() => setShowWhatsNew(true)}
               className="text-[10px] text-studio-muted hover:text-studio-cyan px-1"
               title="What's New"
@@ -480,7 +564,7 @@ export default function SuiteLauncher() {
         {/* Open .CryptArt Files button */}
         <div className="w-full max-w-6xl mb-3 px-2 sm:px-0 flex items-center justify-between animate-fade-in">
           <div className="flex items-center gap-3">
-            <button
+            <button type="button"
               onClick={handleOpenCryptArtFiles}
               className="btn text-[11px] px-4 py-1.5 border-studio-cyan/30 text-studio-cyan hover:bg-studio-cyan/10 transition-all"
             >
@@ -493,7 +577,7 @@ export default function SuiteLauncher() {
               </span>
             )}
           </div>
-          <button
+          <button type="button"
             onClick={() => navigate("/dps-leaderboard")}
             className="text-[11px] px-3 py-1.5 rounded-lg border border-orange-500/30 text-orange-400 hover:bg-orange-500/10 transition-all flex items-center gap-1.5"
             title="View the Donate Personal Seconds Leaderboard"
@@ -593,7 +677,8 @@ export default function SuiteLauncher() {
               <span className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
                 {prog.emoji}
               </span>
-              <h2 className="text-base font-bold text-studio-text mb-1">
+            {/* Improvement 517: Screen Reader Accessibility */}
+              <h2 role="heading" aria-level={2} className="text-base font-bold text-studio-text mb-1">
                 {prog.name}
               </h2>
               <span className={`text-xs font-mono font-semibold ${prog.accentColor} mb-2`}>
@@ -644,7 +729,8 @@ export default function SuiteLauncher() {
           </span>
           <span className="text-studio-muted text-[10px]">|</span>
           {/* Improvement 322: Quick settings link */}
-          <button onClick={() => navigate("/settings")} className="text-[10px] text-studio-muted hover:text-studio-cyan transition-colors">
+            {/* Improvement 518: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/settings")} className="transition-transform active:scale-95 text-[10px] text-studio-muted hover:text-studio-cyan transition-colors">
             {"\u2699\uFE0F"} Settings
           </button>
           <span className="text-studio-muted text-[10px]">|</span>
@@ -658,12 +744,12 @@ export default function SuiteLauncher() {
             </button>
             {showQuickActions && (
               <div className="dropdown-menu absolute bottom-full mb-2 left-0">
-                <div className="dropdown-item" onClick={async () => { setShowQuickActions(false); await handleOpenCryptArtFiles(); }}>Open .CryptArt Files...</div>
-                <div className="dropdown-item" onClick={() => { setShowRecents(true); setShowQuickActions(false); }}>Recent Projects</div>
-                <div className="dropdown-item" onClick={() => { setShowShortcuts(true); setShowQuickActions(false); }}>Keyboard Shortcuts</div>
+                <div tabIndex={0} className="dropdown-item" onClick={async () => { setShowQuickActions(false); await handleOpenCryptArtFiles(); }}>Open .CryptArt Files...</div>
+                <div tabIndex={0} className="dropdown-item" onClick={() => { setShowRecents(true); setShowQuickActions(false); }}>Recent Projects</div>
+                <div tabIndex={0} className="dropdown-item" onClick={() => { setShowShortcuts(true); setShowQuickActions(false); }}>Keyboard Shortcuts</div>
                 <div className="dropdown-separator" />
-                <div className="dropdown-item" onClick={() => { localStorage.clear(); toast.info("Cache cleared"); setShowQuickActions(false); }}>Clear Cache</div>
-                <div className="dropdown-item" onClick={() => { setShowQuickActions(false); window.open("https://github.com/mattyjacks/CryptArtistStudio", "_blank"); }}>GitHub Repo</div>
+                <div tabIndex={0} className="dropdown-item" onClick={() => { localStorage.clear(); toast.info("Cache cleared"); setShowQuickActions(false); }}>Clear Cache</div>
+                <div tabIndex={0} className="dropdown-item" onClick={() => { setShowQuickActions(false); window.open("https://github.com/mattyjacks/CryptArtistStudio", "_blank"); }}>GitHub Repo</div>
               </div>
             )}
           </div>
@@ -679,10 +765,11 @@ export default function SuiteLauncher() {
       {/* Improvement 227: What's New modal */}
       {showWhatsNew && (
         <div className="modal-overlay" onClick={() => setShowWhatsNew(false)}>
-          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u2728"} What's New in v0.1.0</h2>
-              <button onClick={() => setShowWhatsNew(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            {/* Improvement 519: A11y & Microinteraction */}
+              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowWhatsNew(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
             </div>
             <div className="modal-body space-y-3">
               {[
@@ -726,10 +813,11 @@ export default function SuiteLauncher() {
       {/* Improvement 237: System info modal */}
       {showSystemInfo && (
         <div className="modal-overlay" onClick={() => setShowSystemInfo(false)}>
-          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4BB}"} System Info</h2>
-              <button onClick={() => setShowSystemInfo(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            {/* Improvement 520: A11y & Microinteraction */}
+              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowSystemInfo(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
             </div>
             <div className="modal-body space-y-2">
               {[
@@ -760,10 +848,11 @@ export default function SuiteLauncher() {
       {/* Improvement 133: Keyboard shortcuts overlay */}
       {showShortcuts && (
         <div className="modal-overlay" onClick={() => setShowShortcuts(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Keyboard Shortcuts</h2>
-              <button onClick={() => setShowShortcuts(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            {/* Improvement 521: A11y & Microinteraction */}
+              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowShortcuts(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
             </div>
             <div className="modal-body space-y-2">
               {[
@@ -787,10 +876,11 @@ export default function SuiteLauncher() {
       {/* Improvement 134: Recent projects panel */}
       {showRecents && (
         <div className="modal-overlay" onClick={() => setShowRecents(false)}>
-          <div className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>Recent Projects</h2>
-              <button onClick={() => setShowRecents(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+            {/* Improvement 522: A11y & Microinteraction */}
+              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowRecents(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
             </div>
             <div className="modal-body">
               {recentProjects.length === 0 ? (
@@ -869,7 +959,7 @@ export default function SuiteLauncher() {
       </div>
 
       {/* Version Footer - Improvements 226-240 */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F480}\u{1F3A8}"} CryptArtist Studio v0.1.0</span>
           <span>|</span>
@@ -882,7 +972,8 @@ export default function SuiteLauncher() {
           <span>{favorites.length} fav</span>
           <span>|</span>
           {/* Improvement 237: System info button */}
-          <button onClick={() => setShowSystemInfo(true)} className="hover:text-studio-cyan transition-colors">{"\u{1F4BB}"} Info</button>
+            {/* Improvement 523: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={() => setShowSystemInfo(true)} className="transition-transform active:scale-95 hover:text-studio-cyan transition-colors">{"\u{1F4BB}"} Info</button>
         </div>
         <div className="flex items-center gap-3">
           <span>{programs.length} programs</span>

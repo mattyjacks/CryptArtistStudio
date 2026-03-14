@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 // ---------------------------------------------------------------------------
 // CryptArtist Studio - Plugin Manager Component
 // Install, enable/disable, configure, and remove plugins from ZIP files
@@ -65,7 +67,8 @@ export default function PluginManager() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-lg font-bold mb-1">{"\u{1F9E9}"} Plugins</h2>
+            {/* Improvement 512: Screen Reader Accessibility */}
+      <h2 role="heading" aria-level={2} className="text-lg font-bold mb-1">{"\u{1F9E9}"} Plugins</h2>
       <p className="text-[11px] text-studio-muted mb-4">
         Install plugins to add effects, filters, transitions, tools, and new features to CryptArtist Studio programs.
         Plugins are distributed as <code className="inline-code">.zip</code> files.
@@ -204,7 +207,7 @@ function PluginCard({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {/* Enable/disable toggle */}
-          <button
+          <button type="button"
             onClick={(e) => { e.stopPropagation(); onToggle(!ext.enabled); }}
             className={`w-9 h-5 rounded-full transition-colors relative ${ext.enabled ? "bg-studio-cyan" : "bg-studio-border"}`}
           >
@@ -256,14 +259,14 @@ function PluginCard({
                         {setting.description && <div className="text-[8px] text-studio-muted">{setting.description}</div>}
                       </div>
                       {setting.type === "boolean" ? (
-                        <button
+                        <button type="button"
                           onClick={() => onSettingChange(setting.key, !val)}
                           className={`w-9 h-5 rounded-full transition-colors relative ${val ? "bg-studio-cyan" : "bg-studio-border"}`}
                         >
                           <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] transition-all ${val ? "left-[18px]" : "left-[3px]"}`} />
                         </button>
                       ) : setting.type === "select" ? (
-                        <select
+                        <select aria-label="Select option"
                           value={String(val)}
                           onChange={(e) => onSettingChange(setting.key, e.target.value)}
                           className="input text-[9px] py-1 w-32"
@@ -310,7 +313,7 @@ function PluginCard({
 
           {/* Uninstall */}
           <div className="flex justify-end">
-            <button
+            <button type="button"
               onClick={onUninstall}
               className="btn text-[9px] px-3 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
             >

@@ -29,7 +29,7 @@ export interface OpenRouterResponse {
   tokensUsed: { prompt: number; completion: number; total: number };
 }
 
-export type AIEfficiencyMode = "cheap" | "fast" | "good" | "smart";
+export type AIEfficiencyMode = "cheap" | "fast" | "good" | "smart" | "lucky";
 export type AIActionKey =
   | "general"
   | "media-chat"
@@ -54,6 +54,7 @@ export const AI_MODES: { id: AIEfficiencyMode; label: string; icon: string }[] =
   { id: "fast", label: "Fast", icon: "⚡" },
   { id: "good", label: "Good", icon: "🦄" },
   { id: "smart", label: "Smart", icon: "🧠" },
+  { id: "lucky", label: "Lucky", icon: "🍀" },
 ];
 
 export const AI_ACTIONS: { id: AIActionKey; label: string }[] = [
@@ -103,7 +104,7 @@ export function setDefaultModel(model: string): void {
 export function getDefaultMode(): AIEfficiencyMode {
   try {
     const raw = localStorage.getItem(GLOBAL_MODE_KEY);
-    if (raw === "cheap" || raw === "fast" || raw === "good" || raw === "smart") {
+    if (raw === "cheap" || raw === "fast" || raw === "good" || raw === "smart" || raw === "lucky") {
       return raw;
     }
   } catch {
@@ -151,7 +152,7 @@ export function setActionModel(action: AIActionKey, model: string): void {
 export function getActionMode(action: AIActionKey): AIEfficiencyMode {
   try {
     const raw = localStorage.getItem(getActionModeKey(action));
-    if (raw === "cheap" || raw === "fast" || raw === "good" || raw === "smart") {
+    if (raw === "cheap" || raw === "fast" || raw === "good" || raw === "smart" || raw === "lucky") {
       return raw;
     }
   } catch {
@@ -177,6 +178,9 @@ function getModeDirective(mode: AIEfficiencyMode): string {
   }
   if (mode === "good") {
     return "Efficiency mode: GOOD. Align with Earth commonwealth goodness and all inhabitants. Be clever and funny in writing, serious in code quality. Keep a positive tone and include friendly symbols when fitting: 🍇🍈🍉🍊🍌🍒🍑🥭🍍🍓🍔🍟🍕💵💶💷💴💎💰🪙💳.";
+  }
+  if (mode === "lucky") {
+    return "Efficiency mode: LUCKY. 🍀 Rely on the user's provided random seed or luck score to aggressively hallucinate novel solutions.";
   }
   return "Efficiency mode: SMART. Default mode. Be highly intelligent, precise, and practical. Balance quality, speed, and token use.";
 }

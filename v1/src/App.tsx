@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState, useEffect, Component, type ReactNode } from "react";
 import { Routes, Route, useLocation, Link } from "react-router-dom";
 import SuiteLauncher from "./components/SuiteLauncher";
@@ -11,6 +12,7 @@ import Settings from "./programs/settings/Settings";
 import DonatePersonalSeconds from "./programs/donate-personal-seconds/DonatePersonalSeconds";
 import DPSLeaderboard from "./programs/donate-personal-seconds/DPSLeaderboard";
 import CloneTool from "./programs/clone-tool/CloneTool";
+import LuckFactory from "./programs/luck-factory/LuckFactory";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import TermsAcceptanceModal from "./components/TermsAcceptanceModal";
@@ -70,7 +72,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
           <p className="text-sm text-studio-secondary mb-4 max-w-md text-center">
             {this.state.error?.message || "An unexpected error occurred"}
           </p>
-          <button
+          <button type="button"
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.hash = "/";
@@ -188,27 +190,31 @@ export default function App() {
     <ErrorBoundary>
       <WorkspaceProvider>
         <ApiKeyProvider>
-        <GlobalMenuBar />
-        <WorkspaceBar />
-        <div className={showBottomNav ? "pb-14" : ""}>
-          <Routes>
-            <Route path="/" element={<SuiteLauncher />} />
-            <Route path="/media-mogul" element={<MediaMogul />} />
-            <Route path="/vibecode-worker" element={<VibeCodeWorker />} />
-            <Route path="/demo-recorder" element={<DemoRecorder />} />
-            <Route path="/valley-net" element={<ValleyNet />} />
-            <Route path="/game-studio" element={<GameStudio />} />
-            <Route path="/commander" element={<Commander />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/donate-personal-seconds" element={<DonatePersonalSeconds />} />
-            <Route path="/dps-leaderboard" element={<DPSLeaderboard />} />
-            <Route path="/clone-tool" element={<CloneTool />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<TermsOfUse />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-        {showBottomNav && <MobileNav />}
+          <div className="flex flex-col h-screen w-screen overflow-hidden">
+            <a href="#main-content" className="skip-to-content">Skip to content</a>
+            <GlobalMenuBar />
+            <WorkspaceBar />
+            <div id="main-content" className={`flex-1 overflow-hidden relative ${showBottomNav ? "pb-14" : ""}`}>
+              <Routes>
+                <Route path="/" element={<SuiteLauncher />} />
+                <Route path="/media-mogul" element={<MediaMogul />} />
+                <Route path="/vibecode-worker" element={<VibeCodeWorker />} />
+                <Route path="/demo-recorder" element={<DemoRecorder />} />
+                <Route path="/valley-net" element={<ValleyNet />} />
+                <Route path="/game-studio" element={<GameStudio />} />
+                <Route path="/commander" element={<Commander />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/donate-personal-seconds" element={<DonatePersonalSeconds />} />
+                <Route path="/dps-leaderboard" element={<DPSLeaderboard />} />
+                <Route path="/clone-tool" element={<CloneTool />} />
+                <Route path="/luck-factory" element={<LuckFactory />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfUse />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </div>
+            {showBottomNav && <MobileNav />}
+          </div>
         </ApiKeyProvider>
       </WorkspaceProvider>
     </ErrorBoundary>

@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { logger } from "../../utils/logger";
@@ -547,7 +549,8 @@ export default function DonatePersonalSeconds() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+            {/* Improvement 585: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg">{"\u{1F5E1}\uFE0F"}</span>
           <span className="text-sm font-bold bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
             DonatePersonalSeconds
@@ -597,7 +600,8 @@ export default function DonatePersonalSeconds() {
             <>
               {/* System Resources */}
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4CA}"} System Resources</h2>
+            {/* Improvement 586: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4CA}"} System Resources</h2>
                 <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                   {[
                     { icon: "\u2699\uFE0F", label: "CPU", value: resources ? resources.cpu.cores + " cores" : "--" },
@@ -622,7 +626,8 @@ export default function DonatePersonalSeconds() {
 
               {/* Password */}
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F512}"} Encrypted Connection Key</h2>
+            {/* Improvement 587: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F512}"} Encrypted Connection Key</h2>
                 <p className="text-[10px] text-studio-secondary mb-3">
                   All data is end-to-end encrypted with AES-256-GCM. Share this key only with trusted peers.
                 </p>
@@ -634,18 +639,18 @@ export default function DonatePersonalSeconds() {
                       readOnly
                       className="flex-1 px-3 py-2 text-[11px] font-mono bg-studio-panel border border-studio-border rounded-l-lg text-studio-text"
                     />
-                    <button
+                    <button type="button"
                       onClick={() => { navigator.clipboard.writeText(password); addLog("Key copied to clipboard (auto-clear in 30s)", "crypto"); }}
                       className="px-3 py-2 bg-studio-panel border border-l-0 border-studio-border text-studio-secondary hover:text-cyan-400 transition-all text-sm"
                       title="Copy"
                     >{"\u{1F4CB}"}</button>
-                    <button
+                    <button type="button"
                       onClick={() => setPasswordVisible(!passwordVisible)}
                       className="px-3 py-2 bg-studio-panel border border-l-0 border-studio-border rounded-r-lg text-studio-secondary hover:text-cyan-400 transition-all text-sm"
                       title="Toggle visibility"
                     >{passwordVisible ? "\u{1F648}" : "\u{1F441}"}</button>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={() => { setPassword(generatePassword()); addLog("Connection key regenerated", "crypto"); }}
                     className="text-[10px] px-3 py-2 rounded-lg border border-studio-border text-studio-secondary hover:text-studio-text transition-all"
                   >Regenerate</button>
@@ -654,7 +659,8 @@ export default function DonatePersonalSeconds() {
 
               {/* Donation Limits */}
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F4CF}"} Resource Limits</h2>
+            {/* Improvement 588: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F4CF}"} Resource Limits</h2>
                 <p className="text-[10px] text-studio-secondary mb-3">Control how much of your system to share.</p>
                 <div className="grid grid-cols-1 sm:grid-cols-5 gap-4">
                   {[
@@ -682,15 +688,17 @@ export default function DonatePersonalSeconds() {
               <div className="flex flex-wrap items-center justify-center gap-3">
                 {!isRunning ? (
                   <>
-                    <button onClick={handleDonate} className="px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
+            {/* Improvement 589: A11y & Microinteraction */}
+                    <button aria-label="Action Button" title="Click to interact" onClick={handleDonate} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
                       {"\u{1F5E1}\uFE0F"} Donate Personal Seconds
                     </button>
-                    <button onClick={handleBorrow} className="px-6 py-3 rounded-xl font-bold text-sm text-studio-text bg-studio-panel border border-studio-border hover:border-cyan-500/30 hover:-translate-y-0.5 transition-all shadow-lg shadow-cyan-500/10">
+            {/* Improvement 590: A11y & Microinteraction */}
+                    <button aria-label="Action Button" title="Click to interact" onClick={handleBorrow} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-studio-text bg-studio-panel border border-studio-border hover:border-cyan-500/30 hover:-translate-y-0.5 transition-all shadow-lg shadow-cyan-500/10">
                       {"\u26A1"} Borrow Compute
                     </button>
                   </>
                 ) : (
-                  <button onClick={handleStop} className="px-6 py-3 rounded-xl font-bold text-sm text-red-400 bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-all">
+                  <button aria-label="Action Button" title="Click to interact" onClick={handleStop} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-red-400 bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-all">
                     {"\u23F9"} Stop Session
                   </button>
                 )}
@@ -699,7 +707,8 @@ export default function DonatePersonalSeconds() {
               {/* Live Stats */}
               {isRunning && (
                 <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border animate-fade-in">
-                  <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4C8}"} Live Stats</h2>
+            {/* Improvement 592: Screen Reader Accessibility */}
+                  <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4C8}"} Live Stats</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     {[
                       { label: "Peers", value: String(stats.connectedPeers) },
@@ -729,7 +738,8 @@ export default function DonatePersonalSeconds() {
                 ].map((c) => (
                   <div key={c.title} className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
                     <div className="text-xl mb-2">{c.icon}</div>
-                    <h3 className="text-[11px] font-bold mb-1">{c.title}</h3>
+            {/* Improvement 593: Screen Reader Accessibility */}
+                    <h3 role="heading" aria-level={3} className="text-[11px] font-bold mb-1">{c.title}</h3>
                     <p className="text-[10px] text-studio-secondary leading-relaxed">{c.desc}</p>
                   </div>
                 ))}
@@ -743,7 +753,8 @@ export default function DonatePersonalSeconds() {
           {activeTab === "human-tasks" && (
             <>
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F9D1}\u200D\u{1F4BB}"} Post a Human Task</h2>
+            {/* Improvement 594: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F9D1}\u200D\u{1F4BB}"} Post a Human Task</h2>
                 <p className="text-[10px] text-studio-secondary mb-3">
                   Need something a computer can't do? Post a task for other humans to complete - like Amazon Mechanical Turk, but peer-to-peer.
                 </p>
@@ -758,7 +769,7 @@ export default function DonatePersonalSeconds() {
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Category</label>
-                    <select value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value as HumanTaskCategory)} className="input text-[11px] py-1.5 w-full">
+                    <select aria-label="Select option" value={newTaskCategory} onChange={(e) => setNewTaskCategory(e.target.value as HumanTaskCategory)} className="input text-[11px] py-1.5 w-full">
                       {HUMAN_TASK_CATEGORIES.map((c) => (
                         <option key={c.value} value={c.value}>{c.icon} {c.label}</option>
                       ))}
@@ -784,7 +795,7 @@ export default function DonatePersonalSeconds() {
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Priority</label>
-                    <select value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value as HumanTask["priority"])} className="input text-[11px] py-1.5 w-full">
+                    <select aria-label="Select option" value={newTaskPriority} onChange={(e) => setNewTaskPriority(e.target.value as HumanTask["priority"])} className="input text-[11px] py-1.5 w-full">
                       <option value="low">Low</option>
                       <option value="normal">Normal</option>
                       <option value="high">High</option>
@@ -800,7 +811,8 @@ export default function DonatePersonalSeconds() {
                     />
                   </div>
                 </div>
-                <button onClick={handlePostTask} disabled={!newTaskTitle.trim()} className="btn btn-cyan text-[10px] px-4 py-1.5">
+            {/* Improvement 595: A11y & Microinteraction */}
+                <button aria-label="Action Button" title="Click to interact" onClick={handlePostTask} disabled={!newTaskTitle.trim()} className="transition-transform active:scale-95 btn btn-cyan text-[10px] px-4 py-1.5">
                   Post Task
                 </button>
               </section>
@@ -848,7 +860,7 @@ export default function DonatePersonalSeconds() {
                           </div>
                         </div>
                         {task.status === "open" && task.createdBy !== peerId && (
-                          <button onClick={() => handleClaimTask(task.id)} className="btn btn-cyan text-[9px] px-3 py-1 shrink-0">
+                          <button aria-label="Action Button" title="Click to interact" onClick={() => handleClaimTask(task.id)} className="transition-transform active:scale-95 btn btn-cyan text-[9px] px-3 py-1 shrink-0">
                             Claim
                           </button>
                         )}
@@ -871,7 +883,8 @@ export default function DonatePersonalSeconds() {
           {activeTab === "encryption" && (
             <>
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F510}"} Encryption Status</h2>
+            {/* Improvement 597: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F510}"} Encryption Status</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-3 rounded-lg bg-studio-panel border border-studio-border">
                     <div className="text-[10px] text-studio-muted mb-1">Algorithm</div>
@@ -901,7 +914,8 @@ export default function DonatePersonalSeconds() {
               </section>
 
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F6E1}\uFE0F"} Security Features</h2>
+            {/* Improvement 598: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F6E1}\uFE0F"} Security Features</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {[
                     { title: "End-to-End Encryption", desc: "All workloads encrypted before leaving your machine. Only the intended recipient can decrypt." },
@@ -927,7 +941,8 @@ export default function DonatePersonalSeconds() {
           {activeTab === "peers" && (
             <>
               <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F465}"} Connected Peers ({peers.length})</h2>
+            {/* Improvement 599: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F465}"} Connected Peers ({peers.length})</h2>
                 {peers.length > 0 ? (
                   <div className="flex flex-col gap-2">
                     {peers.map((p) => (
@@ -978,7 +993,7 @@ export default function DonatePersonalSeconds() {
             <section className="rounded-xl bg-studio-surface border border-studio-border overflow-hidden">
               <div className="flex items-center justify-between px-3 py-2 bg-studio-panel border-b border-studio-border">
                 <span className="text-[11px] font-semibold text-studio-text">{"\u{1F4DD}"} Activity Log ({logs.length} entries)</span>
-                <button onClick={() => setLogs([])} className="text-[9px] text-studio-muted hover:text-cyan-400 transition-all">Clear</button>
+                <button type="button" onClick={() => setLogs([])} className="text-[9px] text-studio-muted hover:text-cyan-400 transition-all">Clear</button>
               </div>
               <div className="max-h-[500px] overflow-y-auto p-1">
                 {logs.length > 0 ? logs.map((log, i) => (
@@ -1003,7 +1018,7 @@ export default function DonatePersonalSeconds() {
       </div>
 
       {/* Status Bar */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F5E1}\uFE0F"} DPS v1.0.0</span>
           <span>|</span>

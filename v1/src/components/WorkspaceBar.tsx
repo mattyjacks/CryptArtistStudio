@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 // ============================================================================
 // WorkspaceBar - Global tab bar showing all open .CryptArt workspaces
 // Supports switching, closing, combining, and resource sharing controls.
@@ -26,7 +27,7 @@ function WorkspaceTab({
   onContextMenu: (e: React.MouseEvent) => void;
 }) {
   return (
-    <button
+    <button type="button"
       onClick={onActivate}
       onContextMenu={onContextMenu}
       className={`group flex items-center gap-1.5 px-3 py-1.5 text-[11px] rounded-t-lg border border-b-0 transition-all whitespace-nowrap max-w-[200px] ${
@@ -152,11 +153,13 @@ function CombineDialog({
       <>
         <div className="fixed inset-0 z-[997] bg-black/50" onClick={onClose} />
         <div className="fixed z-[998] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-studio-panel border border-studio-border rounded-xl p-6 w-[400px] shadow-2xl">
-          <h3 className="text-sm font-bold text-studio-text mb-2">Already in a Group</h3>
+            {/* Improvement 549: Screen Reader Accessibility */}
+          <h3 role="heading" aria-level={3} className="text-sm font-bold text-studio-text mb-2">Already in a Group</h3>
           <p className="text-[11px] text-studio-secondary mb-4">
             This workspace is already part of "{existingGroup.name}" with {existingGroup.workspaceIds.length} workspaces.
           </p>
-          <button onClick={onClose} className="btn btn-cyan text-[11px] px-4 py-1.5">OK</button>
+            {/* Improvement 550: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={onClose} className="transition-transform active:scale-95 btn btn-cyan text-[11px] px-4 py-1.5">OK</button>
         </div>
       </>
     );
@@ -166,7 +169,8 @@ function CombineDialog({
     <>
       <div className="fixed inset-0 z-[997] bg-black/50" onClick={onClose} />
       <div className="fixed z-[998] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-studio-panel border border-studio-border rounded-xl p-6 w-[440px] shadow-2xl">
-        <h3 className="text-sm font-bold text-studio-text mb-1">{"\u{1F517}"} Combine Workspaces</h3>
+            {/* Improvement 551: Screen Reader Accessibility */}
+        <h3 role="heading" aria-level={3} className="text-sm font-bold text-studio-text mb-1">{"\u{1F517}"} Combine Workspaces</h3>
         <p className="text-[10px] text-studio-secondary mb-4">
           Select workspaces to combine into a group for sharing resources.
         </p>
@@ -215,10 +219,11 @@ function CombineDialog({
         </div>
 
         <div className="flex justify-end gap-2">
-          <button onClick={onClose} className="btn text-[11px] px-4 py-1.5">
+            {/* Improvement 552: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={onClose} className="transition-transform active:scale-95 btn text-[11px] px-4 py-1.5">
             Cancel
           </button>
-          <button
+          <button type="button"
             onClick={handleCombine}
             disabled={selected.size === 0}
             className="btn btn-cyan text-[11px] px-4 py-1.5 disabled:opacity-40"

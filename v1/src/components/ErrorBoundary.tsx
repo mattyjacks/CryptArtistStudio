@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { Component, type ErrorInfo, type ReactNode } from "react";
 
 interface Props {
@@ -29,9 +30,10 @@ export default class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) return this.props.fallback;
 
       return (
-        <div className="flex flex-col items-center justify-center h-screen w-screen bg-studio-bg text-studio-text p-8">
+        <div className="flex flex-col items-center justify-center h-full w-full bg-studio-bg text-studio-text p-8">
           <span className="text-5xl mb-4">{"\u{1F480}\u{1F3A8}"}</span>
-          <h1 className="text-xl font-bold mb-2">Something went wrong</h1>
+            {/* Improvement 506: Screen Reader Accessibility */}
+          <h1 role="heading" aria-level={1} className="text-xl font-bold mb-2">Something went wrong</h1>
           <p className="text-sm text-studio-muted mb-4 text-center max-w-md">
             CryptArtist Studio encountered an unexpected error. Try refreshing the application.
           </p>
@@ -39,13 +41,13 @@ export default class ErrorBoundary extends Component<Props, State> {
             {this.state.error?.message}
           </pre>
           <div className="flex gap-3">
-            <button
+            <button type="button"
               onClick={() => this.setState({ hasError: false, error: null })}
               className="btn btn-accent"
             >
               Try Again
             </button>
-            <button
+            <button type="button"
               onClick={() => window.location.reload()}
               className="btn"
             >

@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke, convertFileSrc } from "@tauri-apps/api/core";
@@ -12,6 +14,7 @@ import { useApiKeys } from "../../utils/apiKeys";
 import { useInteropEmit, useInterop } from "../../utils/interop";
 import { useCrossClipboard } from "../../utils/crossClipboard";
 import { notifySuccess } from "../../utils/notifications";
+import AIOptimizer from "../../components/AIOptimizer";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -738,7 +741,7 @@ User: ${currentInput}`;
 
       return (
         <div key={node.path}>
-          <button
+          <button type="button"
             onClick={() => openFile(node)}
             className={`w-full text-left px-2 py-[3px] text-[11px] flex items-center gap-1.5 hover:bg-studio-hover rounded transition-colors ${
               activeTabPath === node.path ? "bg-studio-hover text-studio-text" : "text-studio-secondary"
@@ -770,10 +773,10 @@ User: ${currentInput}`;
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden">
       {/* ===== HEADER ===== */}
       <header className="flex items-center h-[48px] bg-studio-panel border-b border-studio-border select-none px-4 gap-2 shrink-0">
-        <button
+        <button type="button"
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
           title="Back to Suite"
@@ -808,14 +811,14 @@ User: ${currentInput}`;
 
         <div className="w-px h-5 bg-studio-border" />
 
-        <button onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
+        <button type="button" onClick={handleOpenProject} className="btn text-[10px] py-1 px-3">
           {"\u{1F4C2}"} Open
         </button>
-        <button onClick={() => setShowNewProject(true)} className="btn text-[10px] py-1 px-3">
+        <button type="button" onClick={() => setShowNewProject(true)} className="btn text-[10px] py-1 px-3">
           + New Game
         </button>
         {godotInfo?.found && projectPath && (
-          <button onClick={handleRunProject} className="btn btn-cyan text-[10px] py-1 px-3">
+          <button type="button" onClick={handleRunProject} className="btn btn-cyan text-[10px] py-1 px-3">
             {"\u25B6"} Run in Godot
           </button>
         )}
@@ -1100,7 +1103,7 @@ User: ${currentInput}`;
                   <span>{"\u{1F916}"} AI Game Generator</span>
                   <div className="flex-1" />
                   {/* Improvement 346: Model selector */}
-                  <select
+                  <select aria-label="Select option"
                     value={getActionModel("game-dev")}
                     onChange={(e) => setActionModel("game-dev", e.target.value)}
                     className="bg-transparent text-[9px] text-studio-cyan outline-none cursor-pointer"
@@ -1241,7 +1244,10 @@ User: ${currentInput}`;
         {showAiPanel && layout !== "ai-gen" && (
           <div className="w-[320px] min-w-[260px] bg-studio-panel border-l border-studio-border flex flex-col shrink-0">
             <div className="panel-header flex items-center justify-between">
-              <h3>{"\u{1F916}"} Game AI</h3>
+              <div className="flex items-center gap-2">
+                <h3>{"\u{1F916}"} Game AI</h3>
+                <AIOptimizer actionKey="game-dev" className="h-5" />
+              </div>
               {aiLoading && <span className="text-[9px] text-studio-cyan animate-pulse">thinking...</span>}
             </div>
 
@@ -1375,7 +1381,7 @@ User: ${currentInput}`;
         <div className="w-px h-3 bg-studio-border" />
         {/* Improvement 195: Game resolution */}
         <span className="text-studio-muted">Res:</span>
-        <select
+        <select aria-label="Select option"
           value={gameResolution}
           onChange={(e) => setGameResolution(e.target.value as any)}
           className="bg-transparent text-[9px] text-studio-secondary outline-none cursor-pointer"
@@ -1401,7 +1407,7 @@ User: ${currentInput}`;
       {/* Improvement 294: Tilemap editor overlay */}
       {showTilemapEditor && (
         <div className="modal-overlay" onClick={() => setShowTilemapEditor(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F5FA}\uFE0F"} Tilemap Editor</h2>
               <button onClick={() => setShowTilemapEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1430,7 +1436,7 @@ User: ${currentInput}`;
       {/* Improvement 295: Particle preview overlay */}
       {showParticlePreview && (
         <div className="modal-overlay" onClick={() => setShowParticlePreview(false)}>
-          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u2728"} Particle Presets</h2>
               <button onClick={() => setShowParticlePreview(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1452,7 +1458,7 @@ User: ${currentInput}`;
       {/* Improvement 297: Profiler overlay */}
       {showProfiler && (
         <div className="modal-overlay" onClick={() => setShowProfiler(false)}>
-          <div className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4CA}"} Profiler</h2>
               <button onClick={() => setShowProfiler(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1484,7 +1490,7 @@ User: ${currentInput}`;
       {/* Improvement 298: Input mapper overlay */}
       {showInputMapper && (
         <div className="modal-overlay" onClick={() => setShowInputMapper(false)}>
-          <div className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F3AE}"} Input Mapping</h2>
               <button onClick={() => setShowInputMapper(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
@@ -1506,7 +1512,7 @@ User: ${currentInput}`;
       )}
 
       {/* ===== STATUS BAR - Improvements 294-298 ===== */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F3AE}"} GSt v0.1.0</span>
           <span>|</span>
@@ -1530,7 +1536,7 @@ User: ${currentInput}`;
         <div className="flex items-center gap-3">
           <span className="text-studio-secondary capitalize">{gameGenre}</span>
           <span>|</span>
-          <select
+          <select aria-label="Select option"
             value={buildTarget}
             onChange={(e) => setBuildTarget(e.target.value as any)}
             className="bg-transparent text-[10px] text-studio-muted outline-none cursor-pointer"

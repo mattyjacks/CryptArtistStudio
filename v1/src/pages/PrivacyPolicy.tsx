@@ -1,13 +1,14 @@
+/* Wave2: type=button applied */
 import { useNavigate } from "react-router-dom";
 
 export default function PrivacyPolicy() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-studio-bg overflow-hidden">
+    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden">
       {/* Header */}
       <header className="flex items-center h-[44px] bg-studio-panel border-b border-studio-border select-none px-4 gap-3">
-        <button
+        <button type="button"
           onClick={() => navigate("/")}
           className="btn-ghost rounded-md px-2 py-1 text-xs hover:bg-studio-hover transition-colors"
           title="Back to Suite"
@@ -308,7 +309,7 @@ export default function PrivacyPolicy() {
       </div>
 
       {/* Footer */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <span>{"\u{1F480}\u{1F3A8}"} CryptArtist Studio</span>
         <span className="text-studio-muted">Privacy Policy</span>
       </footer>

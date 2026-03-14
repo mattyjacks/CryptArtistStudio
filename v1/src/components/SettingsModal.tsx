@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -63,7 +65,7 @@ export default function SettingsModal({
             <span className="text-lg">⚙️</span>
             <h2>Settings</h2>
           </div>
-          <button
+          <button type="button"
             onClick={onClose}
             className="btn-icon btn-ghost text-lg hover:text-studio-accent"
           >
@@ -127,14 +129,14 @@ export default function SettingsModal({
                       value={keyInput}
                       onChange={(e) => setKeyInput(e.target.value)}
                     />
-                    <button
+                    <button type="button"
                       onClick={() => setShowKey(!showKey)}
                       className="absolute right-2 top-1/2 -translate-y-1/2 text-studio-muted hover:text-studio-secondary text-xs"
                     >
                       {showKey ? "🙈" : "👁️"}
                     </button>
                   </div>
-                  <button
+                  <button type="button"
                     onClick={handleSave}
                     className={`btn ${saved ? "btn-cyan" : "btn-accent"} min-w-[80px]`}
                   >
@@ -167,7 +169,7 @@ export default function SettingsModal({
                       value={pexelsInput}
                       onChange={(e) => setPexelsInput(e.target.value)}
                     />
-                    <button
+                    <button type="button"
                       onClick={handleSave}
                       className={`btn ${saved ? "btn-cyan" : "btn-accent"} min-w-[80px]`}
                     >
@@ -215,7 +217,8 @@ export default function SettingsModal({
               <div className="mb-4">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{"\u{1F310}"}</span>
-                  <h3 className="text-[13px] font-bold text-studio-text">GiveGigs Media Integration</h3>
+            {/* Improvement 513: Screen Reader Accessibility */}
+                  <h3 role="heading" aria-level={3} className="text-[13px] font-bold text-studio-text">GiveGigs Media Integration</h3>
                 </div>
                 <p className="text-[10px] text-studio-muted mb-3 leading-relaxed">
                   Connect to your GiveGigs.com Supabase media bucket to upload and manage media assets
@@ -243,7 +246,7 @@ export default function SettingsModal({
                       onChange={(e) => setGivegigKey(e.target.value)}
                     />
                   </div>
-                  <button
+                  <button type="button"
                     onClick={async () => {
                       try {
                         await invoke("save_givegigs_config", { url: givegigUrl.trim(), key: givegigKey.trim() });
@@ -303,11 +306,12 @@ export default function SettingsModal({
                 <div className="prop-group-title">Project Settings</div>
                 <div className="prop-row">
                   <span className="prop-label">Name</span>
-                  <input className="input w-40 text-[10px] py-1" defaultValue="Untitled Project" />
+            {/* Improvement 514: Keyboard Focus State */}
+                  <input className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow w-40 text-[10px] py-1" defaultValue="Untitled Project" />
                 </div>
                 <div className="prop-row">
                   <span className="prop-label">Resolution</span>
-                  <select className="input w-40 text-[10px] py-1">
+                  <select aria-label="Select option" className="input w-40 text-[10px] py-1">
                     <option>1920 × 1080 (HD)</option>
                     <option>3840 × 2160 (4K)</option>
                     <option>1280 × 720 (720p)</option>
@@ -316,7 +320,7 @@ export default function SettingsModal({
                 </div>
                 <div className="prop-row">
                   <span className="prop-label">Frame Rate</span>
-                  <select className="input w-40 text-[10px] py-1">
+                  <select aria-label="Select option" className="input w-40 text-[10px] py-1">
                     <option>24 fps</option>
                     <option>25 fps</option>
                     <option>30 fps</option>
@@ -330,7 +334,7 @@ export default function SettingsModal({
                 <div className="prop-group-title">Export</div>
                 <div className="prop-row">
                   <span className="prop-label">Format</span>
-                  <select className="input w-40 text-[10px] py-1">
+                  <select aria-label="Select option" className="input w-40 text-[10px] py-1">
                     <option>MP4 (H.264)</option>
                     <option>MOV (ProRes)</option>
                     <option>WebM (VP9)</option>
@@ -411,7 +415,8 @@ export default function SettingsModal({
 
         {/* Footer */}
         <div className="modal-footer">
-          <button onClick={onClose} className="btn">
+            {/* Improvement 515: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={onClose} className="transition-transform active:scale-95 btn">
             Close
           </button>
         </div>

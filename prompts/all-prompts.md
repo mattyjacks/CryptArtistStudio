@@ -10,6 +10,33 @@
 
 # CryptArtist Studio - AI Conversation Prompts (March 2026)
 
+## 100 Improvements Focus
+**Prompt 23:**
+> make 100 improvements.
+
+## Audio Reactive 3D Background
+**Prompt 22:**
+> Display the logo in the background of SuiteLauncher, in a cool animation. Make the animation really cool and 3D with random elements, that reacts seperately to the microphone input and audio output of the computer it's running on.
+
+## SuiteLauncher Enhancements
+**Prompt 21:**
+> Make the SuiteLauncher display all programs on screen, or be scrollable down to see the programs. Also make a carousel infinite with all the programs in random order on each load. Put this as the featured one. Also make a "Random" program program. "🎲Rnd" that launches a random installed program from all the programs, including installed mods.
+
+## Final Application Icon Selected
+**Prompt 20:**
+> @[prompts/cryptartist studio logo 2A1.png] is the new logo, update the logo image everywhere.
+
+## Transparent Zoomed Logos & VibeCodeWorker Optimizations
+**Prompt 19:**
+> make the vibecodeworker fully work, it's not working fully. Make it use the "Settings" program's API keys. Add an AI Optimization selector to vibecodeworker and valleynet and gamestudio and mediamogul and cryptart commander, which includes the simple picker of these emojis in a row "🧠⚡💳🦄🍀" Those options stand for "Smart", "Fast", "Cheap", "Good", "Lucky". Smart is the default. Selecting lucky for the first time opens up a "LuckFactory" mini-program, where you tell the AI about yourself and it assigns you a base luck number from 0-999 with the presets being 777, 420, 69. You can put any string text, including emojis and unicode, into the luck string to modify the number, which is factored in after the base luck number. Make a LuckFactory [🍀Lck] program. It also prepares prayers and guided meditation for making you more lucky, along with aspirational and affirmational guidance.
+
+**Prompt 18:**
+> Make 5 more like the second one. Make it a transparent PNG
+
+## Lucky AI Mode
+**Prompt 17:**
+> Nice — here's a compact, practical implementation you can drop into CryptArtist Studio. It adds a new AI mode "🍀Lucky" that seeds the generation from a string (e.g., a name). If no string is provided, it picks a default seed 777, 420, or 69 depending on a computed "luckiness" score derived from the string (or user profile). [...] If you want, I can: - Add the UI code (React/TSX) to show inputs and computed outputs. - Provide an option to expose the three default lucky values as configurable (e.g., env or user prefs). Which would you like next?
+
 ## P2P Networking & Donate Personal Seconds
 **Prompt 16:**
 > make there be a leaderboard for personal seconds donated for @[v1/src/programs/donate-personal-seconds]on the website, with links to it on multiple places. Note that this initial tracking system is flawed, so don't be surprised if people game the system.

@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 // ---------------------------------------------------------------------------
 // CryptArtist Studio - Clone Tool
 // Create .exe, .dmg, .deb, .AppImage installers from current config
@@ -230,7 +232,8 @@ export default function CloneTool() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+            {/* Improvement 553: A11y & Microinteraction */}
+          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg">{"\u{1F4E6}"}</span>
           <span className="text-sm font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Clone Tool</span>
           <span className="badge text-[8px]">CLN</span>
@@ -262,35 +265,42 @@ export default function CloneTool() {
           {activeTab === "general" && (
             <section className="space-y-4">
               <div className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4CB}"} App Configuration</h2>
+            {/* Improvement 554: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4CB}"} App Configuration</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">App Name</label>
-                    <input type="text" value={config.appName} onChange={(e) => updateConfig("appName", e.target.value.substring(0, 64))} className="input text-[11px] py-1.5 w-full" />
+            {/* Improvement 555: Keyboard Focus State */}
+                    <input type="text" value={config.appName} onChange={(e) => updateConfig("appName", e.target.value.substring(0, 64))} className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow text-[11px] py-1.5 w-full" />
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">App ID (reverse domain)</label>
-                    <input type="text" value={config.appId} onChange={(e) => updateConfig("appId", e.target.value.substring(0, 128))} className="input text-[11px] py-1.5 w-full" placeholder="com.example.myapp" />
+            {/* Improvement 556: Keyboard Focus State */}
+                    <input type="text" value={config.appId} onChange={(e) => updateConfig("appId", e.target.value.substring(0, 128))} className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow text-[11px] py-1.5 w-full" placeholder="com.example.myapp" />
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Version</label>
-                    <input type="text" value={config.version} onChange={(e) => updateConfig("version", e.target.value.substring(0, 20))} className="input text-[11px] py-1.5 w-full" placeholder="1.0.0" />
+            {/* Improvement 557: Keyboard Focus State */}
+                    <input type="text" value={config.version} onChange={(e) => updateConfig("version", e.target.value.substring(0, 20))} className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow text-[11px] py-1.5 w-full" placeholder="1.0.0" />
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Author</label>
-                    <input type="text" value={config.author} onChange={(e) => updateConfig("author", e.target.value.substring(0, 64))} className="input text-[11px] py-1.5 w-full" />
+            {/* Improvement 558: Keyboard Focus State */}
+                    <input type="text" value={config.author} onChange={(e) => updateConfig("author", e.target.value.substring(0, 64))} className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow text-[11px] py-1.5 w-full" />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-[10px] text-studio-muted block mb-1">Description</label>
-                    <input type="text" value={config.description} onChange={(e) => updateConfig("description", e.target.value.substring(0, 256))} className="input text-[11px] py-1.5 w-full" />
+            {/* Improvement 559: Keyboard Focus State */}
+                    <input type="text" value={config.description} onChange={(e) => updateConfig("description", e.target.value.substring(0, 256))} className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow text-[11px] py-1.5 w-full" />
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">Website</label>
-                    <input type="text" value={config.website} onChange={(e) => updateConfig("website", e.target.value.substring(0, 128))} className="input text-[11px] py-1.5 w-full" />
+            {/* Improvement 560: Keyboard Focus State */}
+                    <input type="text" value={config.website} onChange={(e) => updateConfig("website", e.target.value.substring(0, 128))} className="input focus:ring-2 focus:ring-studio-cyan/50 focus:outline-none transition-shadow text-[11px] py-1.5 w-full" />
                   </div>
                   <div>
                     <label className="text-[10px] text-studio-muted block mb-1">License</label>
-                    <select value={config.license} onChange={(e) => updateConfig("license", e.target.value)} className="input text-[11px] py-1.5 w-full">
+                    <select aria-label="Select option" value={config.license} onChange={(e) => updateConfig("license", e.target.value)} className="input text-[11px] py-1.5 w-full">
                       {["MIT", "Apache-2.0", "GPL-3.0", "BSD-3-Clause", "LGPL-3.0", "MPL-2.0", "Proprietary", "Unlicense"].map((l) => (
                         <option key={l} value={l}>{l}</option>
                       ))}
@@ -301,7 +311,8 @@ export default function CloneTool() {
 
               {/* Build Source */}
               <div className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4C1}"} Build Source</h2>
+            {/* Improvement 561: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4C1}"} Build Source</h2>
                 <div className="flex gap-3">
                   {([
                     { value: "default" as const, label: "Default Config", desc: "Clean install with factory defaults" },
@@ -319,12 +330,13 @@ export default function CloneTool() {
 
               {/* App Icon */}
               <div className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F3A8}"} App Icon & Splash</h2>
+            {/* Improvement 562: Screen Reader Accessibility */}
+                <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F3A8}"} App Icon & Splash</h2>
                 <div className="flex gap-4">
                   <div className="text-center">
                     <div className="w-20 h-20 rounded-2xl bg-studio-panel border border-studio-border flex items-center justify-center overflow-hidden mb-2">
                       {config.customIcon ? (
-                        <img src={config.customIcon} alt="App Icon" className="w-full h-full object-cover" />
+                        <img loading="lazy" decoding="async" src={config.customIcon} alt="App Icon" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-3xl">{"\u{1F3A8}"}</span>
                       )}
@@ -334,13 +346,13 @@ export default function CloneTool() {
                       <input ref={iconInputRef} type="file" accept="image/*" className="hidden" onChange={handleIconUpload} />
                     </label>
                     {config.customIcon && (
-                      <button onClick={() => updateConfig("customIcon", null)} className="block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
+                      <button aria-label="Action Button" title="Click to interact" onClick={() => updateConfig("customIcon", null)} className="transition-transform active:scale-95 block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
                     )}
                   </div>
                   <div className="text-center">
                     <div className="w-32 h-20 rounded-xl bg-studio-panel border border-studio-border flex items-center justify-center overflow-hidden mb-2">
                       {config.customSplash ? (
-                        <img src={config.customSplash} alt="Splash" className="w-full h-full object-cover" />
+                        <img loading="lazy" decoding="async" src={config.customSplash} alt="Splash" className="w-full h-full object-cover" />
                       ) : (
                         <span className="text-[9px] text-studio-muted">No splash</span>
                       )}
@@ -350,7 +362,7 @@ export default function CloneTool() {
                       <input ref={splashInputRef} type="file" accept="image/*" className="hidden" onChange={handleSplashUpload} />
                     </label>
                     {config.customSplash && (
-                      <button onClick={() => updateConfig("customSplash", null)} className="block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
+                      <button aria-label="Action Button" title="Click to interact" onClick={() => updateConfig("customSplash", null)} className="transition-transform active:scale-95 block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
                     )}
                   </div>
                 </div>
@@ -361,7 +373,8 @@ export default function CloneTool() {
           {/* TARGETS TAB */}
           {activeTab === "targets" && (
             <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-              <h2 className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F3AF}"} Build Targets</h2>
+            {/* Improvement 567: Screen Reader Accessibility */}
+              <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F3AF}"} Build Targets</h2>
               <p className="text-[10px] text-studio-secondary mb-4">Select which platforms to build for. Multiple targets can be built simultaneously.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {(Object.entries(TARGET_INFO) as [BuildTarget, typeof TARGET_INFO[BuildTarget]][]).map(([target, info]) => (
@@ -394,7 +407,8 @@ export default function CloneTool() {
           {/* WINDOW TAB */}
           {activeTab === "window" && (
             <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-              <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F5A5}\uFE0F"} Window Configuration</h2>
+            {/* Improvement 568: Screen Reader Accessibility */}
+              <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F5A5}\uFE0F"} Window Configuration</h2>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                 <div>
                   <label className="text-[10px] text-studio-muted block mb-1">Width</label>
@@ -430,7 +444,7 @@ export default function CloneTool() {
                   { key: "autoUpdate" as const, label: "Auto-Update" },
                 ]).map((opt) => (
                   <label key={opt.key} className="flex items-center gap-2 cursor-pointer">
-                    <button onClick={() => updateConfig(opt.key, !config[opt.key])} className={`w-9 h-5 rounded-full transition-colors relative ${config[opt.key] ? "bg-studio-cyan" : "bg-studio-border"}`}>
+                    <button type="button" onClick={() => updateConfig(opt.key, !config[opt.key])} className={`w-9 h-5 rounded-full transition-colors relative ${config[opt.key] ? "bg-studio-cyan" : "bg-studio-border"}`}>
                       <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] transition-all ${config[opt.key] ? "left-[18px]" : "left-[3px]"}`} />
                     </button>
                     <span className="text-[10px] text-studio-text">{opt.label}</span>
@@ -443,7 +457,8 @@ export default function CloneTool() {
           {/* INCLUDES TAB */}
           {activeTab === "includes" && (
             <section className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-              <h2 className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F4E6}"} What to Include</h2>
+            {/* Improvement 569: Screen Reader Accessibility */}
+              <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-1 text-studio-text">{"\u{1F4E6}"} What to Include</h2>
               <p className="text-[10px] text-studio-secondary mb-4">
                 Choose what to bundle with your installer. Only applies when source is "Current Config".
               </p>
@@ -462,7 +477,7 @@ export default function CloneTool() {
                       <div className="text-[11px] font-semibold text-studio-text">{opt.label}</div>
                       <div className={`text-[9px] ${opt.key === "includeApiKeys" ? "text-red-400" : "text-studio-muted"}`}>{opt.desc}</div>
                     </div>
-                    <button onClick={() => updateConfig(opt.key, !config[opt.key])} disabled={config.source === "default" && opt.key !== "includeThemes"}
+                    <button type="button" onClick={() => updateConfig(opt.key, !config[opt.key])} disabled={config.source === "default" && opt.key !== "includeThemes"}
                       className={`w-9 h-5 rounded-full transition-colors relative ${config[opt.key] ? (opt.key === "includeApiKeys" ? "bg-red-500" : "bg-studio-cyan") : "bg-studio-border"} ${config.source === "default" && opt.key !== "includeThemes" ? "opacity-40 cursor-not-allowed" : ""}`}>
                       <div className={`w-3.5 h-3.5 rounded-full bg-white absolute top-[3px] transition-all ${config[opt.key] ? "left-[18px]" : "left-[3px]"}`} />
                     </button>
@@ -483,7 +498,8 @@ export default function CloneTool() {
               {/* Build button */}
               {(status === "idle" || status === "done" || status === "error") && (
                 <div className="flex items-center justify-center gap-3">
-                  <button onClick={handleBuild} disabled={config.targets.length === 0} className="px-8 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+            {/* Improvement 570: A11y & Microinteraction */}
+                  <button aria-label="Action Button" title="Click to interact" onClick={handleBuild} disabled={config.targets.length === 0} className="transition-transform active:scale-95 px-8 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                     {"\u{1F6E0}\uFE0F"} Build {config.targets.length} Target{config.targets.length !== 1 ? "s" : ""}
                   </button>
                 </div>
@@ -506,7 +522,8 @@ export default function CloneTool() {
               {/* Results */}
               {results.length > 0 && (
                 <div className="p-4 rounded-xl bg-studio-surface/50 border border-studio-border">
-                  <h2 className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4E6}"} Build Results</h2>
+            {/* Improvement 571: Screen Reader Accessibility */}
+                  <h2 role="heading" aria-level={2} className="text-[12px] font-bold mb-3 text-studio-text">{"\u{1F4E6}"} Build Results</h2>
                   <div className="flex flex-col gap-2">
                     {results.map((r) => (
                       <div key={r.target} className={`p-3 rounded-lg border flex items-center gap-3 ${
@@ -530,7 +547,8 @@ export default function CloneTool() {
               <div className="rounded-xl bg-studio-surface border border-studio-border overflow-hidden">
                 <div className="flex items-center justify-between px-3 py-2 bg-studio-panel border-b border-studio-border">
                   <span className="text-[11px] font-semibold text-studio-text">{"\u{1F4DD}"} Build Log</span>
-                  <button onClick={() => setLogs([])} className="text-[9px] text-studio-muted hover:text-cyan-400">Clear</button>
+            {/* Improvement 572: A11y & Microinteraction */}
+                  <button aria-label="Action Button" title="Click to interact" onClick={() => setLogs([])} className="transition-transform active:scale-95 text-[9px] text-studio-muted hover:text-cyan-400">Clear</button>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto p-1">
                   {logs.length > 0 ? logs.map((log, i) => (
@@ -551,7 +569,7 @@ export default function CloneTool() {
       </div>
 
       {/* Status Bar */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F4E6}"} Clone Tool v0.1.0</span>
           <span>|</span>

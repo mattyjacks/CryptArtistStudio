@@ -1,3 +1,5 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -136,11 +138,11 @@ export default function Settings() {
       return acc;
     }, {} as Record<AIActionKey, string>);
   });
-  const [actionModes, setActionModes] = useState<Record<AIActionKey, "cheap" | "fast" | "good" | "smart">>(() => {
+  const [actionModes, setActionModes] = useState<Record<AIActionKey, "cheap" | "fast" | "good" | "smart" | "lucky">>(() => {
     return AI_ACTIONS.reduce((acc, action) => {
       acc[action.id] = getActionMode(action.id);
       return acc;
-    }, {} as Record<AIActionKey, "cheap" | "fast" | "good" | "smart">);
+    }, {} as Record<AIActionKey, "cheap" | "fast" | "good" | "smart" | "lucky">);
   });
   const [orTestResult, setOrTestResult] = useState<string | null>(null);
   const [orTesting, setOrTesting] = useState(false);
@@ -301,12 +303,12 @@ export default function Settings() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+          <button type="button" onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg font-bold">{"\u2699\uFE0F"} Settings</span>
           <span className="badge text-[8px]">Set</span>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={handleExport} className="btn text-[10px] px-3 py-1">{"\u{1F4E4}"} Export Keys</button>
+          <button type="button" onClick={handleExport} className="btn text-[10px] px-3 py-1">{"\u{1F4E4}"} Export Keys</button>
           <label className="btn text-[10px] px-3 py-1 cursor-pointer">
             {"\u{1F4E5}"} Import Keys
             <input ref={fileInputRef} type="file" accept=".txt,.json" className="hidden" onChange={handleImport} />
@@ -360,14 +362,14 @@ export default function Settings() {
                         className="input text-[11px] flex-1 py-1.5 font-mono"
                         placeholder={entry.placeholder}
                       />
-                      <button
+                      <button type="button"
                         onClick={() => setKeyVisibility((prev) => ({ ...prev, [entry.id]: !prev[entry.id] }))}
                         className="btn-ghost text-studio-muted hover:text-studio-text text-[10px] px-2"
                         title="Toggle visibility"
                       >
                         {keyVisibility[entry.id] ? "\u{1F441}" : "\u{1F441}\u200D\u{1F5E8}"}
                       </button>
-                      <button
+                      <button type="button"
                         onClick={() => saveKey(entry)}
                         className="btn btn-cyan text-[10px] px-3 py-1"
                         disabled={saving === entry.id}
@@ -401,7 +403,7 @@ export default function Settings() {
                         className="input text-[11px] flex-1 py-1.5 font-mono"
                         placeholder="GiveGigs API key..."
                       />
-                      <button
+                      <button type="button"
                         onClick={async () => {
                           try {
                             await invoke("save_givegigs_config", { url: keyValues.givegigs_url || "", key: keyValues.givegigs_key || "" });
@@ -441,7 +443,7 @@ export default function Settings() {
               {/* Default model */}
               <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
                 <div className="text-[12px] font-semibold text-studio-text mb-2">Default Model</div>
-                <select
+                <select aria-label="Select option"
                   value={orDefaultModel}
                   onChange={(e) => setOrDefaultModel(e.target.value)}
                   className="input text-[11px] py-1.5 w-full"
@@ -457,9 +459,9 @@ export default function Settings() {
 
               <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
                 <div className="text-[12px] font-semibold text-studio-text mb-2">Default AI Mode</div>
-                <select
+                <select aria-label="Select option"
                   value={orDefaultMode}
-                  onChange={(e) => setOrDefaultMode(e.target.value as "cheap" | "fast" | "good" | "smart")}
+                  onChange={(e) => setOrDefaultMode(e.target.value as "cheap" | "fast" | "good" | "smart" | "lucky")}
                   className="input text-[11px] py-1.5 w-full"
                 >
                   {AI_MODES.map((m) => (
@@ -467,7 +469,7 @@ export default function Settings() {
                   ))}
                 </select>
                 <p className="text-[9px] text-studio-muted mt-2">
-                  💳 Cheap: lowest token cost. ⚡ Fast: fastest completion. 🦄 Good: positive, clever, funny tone. 🧠 Smart: intelligent and precise default.
+                  💳 Cheap: lowest token cost. ⚡ Fast: fastest completion. 🦄 Good: positive, clever, funny tone. 🧠 Smart: intelligent and precise default. 🍀 Lucky: Deterministic RNG via LuckFactory.
                 </p>
               </div>
 
@@ -481,7 +483,7 @@ export default function Settings() {
                     <div key={action.id} className="p-2.5 rounded-lg bg-studio-bg border border-studio-border">
                       <div className="text-[10px] text-studio-text mb-2">{action.label}</div>
                       <div className="grid grid-cols-2 gap-2">
-                        <select
+                        <select aria-label="Select option"
                           value={actionModels[action.id]}
                           onChange={(e) => {
                             const model = e.target.value;
@@ -497,7 +499,7 @@ export default function Settings() {
                         <select
                           value={actionModes[action.id]}
                           onChange={(e) => {
-                            const mode = e.target.value as "cheap" | "fast" | "good" | "smart";
+                            const mode = e.target.value as "cheap" | "fast" | "good" | "smart" | "lucky";
                             setActionModes((prev) => ({ ...prev, [action.id]: mode }));
                             setActionMode(action.id, mode);
                           }}
@@ -852,7 +854,7 @@ export default function Settings() {
       </div>
 
       {/* Status Bar */}
-      <footer className="status-bar">
+      <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u2699\uFE0F"} Settings v0.1.0</span>
           <span>|</span>

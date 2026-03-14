@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 // ---------------------------------------------------------------------------
 // CryptArtist Studio - Mod Manager Component
 // Install, enable/disable, and remove mods (self-contained programs) from ZIP files
@@ -49,7 +50,8 @@ export default function ModManager() {
 
   return (
     <div className="max-w-2xl">
-      <h2 className="text-lg font-bold mb-1">{"\u{1F680}"} Mods</h2>
+            {/* Improvement 511: Screen Reader Accessibility */}
+      <h2 role="heading" aria-level={2} className="text-lg font-bold mb-1">{"\u{1F680}"} Mods</h2>
       <p className="text-[11px] text-studio-muted mb-4">
         Install mods to add entirely new self-contained programs to CryptArtist Studio.
         Mods use the existing infrastructure (UI framework, Tauri backend, utilities) to deliver major new functionality.
@@ -134,14 +136,14 @@ export default function ModManager() {
                   {/* Actions */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     {/* Enable/disable toggle */}
-                    <button
+                    <button type="button"
                       onClick={() => handleToggle(m.id, !ext.enabled)}
                       className={`w-10 h-5 rounded-full transition-colors relative ${ext.enabled ? "bg-studio-cyan" : "bg-studio-border"}`}
                     >
                       <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all ${ext.enabled ? "left-5" : "left-0.5"}`} />
                     </button>
                     <span className="text-[8px] text-studio-muted">{ext.enabled ? "Enabled" : "Disabled"}</span>
-                    <button
+                    <button type="button"
                       onClick={() => handleUninstall(m.id, m.programName)}
                       className="btn text-[9px] px-2 py-1 border-red-500/30 text-red-400 hover:bg-red-500/10"
                     >

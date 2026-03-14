@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
@@ -140,14 +141,14 @@ export default function MediaBrowser({ pexelsApiKey = "" }: MediaBrowserProps) {
       <div className="panel-header">
         <h3>Media Pool</h3>
         <div className="flex gap-1">
-          <button
+          <button type="button"
             onClick={() => setView("grid")}
             className={`btn-icon btn-ghost text-xs ${view === "grid" ? "text-studio-cyan" : ""}`}
             title="Grid view"
           >
             ▦
           </button>
-          <button
+          <button type="button"
             onClick={() => setView("list")}
             className={`btn-icon btn-ghost text-xs ${view === "list" ? "text-studio-cyan" : ""}`}
             title="List view"
@@ -275,7 +276,7 @@ export default function MediaBrowser({ pexelsApiKey = "" }: MediaBrowserProps) {
         )}
 
         {/* Import Button */}
-        <button 
+        <button type="button" 
           onClick={handleImport}
           className="btn w-full mt-3 text-studio-cyan border-dashed border-studio-cyan/30 hover:bg-studio-cyan/5"
         >

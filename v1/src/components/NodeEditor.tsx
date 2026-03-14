@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState } from "react";
 
 const INITIAL_NODES = [
@@ -112,7 +113,7 @@ export default function NodeEditor() {
       <div className="panel-header">
         <h3>Node Editor — Node Mode</h3>
         <div className="flex gap-1">
-          <button 
+          <button type="button" 
             onClick={handleAddNode}
             className="btn text-[10px] py-1"
           >

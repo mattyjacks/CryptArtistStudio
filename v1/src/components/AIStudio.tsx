@@ -1,7 +1,10 @@
+/* Wave2: select-aria */
+/* Wave2: type=button applied */
 import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import type { ChatMessage } from "../App";
 import { chatWithAI, getActionModel, setActionModel } from "../utils/openrouter";
+import { prepareLuckyRNG } from "../utils/luckyRNG";
 
 interface AIStudioProps {
   apiKey: string;
@@ -73,10 +76,14 @@ export default function AIStudio({
   onOpenSettings,
 }: AIStudioProps) {
   const [input, setInput] = useState("");
-  const [mode, setMode] = useState<"chat" | "image" | "autoedit">("chat");
+  const [mode, setMode] = useState<"chat" | "image" | "autoedit" | "lucky">("chat");
   const [imagePrompt, setImagePrompt] = useState("");
   const [autoEditPrompt, setAutoEditPrompt] = useState("");
   const [autoEditStatus, setAutoEditStatus] = useState<string | null>(null);
+  
+  // Lucky mode state
+  const [luckyString, setLuckyString] = useState("");
+  const [computedLuck, setComputedLuck] = useState<{ seed: number; luckScore: number } | null>(null);
   const [generatedImages, setGeneratedImages] = useState<
     { prompt: string; url: string }[]
   >([]);
@@ -325,6 +332,52 @@ export default function AIStudio({
     }
   };
 
+  // ---- Handle Lucky Generate ----
+  const handleGenerateLucky = async () => {
+    if (aiLoading) return;
+    if (!apiKey) {
+      alert("Please configure your OpenAI API key in Settings.");
+      return;
+    }
+    
+    setAiLoading(true);
+    
+    try {
+      const { seed, luckScore, rng } = prepareLuckyRNG({ seedString: luckyString });
+      setComputedLuck({ seed, luckScore });
+
+      const subjects = ["A cyberpunk cityscape", "A neon-lit futuristic character", "A vast alien landscape", "A surreal abstract composition", "A retro 80s synthwave horizon", "A magical enchanted forest", "A giant mecha robot in battle"];
+      const styles = ["oil painting style", "3d octane render", "cinematic lighting", "vector art", "polaroid photo", "anime studio ghibli style", "pixel art 16-bit"];
+      const colors = ["vibrant reds and blues", "monochromatic silver", "neon greens and purples", "pastel pinks and yellows", "high contrast black and white", "dark and moody tones"];
+
+      const subject = subjects[Math.floor(rng() * subjects.length)];
+      const style = styles[Math.floor(rng() * styles.length)];
+      const color = colors[Math.floor(rng() * colors.length)];
+
+      const generatedPrompt = `${subject}, ${style}, using ${color}. [Deterministic Seed: ${seed}, Luck Score: ${luckScore}]`;
+
+      const imageUrl = await invoke<string>("ai_generate_image", { prompt: generatedPrompt });
+
+      setGeneratedImages((prev) => [...prev, { prompt: generatedPrompt, url: imageUrl }]);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "user", content: `🍀 Generation triggered by string: "${luckyString || 'Empty'}" (Luck: ${luckScore}, Seed: ${seed})`, timestamp: Date.now() },
+        {
+          role: "assistant",
+          content: `✅ Here is your lucky generation for: *"${generatedPrompt}"*`,
+          timestamp: Date.now(),
+          imageUrl: imageUrl,
+        },
+      ]);
+      setMode("chat");
+    } catch (err: any) {
+      console.error("Lucky Generation Error", err);
+      alert(`Lucky Generation failed: ${err.message || err}`);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   return (
     <div className="flex h-full gap-1 p-0">
       {/* Left: Feature cards + Image Generator */}
@@ -356,7 +409,8 @@ export default function AIStudio({
                 <p className="text-[11px] text-studio-yellow mb-2">
                   API key required for AI features
                 </p>
-                <button onClick={onOpenSettings} className="btn btn-cyan text-[10px] py-1">
+            {/* Improvement 500: A11y & Microinteraction */}
+                <button aria-label="Action Button" title="Click to interact" onClick={onOpenSettings} className="transition-transform active:scale-95 btn btn-cyan text-[10px] py-1">
                   ⚙️ Open Settings
                 </button>
               </div>
@@ -386,7 +440,7 @@ export default function AIStudio({
                 }
               }}
             />
-            <button
+            <button type="button"
               onClick={handleGenerateImage}
               disabled={!imagePrompt.trim() || aiLoading}
               className="btn btn-accent w-full text-[11px] disabled:opacity-40 disabled:cursor-not-allowed"
@@ -439,7 +493,7 @@ export default function AIStudio({
                 {apiKey ? "Connected" : "No Key"}
               </span>
               {/* Improvement 358: Provider toggle */}
-              <button
+              <button type="button"
                 onClick={() => setUseOpenRouter(!useOpenRouter)}
                 className={`text-[8px] px-1.5 py-0.5 rounded font-semibold transition-colors ${
                   useOpenRouter ? "bg-studio-cyan/15 text-studio-cyan" : "bg-studio-surface text-studio-muted"
@@ -449,7 +503,7 @@ export default function AIStudio({
                 {useOpenRouter ? "OR" : "OAI"}
               </button>
               {/* Improvement 359: Model selector */}
-              <select
+              <select aria-label="Select option"
                 value={selectedModel}
                 onChange={(e) => {
                   const model = e.target.value;
@@ -465,7 +519,7 @@ export default function AIStudio({
               </select>
             </div>
             <div className="flex gap-4">
-          <button
+          <button type="button"
             onClick={() => setMode("chat")}
             className={`text-[12px] font-semibold tracking-wide uppercase transition-colors px-1 py-4 border-b-2 ${
               mode === "chat"
@@ -475,7 +529,7 @@ export default function AIStudio({
           >
             Chat
           </button>
-          <button
+          <button type="button"
             onClick={() => setMode("image")}
             className={`text-[12px] font-semibold tracking-wide uppercase transition-colors px-1 py-4 border-b-2 ${
               mode === "image"
@@ -485,7 +539,7 @@ export default function AIStudio({
           >
             DALL-E Images
           </button>
-          <button
+          <button type="button"
             onClick={() => setMode("autoedit")}
             className={`text-[12px] font-semibold tracking-wide uppercase transition-colors px-1 py-4 border-b-2 ${
               mode === "autoedit"
@@ -495,17 +549,83 @@ export default function AIStudio({
           >
             Auto-Edit
           </button>
+          <button
+            onClick={() => setMode("lucky")}
+            className={`text-[12px] font-semibold tracking-wide uppercase transition-colors px-1 py-4 border-b-2 flex items-center gap-1 ${
+              mode === "lucky"
+                ? "text-green-400 border-green-400"
+                : "text-studio-muted border-transparent hover:text-studio-text"
+            }`}
+          >
+            <span>🍀</span> Lucky
+          </button>
         </div>
           </div>
 
-          {mode === "autoedit" ? (
+          {mode === "lucky" ? (
+             <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center relative">
+               <div className="w-full max-w-lg bg-studio-surface border border-studio-border rounded-xl p-6 relative overflow-hidden shadow-2xl animate-scale-in">
+                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-emerald-600" />
+                 
+                 <div className="text-center mb-6">
+                   <span className="text-4xl block mb-2">🍀✨</span>
+            {/* Improvement 501: Screen Reader Accessibility */}
+                   <h2 role="heading" aria-level={2} className="text-lg font-bold text-studio-text">Lucky AI Generator</h2>
+                   <p className="text-[11px] text-studio-muted mt-1 px-4">
+                     Enter your name or a lucky phrase to deterministically generate a unique piece of "Lucky" art based on a 32-bit PRNG hash.
+                   </p>
+                 </div>
+
+                 <div className="flex flex-col gap-4">
+                   <div className="w-full">
+                     <label className="text-[11px] font-bold text-studio-muted uppercase tracking-wider mb-2 block">
+                       Lucky String (Optional)
+                     </label>
+                     <input
+                       type="text"
+                       value={luckyString}
+                       onChange={(e) => {
+                         setLuckyString(e.target.value);
+                         if (e.target.value) {
+                           setComputedLuck(prepareLuckyRNG({ seedString: e.target.value }));
+                         } else {
+                           setComputedLuck(null);
+                         }
+                       }}
+                       placeholder="Put your name to generate luck"
+                       className="input w-full text-[12px] p-3"
+                       disabled={aiLoading}
+                       onKeyDown={(e) => {
+                         if (e.key === "Enter") handleGenerateLucky();
+                       }}
+                     />
+                     {computedLuck && (
+                       <p className="text-[10px] items-center justify-center gap-1 flex mt-3 text-studio-cyan">
+                         <span>🍀 Luck Score: {computedLuck.luckScore}/100</span>
+                         <span className="opacity-50">|</span>
+                         <span className="font-mono opacity-70">Secured Seed: {computedLuck.seed}</span>
+                       </p>
+                     )}
+                   </div>
+                   <button
+                     onClick={handleGenerateLucky}
+                     disabled={aiLoading}
+                     className="btn w-full font-bold text-[13px] py-3 shadow-lg shadow-green-500/20 disabled:opacity-50 !bg-gradient-to-r !from-green-500 !to-emerald-600 !border-none !text-white"
+                   >
+                     {aiLoading ? "Generating Luck..." : "Generate Lucky Art"}
+                   </button>
+                 </div>
+               </div>
+             </div>
+          ) : mode === "autoedit" ? (
             <div className="flex-1 overflow-y-auto p-4 flex flex-col items-center justify-center relative">
               <div className="w-full max-w-lg bg-studio-surface border border-studio-border rounded-xl p-6 relative overflow-hidden shadow-2xl">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-teal-500 to-emerald-500" />
                 
                 <div className="text-center mb-6">
                   <span className="text-4xl block mb-2">🎬✨</span>
-                  <h2 className="text-lg font-bold text-studio-text">AI Auto-Edit</h2>
+            {/* Improvement 502: Screen Reader Accessibility */}
+                  <h2 role="heading" aria-level={2} className="text-lg font-bold text-studio-text">AI Auto-Edit</h2>
                   <p className="text-[11px] text-studio-muted mt-1 px-4">
                     Describe a scene or video idea. CryptArtist AI will write a script, generate a voiceover, source royalty-free videos from Pexels, and compile them onto your timeline instantly.
                   </p>

@@ -1,3 +1,4 @@
+/* Wave2: type=button applied */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { secureRandomHex } from "../../utils/security";
@@ -42,13 +43,13 @@ export default function DPSLeaderboard() {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Launcher</button>
+          <button type="button" onClick={() => navigate("/")} className="btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Launcher</button>
           <span className="text-lg">{"\u{1F3C6}"}</span>
           <span className="text-sm font-bold bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500 bg-clip-text text-transparent">
             Global Compute Leaderboard
           </span>
         </div>
-        <button onClick={() => navigate("/donate-personal-seconds")} className="btn btn-cyan text-[10px] px-3 py-1">
+        <button type="button" onClick={() => navigate("/donate-personal-seconds")} className="btn btn-cyan text-[10px] px-3 py-1">
           {"\u{1F5E1}\uFE0F"} Donate Now
         </button>
       </header>
