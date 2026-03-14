@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contributing - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul, .content-section ol {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Contributing</h1>
+            <p>Development workflow, code style, and pull request guidelines</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Development Workflow</h2>
+            
+            <h3>Getting Started</h3>
+            <ol>
+                <li>Fork the repository on GitHub</li>
+                <li>Clone your fork locally</li>
+                <li>Create a new branch for your feature or fix</li>
+                <li>Make your changes</li>
+                <li>Test your changes thoroughly</li>
+                <li>Commit with clear messages</li>
+                <li>Push to your fork</li>
+                <li>Open a pull request</li>
+            </ol>
+
+            <h3>Setting Up Development Environment</h3>
+            <div class="code-block">
+# Clone the repository
+git clone https://github.com/YOUR_USERNAME/CryptArtistStudio.git
+cd CryptArtistStudio/v1
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run tauri dev
+            </div>
+
+            <h3>Creating a Feature Branch</h3>
+            <div class="code-block">
+# Create and switch to a new branch
+git checkout -b feature/your-feature-name
+
+# Or for bug fixes
+git checkout -b fix/bug-description
+            </div>
+
+            <h3>Committing Changes</h3>
+            <p>Use clear, descriptive commit messages:</p>
+            <div class="code-block">
+# Good commit message
+git commit -m "feat: Add keyboard shortcut for Mummy toggle (Ctrl+Shift+M)"
+
+# Bad commit message
+git commit -m "fixed stuff"
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Code Style</h2>
+            
+            <h3>TypeScript/JavaScript</h3>
+            <ul>
+                <li>Use TypeScript for all new code</li>
+                <li>Follow ESLint rules (configured in project)</li>
+                <li>Use 2-space indentation</li>
+                <li>Use const/let, avoid var</li>
+                <li>Use arrow functions for callbacks</li>
+                <li>Add JSDoc comments for public functions</li>
+                <li>Use meaningful variable names</li>
+            </ul>
+
+            <h3>Rust</h3>
+            <ul>
+                <li>Follow Rust naming conventions (snake_case for functions)</li>
+                <li>Use rustfmt for code formatting</li>
+                <li>Run clippy for linting: <code>cargo clippy</code></li>
+                <li>Add doc comments for public functions</li>
+                <li>Handle errors explicitly with Result types</li>
+                <li>Avoid unwrap() in production code</li>
+            </ul>
+
+            <h3>CSS/Styling</h3>
+            <ul>
+                <li>Use TailwindCSS utility classes</li>
+                <li>Avoid inline styles</li>
+                <li>Use consistent spacing and sizing</li>
+                <li>Follow dark theme design</li>
+                <li>Test on multiple screen sizes</li>
+            </ul>
+
+            <h3>Comments and Documentation</h3>
+            <ul>
+                <li>Write clear comments for complex logic</li>
+                <li>Update documentation when changing behavior</li>
+                <li>Add examples for new features</li>
+                <li>Keep comments up-to-date with code</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Pull Request Guidelines</h2>
+            
+            <h3>Before Opening a PR</h3>
+            <ul>
+                <li>Ensure your code compiles without errors</li>
+                <li>Run tests: <code>npm test</code> and <code>cargo test</code></li>
+                <li>Check code style: <code>npm run lint</code> and <code>cargo clippy</code></li>
+                <li>Rebase on latest main branch</li>
+                <li>Squash related commits into logical units</li>
+            </ul>
+
+            <h3>PR Title and Description</h3>
+            <p>Use a clear title following this format:</p>
+            <div class="code-block">
+feat: Add feature description
+fix: Fix bug description
+docs: Update documentation
+refactor: Refactor component name
+perf: Improve performance of feature
+            </div>
+
+            <p>In the description, include:</p>
+            <ul>
+                <li>What changes were made and why</li>
+                <li>How to test the changes</li>
+                <li>Any breaking changes</li>
+                <li>Related issues (use #issue-number)</li>
+            </ul>
+
+            <h3>Review Process</h3>
+            <ul>
+                <li>Maintainers will review your PR</li>
+                <li>Address feedback and make requested changes</li>
+                <li>Push updates to the same branch</li>
+                <li>Once approved, your PR will be merged</li>
+            </ul>
+
+            <h3>Merge Conflicts</h3>
+            <p>If your PR has merge conflicts:</p>
+            <div class="code-block">
+# Update your branch with latest main
+git fetch origin
+git rebase origin/main
+
+# Resolve conflicts in your editor
+# Then continue the rebase
+git rebase --continue
+
+# Force push to your branch
+git push --force-with-lease
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Testing</h2>
+            
+            <h3>Frontend Tests</h3>
+            <div class="code-block">
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm test -- --watch
+
+# Run tests with coverage
+npm test -- --coverage
+            </div>
+
+            <h3>Backend Tests</h3>
+            <div class="code-block">
+# Run all Rust tests
+cargo test
+
+# Run tests with output
+cargo test -- --nocapture
+
+# Run specific test
+cargo test test_name
+            </div>
+
+            <h3>Manual Testing</h3>
+            <ul>
+                <li>Test on Windows, macOS, and Linux if possible</li>
+                <li>Test with different screen sizes</li>
+                <li>Test with different API providers</li>
+                <li>Test error cases and edge cases</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Areas for Contribution</h2>
+            
+            <h3>Good First Issues</h3>
+            <p>Look for issues labeled "good first issue" on GitHub - these are perfect for new contributors.</p>
+
+            <h3>Help Wanted</h3>
+            <p>Issues labeled "help wanted" are areas where maintainers would appreciate community contributions.</p>
+
+            <h3>Documentation</h3>
+            <ul>
+                <li>Improve existing documentation</li>
+                <li>Add examples and tutorials</li>
+                <li>Fix typos and clarity issues</li>
+                <li>Add translations</li>
+            </ul>
+
+            <h3>Features and Improvements</h3>
+            <ul>
+                <li>New program ideas</li>
+                <li>UI/UX improvements</li>
+                <li>Performance optimizations</li>
+                <li>New integrations</li>
+            </ul>
+
+            <h3>Bug Fixes</h3>
+            <ul>
+                <li>Fix reported bugs</li>
+                <li>Improve error handling</li>
+                <li>Security improvements</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Thank you for contributing!</strong> Every contribution, no matter how small, helps make CryptArtist Studio better for everyone. We appreciate your time and effort.
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="troubleshooting.html">← Troubleshooting</a>
+            <a href="index.html">Back to Docs →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

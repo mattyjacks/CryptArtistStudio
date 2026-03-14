@@ -50,6 +50,12 @@
         "mimeType": "application/x-cryptartist-art",
         "description": "CryptArtist Studio Project",
         "role": "Editor"
+      },
+      {
+        "ext": ["Crypt", "crypt"],
+        "mimeType": "application/x-cryptartist-crypt",
+        "description": "CryptArtist Crypt Collection",
+        "role": "Editor"
       }
     ]
   }

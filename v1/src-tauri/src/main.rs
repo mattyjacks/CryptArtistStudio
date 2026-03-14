@@ -1622,15 +1622,354 @@ fn is_cryptart_path(s: &str) -> bool {
     lower.ends_with(".cryptart") && !s.starts_with('-')
 }
 
+/// Check if a string looks like a .Crypt file path
+fn is_crypt_path(s: &str) -> bool {
+    let lower = s.to_lowercase();
+    lower.ends_with(".crypt") && !s.starts_with('-')
+}
+
+// ---------------------------------------------------------------------------
+// .Crypt file operations (ZIP-based collection format)
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn create_crypt(path: String, manifest_json: String) -> Result<(), String> {
+    log_cmd!("create_crypt", "Creating .Crypt at: {}", path);
+    use std::io::Write;
+
+    // Validate path has .Crypt extension
+    if !path.to_lowercase().ends_with(".crypt") {
+        return Err("File must have .Crypt extension".to_string());
+    }
+
+    // Validate manifest is valid JSON with required $crypt field
+    let manifest_value: serde_json::Value = serde_json::from_str(&manifest_json)
+        .map_err(|e| format!("Invalid manifest JSON: {}", e))?;
+    if manifest_value.get("$crypt").is_none() {
+        return Err("Manifest must contain '$crypt' field".to_string());
+    }
+
+    let file = std::fs::File::create(&path).map_err(|e| format!("Failed to create file: {}", e))?;
+    let mut zip = zip::ZipWriter::new(file);
+    let options = zip::write::SimpleFileOptions::default()
+        .compression_method(zip::CompressionMethod::Deflated);
+
+    // Write Memorial.txt
+    zip.start_file("Memorial.txt", options).map_err(|e| format!("ZIP error: {}", e))?;
+    zip.write_all(manifest_json.as_bytes()).map_err(|e| format!("Write error: {}", e))?;
+
+    // Create empty known folders (including Pyramid/Curse/ subdirectory)
+    let folders = ["Skeleton/", "Grave/", "Urn/", "Epitaph/", "Vault/", "Catacombs/", "Reliquary/", "Soul/", "LastWords/", "Pyramid/", "Pyramid/Curse/"];
+    for folder in folders {
+        zip.add_directory(folder, options).map_err(|e| format!("ZIP error: {}", e))?;
+    }
+
+    zip.finish().map_err(|e| format!("ZIP finish error: {}", e))?;
+    let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+    log_cmd!("create_crypt", "Created .Crypt successfully ({} bytes)", size);
+    Ok(())
+}
+
+#[tauri::command]
+async fn open_crypt(path: String) -> Result<String, String> {
+    log_cmd!("open_crypt", "Opening .Crypt: {}", path);
+
+    // Verify file exists and is readable
+    if !std::path::Path::new(&path).exists() {
+        return Err(format!("File not found: {}", path));
+    }
+
+    let file = std::fs::File::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
+    let file_size = file.metadata().map(|m| m.len()).unwrap_or(0);
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid ZIP archive ({}): {}", path, e))?;
+
+    // Read Memorial.txt
+    let manifest_json = {
+        let mut memorial = archive.by_name("Memorial.txt").map_err(|_| 
+            "This file does not appear to be a valid .Crypt - missing Memorial.txt manifest".to_string()
+        )?;
+        let mut contents = String::new();
+        std::io::Read::read_to_string(&mut memorial, &mut contents).map_err(|e| format!("Failed to read Memorial.txt: {}", e))?;
+        contents
+    };
+
+    // Basic JSON validation
+    let _: serde_json::Value = serde_json::from_str(&manifest_json)
+        .map_err(|e| format!("Memorial.txt contains invalid JSON: {}", e))?;
+
+    log_cmd!("open_crypt", "Read Memorial.txt ({} bytes, archive {} bytes, {} entries)", manifest_json.len(), file_size, archive.len());
+    Ok(manifest_json)
+}
+
+#[tauri::command]
+async fn list_crypt_contents(path: String) -> Result<String, String> {
+    log_cmd!("list_crypt_contents", "Listing contents of: {}", path);
+    let file = std::fs::File::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid ZIP: {}", e))?;
+
+    let mut entries: Vec<serde_json::Value> = Vec::new();
+    let mut total_size: u64 = 0;
+    let mut total_compressed: u64 = 0;
+    let mut folder_counts: std::collections::HashMap<String, u64> = std::collections::HashMap::new();
+    let mut skeleton_projects: u64 = 0;
+    for i in 0..archive.len() {
+        let entry = archive.by_index(i).map_err(|e| format!("ZIP entry error at index {}: {}", i, e))?;
+        let name = entry.name().to_string();
+        total_size += entry.size();
+        total_compressed += entry.compressed_size();
+
+        // Track per-folder counts
+        if let Some(folder) = name.split('/').next() {
+            if folder != "Memorial.txt" {
+                *folder_counts.entry(folder.to_string()).or_insert(0) += 1;
+            }
+        }
+
+        // Track Skeleton/ .CryptArt files
+        if name.starts_with("Skeleton/") && name.to_lowercase().ends_with(".cryptart") && !entry.is_dir() {
+            skeleton_projects += 1;
+        }
+
+        entries.push(serde_json::json!({
+            "name": name,
+            "size": entry.size(),
+            "compressed_size": entry.compressed_size(),
+            "is_dir": entry.is_dir(),
+        }));
+    }
+
+    log_cmd!("list_crypt_contents", "{} entries, {} bytes total ({} compressed), {} projects in Skeleton/", entries.len(), total_size, total_compressed, skeleton_projects);
+    serde_json::to_string(&entries).map_err(|e| format!("JSON error: {}", e))
+}
+
+#[tauri::command]
+async fn extract_from_crypt(crypt_path: String, entry_path: String) -> Result<String, String> {
+    log_cmd!("extract_from_crypt", "Extracting '{}' from '{}'", entry_path, crypt_path);
+
+    // Guard against path traversal
+    if entry_path.contains("..") || entry_path.starts_with('/') || entry_path.starts_with('\\') {
+        return Err(format!("Invalid entry path (path traversal detected): {}", entry_path));
+    }
+
+    let file = std::fs::File::open(&crypt_path).map_err(|e| format!("Failed to open file: {}", e))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid ZIP: {}", e))?;
+
+    let mut entry = archive.by_name(&entry_path).map_err(|_| format!("Entry '{}' not found in archive", entry_path))?;
+    let entry_size = entry.size();
+    let mut contents = String::new();
+    std::io::Read::read_to_string(&mut entry, &mut contents).map_err(|e| format!("Failed to read '{}': {} (entry may be binary, not text)", entry_path, e))?;
+
+    log_cmd!("extract_from_crypt", "Extracted '{}' ({} bytes)", entry_path, entry_size);
+    Ok(contents)
+}
+
+#[tauri::command]
+async fn add_to_crypt(crypt_path: String, entry_path: String, content: String) -> Result<(), String> {
+    log_cmd!("add_to_crypt", "Adding '{}' to '{}'", entry_path, crypt_path);
+
+    // Read existing archive into memory
+    let file = std::fs::File::open(&crypt_path).map_err(|e| format!("Failed to open file: {}", e))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid ZIP: {}", e))?;
+
+    // Create a temporary file, copy existing entries + new entry
+    let tmp_path = format!("{}.tmp", crypt_path);
+    {
+        let tmp_file = std::fs::File::create(&tmp_path).map_err(|e| format!("Failed to create temp: {}", e))?;
+        let mut writer = zip::ZipWriter::new(tmp_file);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+
+        // Copy existing entries (skip if we're replacing)
+        for i in 0..archive.len() {
+            let mut entry = archive.by_index(i).map_err(|e| format!("ZIP read error: {}", e))?;
+            if entry.name() == entry_path {
+                continue; // Skip - we'll write the new version
+            }
+            if entry.is_dir() {
+                writer.add_directory(entry.name(), options).map_err(|e| format!("ZIP error: {}", e))?;
+            } else {
+                writer.start_file(entry.name(), options).map_err(|e| format!("ZIP error: {}", e))?;
+                let mut buf = Vec::new();
+                std::io::Read::read_to_end(&mut entry, &mut buf).map_err(|e| format!("Read error: {}", e))?;
+                use std::io::Write;
+                writer.write_all(&buf).map_err(|e| format!("Write error: {}", e))?;
+            }
+        }
+
+        // Write the new/updated entry
+        use std::io::Write;
+        writer.start_file(&entry_path, options).map_err(|e| format!("ZIP error: {}", e))?;
+        writer.write_all(content.as_bytes()).map_err(|e| format!("Write error: {}", e))?;
+        writer.finish().map_err(|e| format!("ZIP finish error: {}", e))?;
+    }
+
+    // Replace original with temp (clean up on failure)
+    if let Err(e) = std::fs::rename(&tmp_path, &crypt_path) {
+        // Try to clean up temp file
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(format!("Failed to finalize archive: {}", e));
+    }
+    log_cmd!("add_to_crypt", "Successfully added '{}' to crypt ({} bytes)", entry_path, content.len());
+    Ok(())
+}
+
+#[tauri::command]
+async fn populate_pyramid(crypt_path: String, mummy_bat: String, mummy_ps1: String, mummy_sh: String, mummy_json: String) -> Result<(), String> {
+    log_cmd!("populate_pyramid", "Populating Pyramid/ in: {}", crypt_path);
+
+    // Read existing archive into memory
+    let file = std::fs::File::open(&crypt_path).map_err(|e| format!("Failed to open file: {}", e))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid ZIP: {}", e))?;
+
+    let tmp_path = format!("{}.tmp", crypt_path);
+    {
+        let tmp_file = std::fs::File::create(&tmp_path).map_err(|e| format!("Failed to create temp: {}", e))?;
+        let mut writer = zip::ZipWriter::new(tmp_file);
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Deflated);
+        // Use STORED for .bat/.sh so they're directly usable from ZIP extractors
+        let stored_options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Stored);
+
+        // Copy existing entries (skip Pyramid/ files we're replacing)
+        for i in 0..archive.len() {
+            let mut entry = archive.by_index(i).map_err(|e| format!("ZIP read error: {}", e))?;
+            let name = entry.name().to_string();
+            if name.starts_with("Pyramid/") && name != "Pyramid/" {
+                continue; // Skip - we'll write new ones
+            }
+            if entry.is_dir() {
+                writer.add_directory(&name, options).map_err(|e| format!("ZIP error: {}", e))?;
+            } else {
+                writer.start_file(&name, options).map_err(|e| format!("ZIP error: {}", e))?;
+                let mut buf = Vec::new();
+                std::io::Read::read_to_end(&mut entry, &mut buf).map_err(|e| format!("Read error: {}", e))?;
+                use std::io::Write;
+                writer.write_all(&buf).map_err(|e| format!("Write error: {}", e))?;
+            }
+        }
+
+        // Write Mummy files into Pyramid/
+        use std::io::Write;
+
+        writer.start_file("Pyramid/Mummy.bat", stored_options).map_err(|e| format!("ZIP error: {}", e))?;
+        writer.write_all(mummy_bat.as_bytes()).map_err(|e| format!("Write error: {}", e))?;
+
+        writer.start_file("Pyramid/Mummy.ps1", stored_options).map_err(|e| format!("ZIP error: {}", e))?;
+        writer.write_all(mummy_ps1.as_bytes()).map_err(|e| format!("Write error: {}", e))?;
+
+        writer.start_file("Pyramid/Mummy.sh", stored_options).map_err(|e| format!("ZIP error: {}", e))?;
+        writer.write_all(mummy_sh.as_bytes()).map_err(|e| format!("Write error: {}", e))?;
+
+        writer.start_file("Pyramid/Mummy.json", options).map_err(|e| format!("ZIP error: {}", e))?;
+        writer.write_all(mummy_json.as_bytes()).map_err(|e| format!("Write error: {}", e))?;
+
+        // Add Curse subdirectory
+        writer.add_directory("Pyramid/Curse/", options).map_err(|e| format!("ZIP error: {}", e))?;
+
+        writer.finish().map_err(|e| format!("ZIP finish error: {}", e))?;
+    }
+
+    if let Err(e) = std::fs::rename(&tmp_path, &crypt_path) {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(format!("Failed to finalize archive: {}", e));
+    }
+    let final_size = std::fs::metadata(&crypt_path).map(|m| m.len()).unwrap_or(0);
+    log_cmd!("populate_pyramid", "Pyramid/ populated successfully ({} bytes total)", final_size);
+    Ok(())
+}
+
+#[tauri::command]
+async fn validate_crypt(path: String) -> Result<String, String> {
+    log_cmd!("validate_crypt", "Validating .Crypt: {}", path);
+    let file = std::fs::File::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
+    let mut archive = zip::ZipArchive::new(file).map_err(|e| format!("Invalid ZIP: {}", e))?;
+
+    let mut result = serde_json::json!({
+        "valid": true,
+        "hasMemorial": false,
+        "hasSkeleton": false,
+        "folders": [],
+        "unknownFolders": [],
+        "totalEntries": archive.len(),
+        "errors": [],
+    });
+
+    let known_folders = ["Skeleton", "Grave", "Urn", "Epitaph", "Vault", "Catacombs", "Reliquary", "Soul", "LastWords", "Pyramid"];
+    let mut found_folders: Vec<String> = Vec::new();
+    let mut unknown_folders: Vec<String> = Vec::new();
+
+    for i in 0..archive.len() {
+        let entry = archive.by_index(i).map_err(|e| format!("ZIP entry error: {}", e))?;
+        let name = entry.name().to_string();
+
+        if name == "Memorial.txt" {
+            result["hasMemorial"] = serde_json::json!(true);
+        }
+
+        // Check top-level folders
+        if let Some(folder_name) = name.split('/').next() {
+            if folder_name != "Memorial.txt" && !found_folders.contains(&folder_name.to_string()) && !unknown_folders.contains(&folder_name.to_string()) {
+                if known_folders.contains(&folder_name) {
+                    found_folders.push(folder_name.to_string());
+                    if folder_name == "Skeleton" {
+                        result["hasSkeleton"] = serde_json::json!(true);
+                    }
+                } else {
+                    unknown_folders.push(folder_name.to_string());
+                }
+            }
+        }
+    }
+
+    // Check Memorial.txt is valid JSON
+    if result["hasMemorial"].as_bool().unwrap_or(false) {
+        match archive.by_name("Memorial.txt") {
+            Ok(mut memorial) => {
+                let mut contents = String::new();
+                if std::io::Read::read_to_string(&mut memorial, &mut contents).is_ok() {
+                    if serde_json::from_str::<serde_json::Value>(&contents).is_err() {
+                        result["errors"].as_array_mut().unwrap().push(serde_json::json!("Memorial.txt contains invalid JSON"));
+                        result["valid"] = serde_json::json!(false);
+                    }
+                }
+            }
+            Err(_) => {}
+        }
+    } else {
+        result["errors"].as_array_mut().unwrap().push(serde_json::json!("Missing Memorial.txt"));
+        result["valid"] = serde_json::json!(false);
+    }
+
+    if !result["hasSkeleton"].as_bool().unwrap_or(false) {
+        result["errors"].as_array_mut().unwrap().push(serde_json::json!("Missing Skeleton/ folder"));
+    }
+
+    result["folders"] = serde_json::json!(found_folders);
+    result["unknownFolders"] = serde_json::json!(unknown_folders);
+    result["knownFolderCount"] = serde_json::json!(found_folders.len());
+    result["unknownFolderCount"] = serde_json::json!(unknown_folders.len());
+
+    // Add file size info
+    let file_size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
+    result["fileSize"] = serde_json::json!(file_size);
+
+    log_cmd!("validate_crypt", "Validation complete: valid={}, {} known folders, {} unknown, {} errors",
+        result["valid"], found_folders.len(), unknown_folders.len(),
+        result["errors"].as_array().map(|a| a.len()).unwrap_or(0));
+
+    serde_json::to_string(&result).map_err(|e| format!("JSON error: {}", e))
+}
+
 fn main() {
     // Initialize the logging system FIRST
     logger::init_logger();
     log_info!("main", "CryptArtist Studio v{} starting", env!("CARGO_PKG_VERSION"));
 
     // -----------------------------------------------------------------------
-    // File Association: Pre-scan CLI args for .CryptArt file paths.
-    // When the OS opens a .CryptArt file, it launches the app with the path
-    // as an argument. We extract those BEFORE clap parsing to avoid conflicts.
+    // File Association: Pre-scan CLI args for .CryptArt / .Crypt file paths.
+    // When the OS opens a file, it launches the app with the path as an
+    // argument. We extract those BEFORE clap parsing to avoid conflicts.
     // -----------------------------------------------------------------------
     let raw_args: Vec<String> = std::env::args().collect();
     let mut cryptart_files: Vec<String> = Vec::new();
@@ -1640,7 +1979,7 @@ fn main() {
         if i == 0 {
             // Always keep the program name
             filtered_args.push(arg.clone());
-        } else if is_cryptart_path(arg) {
+        } else if is_cryptart_path(arg) || is_crypt_path(arg) {
             log_info!("main", "File association detected: {}", arg);
             cryptart_files.push(arg.clone());
         } else {
@@ -2043,6 +2382,13 @@ fn main() {
             import_all_api_keys,
             get_file_to_open,
             clear_file_to_open,
+            create_crypt,
+            open_crypt,
+            list_crypt_contents,
+            extract_from_crypt,
+            add_to_crypt,
+            populate_pyramid,
+            validate_crypt,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CryptArtist Studio");

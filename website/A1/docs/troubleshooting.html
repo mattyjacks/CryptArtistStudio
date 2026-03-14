@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooting - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .issue-box {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%);
+            border-left: 4px solid #ff6b6b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .solution-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Troubleshooting</h1>
+            <p>Common issues and solutions</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Common Issues</h2>
+
+            <div class="issue-box">
+                <h3>Application won't start</h3>
+            </div>
+            <div class="solution-box">
+                <h4>Solutions:</h4>
+                <ul>
+                    <li>Check that your system meets the <a href="getting-started.html#platform-support">platform requirements</a></li>
+                    <li>Try clearing the cache: Delete <code>~/.cache/cryptartist-studio</code> (Linux/macOS) or <code>%APPDATA%\cryptartist-studio</code> (Windows)</li>
+                    <li>Reinstall the application</li>
+                    <li>Check system logs for error messages</li>
+                </ul>
+            </div>
+
+            <div class="issue-box">
+                <h3>API keys not working</h3>
+            </div>
+            <div class="solution-box">
+                <h4>Solutions:</h4>
+                <ul>
+                    <li>Verify your API key is correct (copy/paste from provider website)</li>
+                    <li>Check that your API key has the correct permissions</li>
+                    <li>Ensure your account has sufficient credits/quota</li>
+                    <li>Try removing and re-adding the API key</li>
+                    <li>Check your internet connection</li>
+                </ul>
+            </div>
+
+            <div class="issue-box">
+                <h3>FFmpeg not found</h3>
+            </div>
+            <div class="solution-box">
+                <h4>Solutions:</h4>
+                <ul>
+                    <li>FFmpeg should auto-download on first run - wait a few minutes</li>
+                    <li>Manually install FFmpeg (see <a href="configuration.html#ffmpeg-setup">Configuration</a>)</li>
+                    <li>Check that FFmpeg is in your system PATH</li>
+                    <li>Verify FFmpeg installation: <code>ffmpeg -version</code></li>
+                </ul>
+            </div>
+
+            <div class="issue-box">
+                <h3>Projects won't save</h3>
+            </div>
+            <div class="solution-box">
+                <h4>Solutions:</h4>
+                <ul>
+                    <li>Check that you have write permissions to the save directory</li>
+                    <li>Ensure you have sufficient disk space</li>
+                    <li>Try saving to a different location</li>
+                    <li>Check the application logs for error messages</li>
+                    <li>Try restarting the application</li>
+                </ul>
+            </div>
+
+            <div class="issue-box">
+                <h3>Performance is slow</h3>
+            </div>
+            <div class="solution-box">
+                <h4>Solutions:</h4>
+                <ul>
+                    <li>Close unnecessary programs to free up system resources</li>
+                    <li>Reduce timeline resolution in Media Mogul</li>
+                    <li>Disable real-time preview for complex effects</li>
+                    <li>Clear cache and temporary files</li>
+                    <li>Upgrade your system RAM or storage</li>
+                    <li>Check system monitor for resource usage</li>
+                </ul>
+            </div>
+
+            <div class="issue-box">
+                <h3>Crashes on startup</h3>
+            </div>
+            <div class="solution-box">
+                <h4>Solutions:</h4>
+                <ul>
+                    <li>Update to the latest version</li>
+                    <li>Clear application cache</li>
+                    <li>Disable hardware acceleration (if available)</li>
+                    <li>Check system logs for crash details</li>
+                    <li>Report the issue on <a href="https://github.com/mattyjacks/CryptArtistStudio/issues">GitHub Issues</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Accessing Logs</h2>
+
+            <h3>Log File Locations</h3>
+            <ul>
+                <li><strong>Windows:</strong> <code>%APPDATA%\CryptArtist Studio\logs\</code></li>
+                <li><strong>macOS:</strong> <code>~/Library/Application Support/CryptArtist Studio/logs/</code></li>
+                <li><strong>Linux:</strong> <code>~/.config/cryptartist-studio/logs/</code></li>
+            </ul>
+
+            <h3>Log Files</h3>
+            <ul>
+                <li><strong>session.log</strong> - Current session log</li>
+                <li><strong>recent.log</strong> - Last 1,000 lines of activity</li>
+                <li><strong>history.log</strong> - Full history log</li>
+            </ul>
+
+            <h3>Enabling Debug Logging</h3>
+            <p>Set the environment variable before launching:</p>
+            <div class="code-block">
+# Windows (PowerShell)
+$env:RUST_LOG="debug"
+.\CryptArtist Studio.exe
+
+# macOS/Linux
+export RUST_LOG=debug
+./cryptartist-studio
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Getting Help</h2>
+
+            <h3>Resources</h3>
+            <ul>
+                <li><strong>Documentation:</strong> <a href="index.html">Read the full documentation</a></li>
+                <li><strong>GitHub Issues:</strong> <a href="https://github.com/mattyjacks/CryptArtistStudio/issues">Report bugs or request features</a></li>
+                <li><strong>Email Support:</strong> <a href="mailto:support@mattyjacks.com">support@mattyjacks.com</a></li>
+                <li><strong>Security Issues:</strong> <a href="mailto:security@mattyjacks.com">security@mattyjacks.com</a></li>
+            </ul>
+
+            <h3>Reporting Issues</h3>
+            <p>When reporting an issue, please include:</p>
+            <ul>
+                <li>Your operating system and version</li>
+                <li>CryptArtist Studio version</li>
+                <li>Steps to reproduce the issue</li>
+                <li>Error messages or logs</li>
+                <li>Screenshots if applicable</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Performance Optimization</h2>
+
+            <h3>System Requirements</h3>
+            <ul>
+                <li><strong>CPU:</strong> 4+ cores recommended</li>
+                <li><strong>RAM:</strong> 8GB minimum, 16GB+ recommended</li>
+                <li><strong>Storage:</strong> 10GB free space for installation and projects</li>
+                <li><strong>GPU:</strong> Dedicated GPU recommended for video editing</li>
+            </ul>
+
+            <h3>Optimization Tips</h3>
+            <ul>
+                <li>Use SSD for project storage (faster than HDD)</li>
+                <li>Close other applications to free up RAM</li>
+                <li>Disable unnecessary visual effects</li>
+                <li>Use lower resolution previews during editing</li>
+                <li>Export at lower bitrates for faster rendering</li>
+                <li>Keep your system updated</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="configuration.html">← Configuration</a>
+            <a href="index.html">Back to Docs →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

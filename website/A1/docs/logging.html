@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logging & Monitoring - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table th, table td {
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 12px;
+            text-align: left;
+            color: #ccc;
+        }
+        table th {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            font-weight: 600;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Logging & Monitoring</h1>
+            <p>Logging system, log files, and performance monitoring</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Log Files</h2>
+
+            <h3>Log File Locations</h3>
+            <table>
+                <tr>
+                    <th>Platform</th>
+                    <th>Location</th>
+                </tr>
+                <tr>
+                    <td>Windows</td>
+                    <td><code>%APPDATA%\CryptArtist Studio\logs\</code></td>
+                </tr>
+                <tr>
+                    <td>macOS</td>
+                    <td><code>~/Library/Application Support/CryptArtist Studio/logs/</code></td>
+                </tr>
+                <tr>
+                    <td>Linux</td>
+                    <td><code>~/.config/cryptartist-studio/logs/</code></td>
+                </tr>
+            </table>
+
+            <h3>Log Files</h3>
+            <ul>
+                <li><strong>session.log</strong> - Current session log with all events</li>
+                <li><strong>recent.log</strong> - Last 1,000 lines of activity (rolling)</li>
+                <li><strong>history.log</strong> - Full history log (all events)</li>
+            </ul>
+
+            <h3>Log File Format</h3>
+            <div class="code-block">
+[2026-03-14 12:00:00] [INFO] Application started
+[2026-03-14 12:00:01] [DEBUG] Loading configuration
+[2026-03-14 12:00:02] [INFO] Workspace initialized
+[2026-03-14 12:00:03] [WARN] API key not configured
+[2026-03-14 12:00:04] [ERROR] Failed to load project: File not found
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Log Levels</h2>
+
+            <table>
+                <tr>
+                    <th>Level</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+                <tr>
+                    <td><strong>DEBUG</strong></td>
+                    <td>Detailed diagnostic information</td>
+                    <td>Development and troubleshooting</td>
+                </tr>
+                <tr>
+                    <td><strong>INFO</strong></td>
+                    <td>General informational messages</td>
+                    <td>Normal operation tracking</td>
+                </tr>
+                <tr>
+                    <td><strong>WARN</strong></td>
+                    <td>Warning messages for potential issues</td>
+                    <td>Unusual but recoverable conditions</td>
+                </tr>
+                <tr>
+                    <td><strong>ERROR</strong></td>
+                    <td>Error messages for failures</td>
+                    <td>Serious problems that need attention</td>
+                </tr>
+                <tr>
+                    <td><strong>FATAL</strong></td>
+                    <td>Critical errors that cause shutdown</td>
+                    <td>Unrecoverable failures</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="content-section">
+            <h2>Enabling Debug Logging</h2>
+
+            <h3>Set Environment Variable</h3>
+            <p>Before launching CryptArtist Studio, set the RUST_LOG environment variable:</p>
+            
+            <h4>Windows (PowerShell)</h4>
+            <div class="code-block">
+$env:RUST_LOG="debug"
+.\CryptArtist Studio.exe
+            </div>
+
+            <h4>macOS/Linux</h4>
+            <div class="code-block">
+export RUST_LOG=debug
+./cryptartist-studio
+            </div>
+
+            <h3>Log Level Options</h3>
+            <div class="code-block">
+# Show only errors
+RUST_LOG=error
+
+# Show warnings and errors
+RUST_LOG=warn
+
+# Show info, warnings, and errors
+RUST_LOG=info
+
+# Show all messages including debug
+RUST_LOG=debug
+
+# Show all messages including trace
+RUST_LOG=trace
+            </div>
+
+            <h3>Module-Specific Logging</h3>
+            <div class="code-block">
+# Debug only media processing
+RUST_LOG=cryptartist_studio::media=debug
+
+# Debug multiple modules
+RUST_LOG=cryptartist_studio::media=debug,cryptartist_studio::ai=debug
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Frontend Logging</h2>
+
+            <h3>Browser Console</h3>
+            <p>Open the browser developer console (F12) to see frontend logs:</p>
+            <ul>
+                <li>Component lifecycle events</li>
+                <li>State changes</li>
+                <li>API calls and responses</li>
+                <li>User interactions</li>
+            </ul>
+
+            <h3>Console Methods</h3>
+            <div class="code-block">
+console.log("General message");
+console.warn("Warning message");
+console.error("Error message");
+console.debug("Debug message");
+console.info("Info message");
+            </div>
+
+            <h3>Filtering Console Output</h3>
+            <p>In the browser console, use the filter dropdown to show only specific log levels.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Performance Monitoring</h2>
+
+            <h3>Performance Metrics</h3>
+            <p>CryptArtist Studio tracks performance metrics:</p>
+            <ul>
+                <li><strong>Startup Time</strong> - Time to launch the application</li>
+                <li><strong>Project Load Time</strong> - Time to open a project</li>
+                <li><strong>Render Time</strong> - Time to render frames (Media Mogul)</li>
+                <li><strong>API Response Time</strong> - Time for API calls</li>
+                <li><strong>Memory Usage</strong> - Current memory consumption</li>
+                <li><strong>CPU Usage</strong> - Current CPU utilization</li>
+            </ul>
+
+            <h3>Viewing Performance Data</h3>
+            <p>Performance data is logged to the session log. View it with:</p>
+            <div class="code-block">
+cryptartist-studio system logs | grep "performance"
+            </div>
+
+            <h3>Performance Profiling</h3>
+            <p>Use browser DevTools Performance tab to profile frontend performance:</p>
+            <ol>
+                <li>Open DevTools (F12)</li>
+                <li>Go to Performance tab</li>
+                <li>Click Record</li>
+                <li>Perform actions to profile</li>
+                <li>Click Stop to view results</li>
+            </ol>
+        </div>
+
+        <div class="content-section">
+            <h2>Monitoring Best Practices</h2>
+
+            <h3>Regular Log Review</h3>
+            <ul>
+                <li>Check logs regularly for errors and warnings</li>
+                <li>Monitor API response times</li>
+                <li>Track memory usage trends</li>
+                <li>Look for performance degradation</li>
+            </ul>
+
+            <h3>Log Retention</h3>
+            <ul>
+                <li>Recent logs are kept for quick access</li>
+                <li>History logs retain full records</li>
+                <li>Old logs are automatically rotated</li>
+                <li>Manually clear logs if needed: <code>cryptartist-studio system cache clear</code></li>
+            </ul>
+
+            <h3>Troubleshooting with Logs</h3>
+            <ul>
+                <li>Enable debug logging when investigating issues</li>
+                <li>Look for ERROR and FATAL level messages</li>
+                <li>Check timestamps to correlate events</li>
+                <li>Include relevant log excerpts when reporting bugs</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="api.html">← REST API</a>
+            <a href="index.html">Back to Docs →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

@@ -18,6 +18,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { parseCryptArt, routeForProgram } from "./cryptart";
+import { isCryptPath, parseManifest } from "./crypt";
 import { logger } from "./logger";
 import { toast } from "./toast";
 
@@ -31,6 +32,12 @@ export interface FileOpenResult {
   route: string;
   name: string;
   data: Record<string, unknown>;
+}
+
+export interface CryptOpenResult {
+  filePath: string;
+  manifestJson: string;
+  name: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,7 +72,35 @@ async function readAndParseCryptArtFile(filePath: string): Promise<FileOpenResul
 }
 
 // ---------------------------------------------------------------------------
-// Startup check: Poll backend for any .CryptArt files passed via CLI args
+// Core: Read and parse a .Crypt file (ZIP archive) from disk
+// ---------------------------------------------------------------------------
+
+async function readAndParseCryptFile(filePath: string): Promise<CryptOpenResult | null> {
+  try {
+    logger.info("file-association", `Reading .Crypt file: ${filePath}`);
+    const manifestJson = await invoke<string>("open_crypt", { path: filePath });
+    const manifest = parseManifest(manifestJson);
+
+    logger.info(
+      "file-association",
+      `Parsed .Crypt: name=${manifest.name}, version=${manifest.version}`
+    );
+
+    return {
+      filePath,
+      manifestJson,
+      name: manifest.name || "Unnamed Crypt",
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logger.error("file-association", `Failed to open .Crypt file: ${msg}`);
+    toast.error(`Failed to open .Crypt: ${msg}`);
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Startup check: Poll backend for any .CryptArt / .Crypt files via CLI args
 // ---------------------------------------------------------------------------
 
 export async function checkFileAssociation(
@@ -75,11 +110,33 @@ export async function checkFileAssociation(
     const pendingFiles = await invoke<string[]>("get_file_to_open");
     if (!pendingFiles || pendingFiles.length === 0) return [];
 
-    logger.info("file-association", `Found ${pendingFiles.length} pending .CryptArt file(s)`);
+    logger.info("file-association", `Found ${pendingFiles.length} pending file(s)`);
+
+    // Separate .Crypt files from .CryptArt files
+    const cryptFiles = pendingFiles.filter((p) => isCryptPath(p));
+    const cryptArtFiles = pendingFiles.filter((p) => !isCryptPath(p));
 
     const results: FileOpenResult[] = [];
 
-    for (const filePath of pendingFiles) {
+    // Handle .Crypt files first - navigate to crypt manager
+    if (cryptFiles.length > 0) {
+      const first = cryptFiles[0];
+      const cryptResult = await readAndParseCryptFile(first);
+      if (cryptResult) {
+        // Store the crypt path for CryptManager to pick up
+        sessionStorage.setItem("cryptartist_pending_crypt", JSON.stringify({
+          filePath: cryptResult.filePath,
+          manifestJson: cryptResult.manifestJson,
+          name: cryptResult.name,
+        }));
+        logger.action("file-association", `Opening .Crypt: "${cryptResult.name}"`);
+        toast.success(`Opening Crypt: "${cryptResult.name}"`);
+        navigate("/crypt-manager");
+      }
+    }
+
+    // Handle .CryptArt files
+    for (const filePath of cryptArtFiles) {
       const result = await readAndParseCryptArtFile(filePath);
       if (result) {
         results.push(result);
@@ -89,8 +146,8 @@ export async function checkFileAssociation(
     // Clear the pending files in the backend
     await invoke("clear_file_to_open");
 
-    // Navigate to the first file's program
-    if (results.length > 0) {
+    // Navigate to the first .CryptArt file's program (if no .Crypt was opened)
+    if (cryptFiles.length === 0 && results.length > 0) {
       const first = results[0];
       logger.action("file-association", `Navigating to ${first.route} for "${first.name}"`);
       toast.success(`Opened "${first.name}" in ${first.program}`);

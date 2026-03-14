@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Getting Started - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul, .content-section ol {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #00ff00;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Getting Started</h1>
+            <p>Installation, setup, and first steps with CryptArtist Studio</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Prerequisites</h2>
+            <ul>
+                <li><strong>Node.js 18+</strong> - For frontend development</li>
+                <li><strong>Rust 1.70+</strong> - For backend compilation</li>
+                <li><strong>FFmpeg</strong> - For media processing (auto-downloaded on first run)</li>
+                <li><strong>Git</strong> - For cloning the repository</li>
+                <li><strong>Tauri CLI</strong> - For desktop app development</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Installation</h2>
+            
+            <h3>Option 1: Download Pre-Built Binary</h3>
+            <p>Visit the <a href="../download.html">Download page</a> to get the latest pre-built version for your platform:</p>
+            <ul>
+                <li>Windows (.exe installer)</li>
+                <li>macOS (.dmg)</li>
+                <li>Linux (.AppImage or .deb)</li>
+            </ul>
+
+            <h3>Option 2: Build from Source</h3>
+            <p>Clone the repository and build locally:</p>
+            <div class="code-block">
+git clone https://github.com/mattyjacks/CryptArtistStudio.git
+cd CryptArtistStudio/v1
+npm install
+cargo build --release
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Development Mode</h2>
+            
+            <h3>Setup</h3>
+            <p>Install development dependencies:</p>
+            <div class="code-block">
+npm install -g @tauri-apps/cli
+npm install
+            </div>
+
+            <h3>Run in Development</h3>
+            <p>Start the development server with hot-reload:</p>
+            <div class="code-block">
+npm run tauri dev
+            </div>
+
+            <h3>Frontend Only (Vite)</h3>
+            <p>If you only want to develop the frontend:</p>
+            <div class="code-block">
+npm run dev
+            </div>
+
+            <h3>Backend Only (Rust)</h3>
+            <p>Check Rust code without building the full app:</p>
+            <div class="code-block">
+cd src-tauri
+cargo check
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Building for Production</h2>
+            
+            <h3>Create Release Build</h3>
+            <div class="code-block">
+npm run tauri build
+            </div>
+
+            <h3>Platform-Specific Builds</h3>
+            <p>Build for specific platforms:</p>
+            <div class="code-block">
+# Windows
+npm run tauri build -- --target x86_64-pc-windows-msvc
+
+# macOS (Intel)
+npm run tauri build -- --target x86_64-apple-darwin
+
+# macOS (Apple Silicon)
+npm run tauri build -- --target aarch64-apple-darwin
+
+# Linux
+npm run tauri build -- --target x86_64-unknown-linux-gnu
+            </div>
+
+            <h3>Output Location</h3>
+            <p>Built binaries are located in: <code>src-tauri/target/release/bundle/</code></p>
+        </div>
+
+        <div class="content-section">
+            <h2>Platform Support</h2>
+            
+            <h3>Windows</h3>
+            <ul>
+                <li>Windows 10 or later</li>
+                <li>x86_64 architecture</li>
+                <li>WebView2 runtime (auto-installed)</li>
+            </ul>
+
+            <h3>macOS</h3>
+            <ul>
+                <li>macOS 10.13 or later</li>
+                <li>Intel (x86_64) or Apple Silicon (ARM64)</li>
+                <li>Notarization for distribution</li>
+            </ul>
+
+            <h3>Linux</h3>
+            <ul>
+                <li>Ubuntu 18.04+, Fedora 30+, or equivalent</li>
+                <li>x86_64 architecture</li>
+                <li>GTK 3.0+ development libraries</li>
+            </ul>
+
+            <h3>Mobile (In Progress)</h3>
+            <ul>
+                <li>Android support planned</li>
+                <li>iOS support planned</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>First Steps</h2>
+            
+            <h3>1. Launch the Application</h3>
+            <p>Open CryptArtist Studio. You'll see the Suite Launcher with all 11 programs.</p>
+
+            <h3>2. Configure API Keys</h3>
+            <p>Go to Settings (gear icon) and add your API keys for:</p>
+            <ul>
+                <li>OpenAI (GPT-4, DALL-E)</li>
+                <li>Anthropic (Claude)</li>
+                <li>Google (Gemini)</li>
+                <li>OpenRouter (200+ models)</li>
+            </ul>
+
+            <h3>3. Create Your First Project</h3>
+            <p>Choose a program (e.g., Media Mogul for video, VibeCodeWorker for code) and start creating.</p>
+
+            <h3>4. Save Your Work</h3>
+            <p>Projects are saved as .CryptArt files - a future-proof JSON format that will always be readable.</p>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Need help?</strong> Check out the <a href="troubleshooting.html">Troubleshooting guide</a> or visit our <a href="https://github.com/mattyjacks/CryptArtistStudio/issues">GitHub Issues</a>.
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="overview.html">← Overview</a>
+            <a href="programs.html">Programs →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLI Reference - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>CLI Reference</h1>
+            <p>Command-line interface reference and examples</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Global Commands</h2>
+
+            <h3>Help</h3>
+            <div class="code-block">
+cryptartist-studio --help
+cryptartist-studio -h
+            </div>
+            <p>Display help information and available commands.</p>
+
+            <h3>Version</h3>
+            <div class="code-block">
+cryptartist-studio --version
+cryptartist-studio -V
+            </div>
+            <p>Display the current version of CryptArtist Studio.</p>
+
+            <h3>Open Project</h3>
+            <div class="code-block">
+cryptartist-studio open &lt;file&gt;
+cryptartist-studio open ~/projects/myproject.CryptArt
+            </div>
+            <p>Open a .CryptArt or .Crypt file in CryptArtist Studio.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Project Management Commands</h2>
+
+            <h3>Create New Project</h3>
+            <div class="code-block">
+cryptartist-studio create &lt;name&gt; --program &lt;program&gt;
+cryptartist-studio create "My Video" --program media-mogul
+            </div>
+            <p>Create a new project for a specific program.</p>
+
+            <h3>List Projects</h3>
+            <div class="code-block">
+cryptartist-studio list
+cryptartist-studio list --format json
+            </div>
+            <p>List all recent projects.</p>
+
+            <h3>Export Project</h3>
+            <div class="code-block">
+cryptartist-studio export &lt;file&gt; --output &lt;path&gt;
+cryptartist-studio export myproject.CryptArt --output ~/exports/
+            </div>
+            <p>Export a project to a different format.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Media Commands</h2>
+
+            <h3>Encode Video</h3>
+            <div class="code-block">
+cryptartist-studio media encode &lt;input&gt; --output &lt;output&gt; --format &lt;format&gt;
+cryptartist-studio media encode input.mov --output output.mp4 --format h264
+            </div>
+            <p>Encode video to a different format using FFmpeg.</p>
+
+            <h3>Extract Audio</h3>
+            <div class="code-block">
+cryptartist-studio media audio &lt;input&gt; --output &lt;output&gt;
+cryptartist-studio media audio video.mp4 --output audio.mp3
+            </div>
+            <p>Extract audio from a video file.</p>
+
+            <h3>Generate Thumbnail</h3>
+            <div class="code-block">
+cryptartist-studio media thumbnail &lt;input&gt; --output &lt;output&gt; --time &lt;seconds&gt;
+cryptartist-studio media thumbnail video.mp4 --output thumb.jpg --time 5
+            </div>
+            <p>Generate a thumbnail from a video at a specific time.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>AI Commands</h2>
+
+            <h3>Generate Image</h3>
+            <div class="code-block">
+cryptartist-studio ai image &lt;prompt&gt; --output &lt;output&gt;
+cryptartist-studio ai image "a beautiful sunset" --output sunset.png
+            </div>
+            <p>Generate an image using AI (requires API key).</p>
+
+            <h3>Chat with AI</h3>
+            <div class="code-block">
+cryptartist-studio ai chat &lt;message&gt;
+cryptartist-studio ai chat "What is the meaning of life?"
+            </div>
+            <p>Send a message to the AI and get a response.</p>
+
+            <h3>Transcribe Audio</h3>
+            <div class="code-block">
+cryptartist-studio ai transcribe &lt;audio_file&gt;
+cryptartist-studio ai transcribe recording.mp3
+            </div>
+            <p>Transcribe audio to text using AI.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>File System Commands</h2>
+
+            <h3>List Files</h3>
+            <div class="code-block">
+cryptartist-studio fs list &lt;path&gt;
+cryptartist-studio fs list ~/projects/
+            </div>
+            <p>List files in a directory.</p>
+
+            <h3>Read File</h3>
+            <div class="code-block">
+cryptartist-studio fs read &lt;file&gt;
+cryptartist-studio fs read config.json
+            </div>
+            <p>Read and display file contents.</p>
+
+            <h3>Write File</h3>
+            <div class="code-block">
+cryptartist-studio fs write &lt;file&gt; &lt;content&gt;
+cryptartist-studio fs write output.txt "Hello, World!"
+            </div>
+            <p>Write content to a file.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Server Commands</h2>
+
+            <h3>Start REST API Server</h3>
+            <div class="code-block">
+cryptartist-studio server start --port 3000
+            </div>
+            <p>Start the REST API server on a specific port.</p>
+
+            <h3>Stop Server</h3>
+            <div class="code-block">
+cryptartist-studio server stop
+            </div>
+            <p>Stop the running REST API server.</p>
+
+            <h3>Server Status</h3>
+            <div class="code-block">
+cryptartist-studio server status
+            </div>
+            <p>Check the status of the REST API server.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>System Commands</h2>
+
+            <h3>System Info</h3>
+            <div class="code-block">
+cryptartist-studio system info
+            </div>
+            <p>Display system information and requirements.</p>
+
+            <h3>Check Dependencies</h3>
+            <div class="code-block">
+cryptartist-studio system check
+            </div>
+            <p>Check if all required dependencies are installed.</p>
+
+            <h3>Clear Cache</h3>
+            <div class="code-block">
+cryptartist-studio system cache clear
+            </div>
+            <p>Clear application cache.</p>
+
+            <h3>View Logs</h3>
+            <div class="code-block">
+cryptartist-studio system logs
+cryptartist-studio system logs --lines 100
+            </div>
+            <p>Display application logs.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Common Examples</h2>
+
+            <h3>Open and Edit a Video</h3>
+            <div class="code-block">
+cryptartist-studio open myproject.CryptArt
+# Then use Media Mogul to edit
+            </div>
+
+            <h3>Batch Encode Videos</h3>
+            <div class="code-block">
+for file in *.mov; do
+  cryptartist-studio media encode "$file" --output "${file%.mov}.mp4" --format h264
+done
+            </div>
+
+            <h3>Generate Multiple Images</h3>
+            <div class="code-block">
+cryptartist-studio ai image "sunset" --output sunset.png
+cryptartist-studio ai image "sunrise" --output sunrise.png
+cryptartist-studio ai image "landscape" --output landscape.png
+            </div>
+
+            <h3>Start Development Server</h3>
+            <div class="code-block">
+cryptartist-studio server start --port 3000
+# API is now available at http://localhost:3000
+            </div>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Pro Tip:</strong> Use <code>--help</code> with any command to see detailed options and examples: <code>cryptartist-studio media encode --help</code>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="configuration.html">← Configuration</a>
+            <a href="api.html">REST API →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

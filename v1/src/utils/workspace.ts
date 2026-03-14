@@ -211,5 +211,5 @@ export const INITIAL_WORKSPACE_STATE: WorkspaceState = {
   workspaces: [],
   activeWorkspaceId: null,
   groups: [],
-  maxWorkspaces: 20,
+  maxWorkspaces: 69,
 };

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .warning-box {
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 165, 0, 0.1) 100%);
+            border-left: 4px solid #ff6b6b;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Security</h1>
+            <p>300 vulnerability fixes, hardening, and best practices</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Overview of 300 Vulnerability Fixes</h2>
+            
+            <p>CryptArtist Studio has undergone comprehensive security hardening with 300+ vulnerability fixes across frontend and backend:</p>
+            
+            <ul>
+                <li><strong>Content Security Policy (CSP)</strong> - Strict CSP headers prevent XSS attacks</li>
+                <li><strong>Input Validation</strong> - All user input is validated and sanitized</li>
+                <li><strong>Rate Limiting</strong> - API endpoints are rate-limited to prevent abuse</li>
+                <li><strong>XSS Prevention</strong> - Template escaping and DOM sanitization</li>
+                <li><strong>Audit Logging</strong> - All security-relevant events are logged</li>
+                <li><strong>Encrypted Storage</strong> - Sensitive data is encrypted at rest</li>
+                <li><strong>SVG Sanitization</strong> - SVG files are sanitized to prevent attacks</li>
+                <li><strong>WebSocket Monitoring</strong> - WebSocket connections are monitored and validated</li>
+                <li><strong>API Guards</strong> - All API endpoints have authentication and authorization checks</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Security Utility Module</h2>
+            
+            <h3>Input Validation</h3>
+            <p>The security utility module provides functions for validating all types of input:</p>
+            <ul>
+                <li><code>validateEmail()</code> - Email validation with RFC 5322 compliance</li>
+                <li><code>validateUrl()</code> - URL validation and normalization</li>
+                <li><code>validateFilePath()</code> - File path validation with traversal guards</li>
+                <li><code>validateJson()</code> - JSON validation and parsing</li>
+                <li><code>sanitizeHtml()</code> - HTML sanitization to prevent XSS</li>
+                <li><code>sanitizeSvg()</code> - SVG sanitization to prevent attacks</li>
+            </ul>
+
+            <h3>Encryption</h3>
+            <ul>
+                <li><code>encryptData()</code> - AES-256 encryption for sensitive data</li>
+                <li><code>decryptData()</code> - AES-256 decryption</li>
+                <li><code>hashPassword()</code> - Bcrypt password hashing</li>
+                <li><code>verifyPassword()</code> - Bcrypt password verification</li>
+            </ul>
+
+            <h3>Authentication</h3>
+            <ul>
+                <li><code>generateToken()</code> - JWT token generation</li>
+                <li><code>verifyToken()</code> - JWT token verification</li>
+                <li><code>generateApiKey()</code> - Cryptographically secure API key generation</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Content Security Policy</h2>
+            
+            <h3>CSP Headers</h3>
+            <p>CryptArtist Studio enforces strict CSP headers:</p>
+            <ul>
+                <li><strong>default-src 'self'</strong> - Only load resources from the same origin</li>
+                <li><strong>script-src 'self'</strong> - Only execute scripts from the same origin</li>
+                <li><strong>style-src 'self' 'unsafe-inline'</strong> - Allow inline styles (necessary for dynamic theming)</li>
+                <li><strong>img-src 'self' data: https:</strong> - Allow images from same origin, data URLs, and HTTPS</li>
+                <li><strong>font-src 'self'</strong> - Only load fonts from the same origin</li>
+                <li><strong>connect-src 'self' https:</strong> - Only connect to same origin and HTTPS endpoints</li>
+            </ul>
+
+            <h3>XSS Prevention</h3>
+            <ul>
+                <li>All user input is HTML-escaped before rendering</li>
+                <li>Template literals use proper escaping</li>
+                <li>DOM APIs are used safely (textContent instead of innerHTML)</li>
+                <li>Third-party libraries are vetted for security</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>REST API Security Headers</h2>
+            
+            <p>All REST API responses include security headers:</p>
+            <ul>
+                <li><strong>X-Content-Type-Options: nosniff</strong> - Prevent MIME type sniffing</li>
+                <li><strong>X-Frame-Options: DENY</strong> - Prevent clickjacking</li>
+                <li><strong>X-XSS-Protection: 1; mode=block</strong> - Enable XSS protection</li>
+                <li><strong>Strict-Transport-Security</strong> - Enforce HTTPS</li>
+                <li><strong>Access-Control-Allow-Origin</strong> - CORS headers for cross-origin requests</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Input Validation Summary</h2>
+            
+            <h3>File Paths</h3>
+            <ul>
+                <li>Path traversal attacks are prevented with <code>..</code> checks</li>
+                <li>Absolute paths are rejected</li>
+                <li>Symbolic links are validated</li>
+            </ul>
+
+            <h3>User Input</h3>
+            <ul>
+                <li>All text input is length-limited</li>
+                <li>Special characters are escaped</li>
+                <li>Unicode is validated</li>
+            </ul>
+
+            <h3>API Parameters</h3>
+            <ul>
+                <li>Type checking for all parameters</li>
+                <li>Range validation for numeric values</li>
+                <li>Enum validation for predefined values</li>
+            </ul>
+
+            <h3>File Uploads</h3>
+            <ul>
+                <li>File type validation (magic bytes, not just extension)</li>
+                <li>File size limits enforced</li>
+                <li>Virus scanning (optional integration)</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Best Practices</h2>
+            
+            <h3>API Key Management</h3>
+            <ul>
+                <li>Never hardcode API keys in source code</li>
+                <li>Store API keys in environment variables or secure storage</li>
+                <li>Rotate API keys regularly</li>
+                <li>Use separate keys for different environments (dev, staging, production)</li>
+                <li>Revoke compromised keys immediately</li>
+            </ul>
+
+            <h3>Data Protection</h3>
+            <ul>
+                <li>Encrypt sensitive data at rest</li>
+                <li>Use HTTPS for all network communication</li>
+                <li>Implement proper access controls</li>
+                <li>Log all access to sensitive data</li>
+                <li>Implement data retention policies</li>
+            </ul>
+
+            <h3>Code Security</h3>
+            <ul>
+                <li>Keep dependencies up to date</li>
+                <li>Use security linters and static analysis tools</li>
+                <li>Conduct regular security audits</li>
+                <li>Follow secure coding practices</li>
+                <li>Use type-safe languages (TypeScript, Rust)</li>
+            </ul>
+        </div>
+
+        <div class="warning-box">
+            <strong>⚠️ Important:</strong> If you discover a security vulnerability, please report it responsibly to <a href="mailto:security@mattyjacks.com">security@mattyjacks.com</a> instead of posting it publicly. We take security seriously and will address vulnerabilities promptly.
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="workspace.html">← Workspace</a>
+            <a href="configuration.html">Configuration →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

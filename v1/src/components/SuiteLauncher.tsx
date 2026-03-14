@@ -590,6 +590,12 @@ export default function SuiteLauncher() {
             >
               {"\u{1F4C2}"} Open .CryptArt Files...
             </button>
+            <button type="button"
+              onClick={() => navigate("/crypt-manager")}
+              className="btn text-[11px] px-4 py-1.5 border-purple-500/30 text-purple-400 hover:bg-purple-500/10 transition-all"
+            >
+              {"\u26B0\uFE0F"} Open .Crypt...
+            </button>
             {ws.workspaces.length > 0 && (
               <span className="text-[10px] text-studio-muted">
                 {ws.workspaces.length} workspace{ws.workspaces.length !== 1 ? "s" : ""} open

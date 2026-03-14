@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API Reference - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        .endpoint {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .method-get {
+            color: #4CAF50;
+        }
+        .method-post {
+            color: #2196F3;
+        }
+        .method-put {
+            color: #FF9800;
+        }
+        .method-delete {
+            color: #F44336;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>REST API Reference</h1>
+            <p>Complete REST API documentation and examples</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Getting Started</h2>
+
+            <h3>Starting the Server</h3>
+            <div class="code-block">
+cryptartist-studio server start --port 3000
+            </div>
+            <p>The REST API server will be available at <code>http://localhost:3000</code></p>
+
+            <h3>Base URL</h3>
+            <div class="code-block">
+http://localhost:3000/api/v1
+            </div>
+
+            <h3>Authentication</h3>
+            <p>Include your API key in the Authorization header:</p>
+            <div class="code-block">
+Authorization: Bearer YOUR_API_KEY
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Projects Endpoints</h2>
+
+            <div class="endpoint">
+                <h3><span class="method-get">GET</span> /projects</h3>
+                <p>List all projects</p>
+                <div class="code-block">
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  http://localhost:3000/api/v1/projects
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-post">POST</span> /projects</h3>
+                <p>Create a new project</p>
+                <div class="code-block">
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My Project",
+    "program": "media-mogul",
+    "description": "A test project"
+  }' \
+  http://localhost:3000/api/v1/projects
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-get">GET</span> /projects/:id</h3>
+                <p>Get a specific project</p>
+                <div class="code-block">
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  http://localhost:3000/api/v1/projects/project-id
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-put">PUT</span> /projects/:id</h3>
+                <p>Update a project</p>
+                <div class="code-block">
+curl -X PUT \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Name",
+    "description": "Updated description"
+  }' \
+  http://localhost:3000/api/v1/projects/project-id
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-delete">DELETE</span> /projects/:id</h3>
+                <p>Delete a project</p>
+                <div class="code-block">
+curl -X DELETE \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  http://localhost:3000/api/v1/projects/project-id
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Media Endpoints</h2>
+
+            <div class="endpoint">
+                <h3><span class="method-post">POST</span> /media/encode</h3>
+                <p>Encode a video file</p>
+                <div class="code-block">
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "/path/to/input.mov",
+    "output": "/path/to/output.mp4",
+    "format": "h264",
+    "bitrate": "5000k"
+  }' \
+  http://localhost:3000/api/v1/media/encode
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-post">POST</span> /media/thumbnail</h3>
+                <p>Generate a thumbnail from a video</p>
+                <div class="code-block">
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": "/path/to/video.mp4",
+    "output": "/path/to/thumbnail.jpg",
+    "time": 5
+  }' \
+  http://localhost:3000/api/v1/media/thumbnail
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>AI Endpoints</h2>
+
+            <div class="endpoint">
+                <h3><span class="method-post">POST</span> /ai/chat</h3>
+                <p>Send a message to the AI</p>
+                <div class="code-block">
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "What is the meaning of life?",
+    "model": "gpt-4"
+  }' \
+  http://localhost:3000/api/v1/ai/chat
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-post">POST</span> /ai/image</h3>
+                <p>Generate an image using AI</p>
+                <div class="code-block">
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "a beautiful sunset over the ocean",
+    "size": "1024x1024"
+  }' \
+  http://localhost:3000/api/v1/ai/image
+                </div>
+            </div>
+
+            <div class="endpoint">
+                <h3><span class="method-post">POST</span> /ai/transcribe</h3>
+                <p>Transcribe audio to text</p>
+                <div class="code-block">
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "audio": "/path/to/audio.mp3"
+  }' \
+  http://localhost:3000/api/v1/ai/transcribe
+                </div>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Response Format</h2>
+
+            <h3>Success Response</h3>
+            <div class="code-block">
+{
+  "success": true,
+  "data": {
+    "id": "project-123",
+    "name": "My Project",
+    "program": "media-mogul"
+  },
+  "timestamp": "2026-03-14T12:00:00Z"
+}
+            </div>
+
+            <h3>Error Response</h3>
+            <div class="code-block">
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "Missing required field: name"
+  },
+  "timestamp": "2026-03-14T12:00:00Z"
+}
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Status Codes</h2>
+            <ul>
+                <li><strong>200 OK</strong> - Request successful</li>
+                <li><strong>201 Created</strong> - Resource created successfully</li>
+                <li><strong>400 Bad Request</strong> - Invalid request parameters</li>
+                <li><strong>401 Unauthorized</strong> - Missing or invalid API key</li>
+                <li><strong>403 Forbidden</strong> - Access denied</li>
+                <li><strong>404 Not Found</strong> - Resource not found</li>
+                <li><strong>500 Internal Server Error</strong> - Server error</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="cli.html">← CLI Reference</a>
+            <a href="logging.html">Logging →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

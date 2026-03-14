@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .docs-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .docs-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .docs-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .docs-header p {
+            font-size: 1.1em;
+            color: #aaa;
+        }
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+        .doc-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .doc-card:hover {
+            border-color: rgba(102, 126, 234, 0.6);
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            transform: translateY(-5px);
+        }
+        .doc-card h3 {
+            margin-top: 0;
+            color: #667eea;
+            font-size: 1.3em;
+        }
+        .doc-card p {
+            color: #bbb;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .doc-card a {
+            display: inline-block;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .doc-card a:hover {
+            color: #764ba2;
+        }
+        .docs-section {
+            margin-bottom: 80px;
+        }
+        .docs-section h2 {
+            font-size: 1.8em;
+            margin-bottom: 30px;
+            color: #fff;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="docs-container">
+        <div class="docs-header">
+            <h1>Documentation</h1>
+            <p>Complete guide to CryptArtist Studio - from getting started to advanced development</p>
+        </div>
+
+        <div class="nav-inner">
+            <a href="../index.html" class="nav-logo" style="display: flex; align-items: center; gap: 10px;">
+                <img src="../logo_square.png" alt="CryptArtist Logo" style="width: 40px; height: 40px; border-radius: 8px;">
+                <span class="nav-logo-text">CryptArtist</span>
+            </a>
+        </div>
+
+        <div class="docs-section">
+            <h2>Getting Started</h2>
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h3>📖 Overview</h3>
+                    <p>Learn what CryptArtist Studio is, its key features, philosophy, and why it's different.</p>
+                    <a href="overview.html">Read Overview →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🚀 Getting Started</h3>
+                    <p>Prerequisites, installation, development mode setup, and building for production.</p>
+                    <a href="getting-started.html">Get Started →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>⬇️ Download</h3>
+                    <p>Download CryptArtist Studio for Windows, macOS, or Linux.</p>
+                    <a href="../download.html">Download Now →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>Programs & Features</h2>
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h3>🎬 Programs</h3>
+                    <p>Detailed guide to all 11 programs: Media Mogul, VibeCodeWorker, DemoRecorder, ValleyNet, GameStudio, and more.</p>
+                    <a href="programs.html">Explore Programs →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>📁 Workspace Management</h3>
+                    <p>Multi-file workspaces, workspace groups, resource sharing, and collaborative workflows.</p>
+                    <a href="workspace.html">Learn Workspaces →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🎨 File Formats</h3>
+                    <p>The .CryptArt and .Crypt file formats - permanently future-proof project files.</p>
+                    <a href="file-formats.html">File Format Guide →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>Development & Integration</h2>
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h3>🏗️ Architecture</h3>
+                    <p>Project structure, frontend architecture, backend design, and state management.</p>
+                    <a href="architecture.html">View Architecture →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>⚙️ CLI Reference</h3>
+                    <p>Command-line interface reference with all available commands and options.</p>
+                    <a href="cli.html">CLI Commands →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🔌 REST API</h3>
+                    <p>REST API reference, endpoints, authentication, and integration examples.</p>
+                    <a href="api.html">API Reference →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>Configuration & Advanced</h2>
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h3>⚡ Configuration</h3>
+                    <p>API keys, FFmpeg setup, Godot integration, and Tauri configuration.</p>
+                    <a href="configuration.html">Configure →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🔒 Security</h3>
+                    <p>300 vulnerability fixes, security hardening, CSP, input validation, and best practices.</p>
+                    <a href="security.html">Security Guide →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>📊 Logging & Monitoring</h3>
+                    <p>Logging system, log files, log levels, and performance optimization.</p>
+                    <a href="logging.html">Logging Guide →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>Resources & Support</h2>
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h3>🎹 Keyboard Shortcuts</h3>
+                    <p>Complete list of keyboard shortcuts for all programs.</p>
+                    <a href="shortcuts.html">View Shortcuts →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🤝 Contributing</h3>
+                    <p>Development workflow, code style, pull request guidelines, and community contribution.</p>
+                    <a href="contributing.html">Contribute →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🛠️ Troubleshooting</h3>
+                    <p>Common issues, solutions, and performance optimization tips.</p>
+                    <a href="troubleshooting.html">Troubleshoot →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>Additional Resources</h2>
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h3>🗺️ Roadmap</h3>
+                    <p>Future plans, new programs, platform support, and community roadmap.</p>
+                    <a href="roadmap.html">View Roadmap →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>🔗 Related Projects</h3>
+                    <p>Links to related projects, dependencies, and community resources.</p>
+                    <a href="related.html">Related Projects →</a>
+                </div>
+                <div class="doc-card">
+                    <h3>📜 License & Credits</h3>
+                    <p>License information, credits, and acknowledgments.</p>
+                    <a href="license.html">License & Credits →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

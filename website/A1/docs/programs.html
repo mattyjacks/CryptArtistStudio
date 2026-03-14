@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programs - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .programs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .program-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        .program-card:hover {
+            border-color: rgba(102, 126, 234, 0.6);
+            transform: translateY(-5px);
+        }
+        .program-card .emoji {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .program-card h3 {
+            color: #667eea;
+            margin: 10px 0;
+            font-size: 1.3em;
+        }
+        .program-card .code {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .program-card p {
+            color: #bbb;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .program-card ul {
+            color: #bbb;
+            margin-left: 20px;
+            font-size: 0.9em;
+        }
+        .program-card li {
+            margin-bottom: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Programs</h1>
+            <p>Explore all 11 programs in the CryptArtist Studio suite</p>
+        </div>
+
+        <div class="programs-grid">
+            <div class="program-card">
+                <div class="emoji">📺</div>
+                <h3>Media Mogul</h3>
+                <div class="code">MMo | Shortcut: 1</div>
+                <p>Professional video editor, image editor, and AI-powered media studio with integrated Podcast & Audio Lab powered by ElevenLabs.</p>
+                <ul>
+                    <li>Multi-track timeline editing</li>
+                    <li>Node-based compositing</li>
+                    <li>AI video generation</li>
+                    <li>Color grading & correction</li>
+                    <li>Audio mixing & waveforms</li>
+                    <li>Podcast & TTS generation</li>
+                    <li>FFmpeg-powered export</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">👨‍💻</div>
+                <h3>VibeCodeWorker</h3>
+                <div class="code">VCW | Shortcut: 2</div>
+                <p>Full-featured vibe-coding IDE powered by your own API keys, modeled after VS Code with Monaco Editor.</p>
+                <ul>
+                    <li>Monaco Editor with syntax highlighting</li>
+                    <li>File explorer & project management</li>
+                    <li>AI-powered code assistance</li>
+                    <li>Built-in terminal</li>
+                    <li>Problems & linting panel</li>
+                    <li>Testing & web audit</li>
+                    <li>Multi-language support</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">📹</div>
+                <h3>DemoRecorder</h3>
+                <div class="code">DRe | Shortcut: 3</div>
+                <p>Screen recording and live streaming tool for demos, gaming, and content creation.</p>
+                <ul>
+                    <li>Full screen or window recording</li>
+                    <li>Configurable resolution & FPS</li>
+                    <li>Live streaming (Twitch, YouTube)</li>
+                    <li>Input logger plugin</li>
+                    <li>Recording controls & timer</li>
+                    <li>Integration links</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">🧠</div>
+                <h3>ValleyNet</h3>
+                <div class="code">VNt | Shortcut: 4</div>
+                <p>Autonomous AI agent inspired by OpenClaw - executes real-world tasks via LLMs.</p>
+                <ul>
+                    <li>Natural language task execution</li>
+                    <li>Skills marketplace</li>
+                    <li>Browser automation</li>
+                    <li>Service integrations (Discord, Slack, Gmail)</li>
+                    <li>Task memory & history</li>
+                    <li>Resilient auto-restart mode</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">🎮</div>
+                <h3>GameStudio</h3>
+                <div class="code">GSt | Shortcut: 5</div>
+                <p>Combined media + code + Godot engine for AI-powered game development.</p>
+                <ul>
+                    <li>Three-panel layout (assets, code, Godot)</li>
+                    <li>Godot Engine integration</li>
+                    <li>AI game generation</li>
+                    <li>Project templates</li>
+                    <li>Video Game Cloner</li>
+                    <li>Asset pipeline</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">🐱</div>
+                <h3>CryptArt Commander</h3>
+                <div class="code">CAC | Shortcut: 6</div>
+                <p>Terminal-based command center for API and CLI control of CryptArtist Studio.</p>
+                <ul>
+                    <li>Full-screen terminal interface</li>
+                    <li>50+ built-in commands</li>
+                    <li>Tab completion & aliases</li>
+                    <li>Script editor</li>
+                    <li>REST API reference</li>
+                    <li>Command history</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">💻</div>
+                <h3>DonatePersonalSeconds</h3>
+                <div class="code">DPS | Shortcut: 7</div>
+                <p>P2P compute resource sharing for distributed tasks.</p>
+                <ul>
+                    <li>CPU, RAM, GPU donation</li>
+                    <li>Network speed detection</li>
+                    <li>Peer verification</li>
+                    <li>Live statistics</li>
+                    <li>Activity logging</li>
+                    <li>Password protection</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">📦</div>
+                <h3>Clone Tool</h3>
+                <div class="code">CLN | Shortcut: 9</div>
+                <p>Create .exe, .dmg, .deb installers from your configuration.</p>
+                <ul>
+                    <li>Multi-platform builds</li>
+                    <li>Installer customization</li>
+                    <li>Code signing</li>
+                    <li>Build simulation</li>
+                    <li>Detailed build logs</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">🥧</div>
+                <h3>DictatePic</h3>
+                <div class="code">D(pi)c</div>
+                <p>GIMP-style image editor with AI generation, inpainting, and style transfer.</p>
+                <ul>
+                    <li>Layer-based editing</li>
+                    <li>AI image generation</li>
+                    <li>Inpainting & outpainting</li>
+                    <li>Style transfer</li>
+                    <li>15 blend modes</li>
+                    <li>8/16/32-bit support</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">🍀</div>
+                <h3>Luck Factory</h3>
+                <div class="code">Lck</div>
+                <p>AI luck seed generator with guided meditation and affirmations.</p>
+                <ul>
+                    <li>Seed generation</li>
+                    <li>Guided meditation</li>
+                    <li>Affirmations</li>
+                    <li>Lucky mode integration</li>
+                    <li>Persistence</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">⚙️</div>
+                <h3>Settings</h3>
+                <div class="code">Set | Shortcut: 0</div>
+                <p>API key management, OpenRouter, appearance, and data settings.</p>
+                <ul>
+                    <li>API key configuration</li>
+                    <li>OpenRouter setup</li>
+                    <li>Theme customization</li>
+                    <li>Data management</li>
+                    <li>Preferences</li>
+                </ul>
+            </div>
+
+            <div class="program-card">
+                <div class="emoji">🗺️</div>
+                <h3>Suite Launcher</h3>
+                <div class="code">SLr | Shortcut: Home</div>
+                <p>The home screen - launch any program, open .CryptArt files, and view system status.</p>
+                <ul>
+                    <li>Program grid with search</li>
+                    <li>Category filtering</li>
+                    <li>Favorites system</li>
+                    <li>Recent projects</li>
+                    <li>System status</li>
+                    <li>Tips carousel</li>
+                </ul>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="getting-started.html">← Getting Started</a>
+            <a href="workspace.html">Workspace →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

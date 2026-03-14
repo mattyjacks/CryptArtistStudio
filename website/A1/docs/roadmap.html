@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .roadmap-item {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .roadmap-item.completed {
+            border-left-color: #00ff00;
+            background: linear-gradient(135deg, rgba(0, 255, 0, 0.05) 0%, rgba(0, 200, 100, 0.05) 100%);
+        }
+        .roadmap-item.in-progress {
+            border-left-color: #ffa500;
+            background: linear-gradient(135deg, rgba(255, 165, 0, 0.1) 0%, rgba(255, 200, 0, 0.1) 100%);
+        }
+        .roadmap-item.planned {
+            border-left-color: #667eea;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status-badge.completed {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+        }
+        .status-badge.in-progress {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+        }
+        .status-badge.planned {
+            background: rgba(102, 126, 234, 0.2);
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Roadmap</h1>
+            <p>Future plans, new programs, and community roadmap</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Current Status</h2>
+            <p>CryptArtist Studio v1.69.420 is in active development with 11 core programs and comprehensive feature set. The roadmap outlines future enhancements and new programs planned for upcoming releases.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Completed Features</h2>
+
+            <div class="roadmap-item completed">
+                <span class="status-badge completed">✓ Completed</span>
+                <h3>Core 11 Programs</h3>
+                <p>All 11 core programs are fully functional: Media Mogul, VibeCodeWorker, DemoRecorder, ValleyNet, GameStudio, CryptArt Commander, DonatePersonalSeconds, Clone Tool, DictatePic, Luck Factory, and Settings.</p>
+            </div>
+
+            <div class="roadmap-item completed">
+                <span class="status-badge completed">✓ Completed</span>
+                <h3>.CryptArt File Format</h3>
+                <p>Permanently future-proof JSON project file format that will never need upgrading. Full backward compatibility guaranteed.</p>
+            </div>
+
+            <div class="roadmap-item completed">
+                <span class="status-badge completed">✓ Completed</span>
+                <h3>.Crypt Collection Format</h3>
+                <p>ZIP-based collection container with 10 folders (Skeleton, Grave, Urn, Epitaph, Vault, Catacombs, Reliquary, Soul, LastWords, Pyramid) for organizing multiple projects.</p>
+            </div>
+
+            <div class="roadmap-item completed">
+                <span class="status-badge completed">✓ Completed</span>
+                <h3>Workspace Management</h3>
+                <p>Multi-file workspace support with up to 69 concurrent workspaces, workspace groups, and resource sharing.</p>
+            </div>
+
+            <div class="roadmap-item completed">
+                <span class="status-badge completed">✓ Completed</span>
+                <h3>Security Hardening</h3>
+                <p>300+ vulnerability fixes including CSP, input validation, rate limiting, XSS prevention, audit logging, and encrypted storage.</p>
+            </div>
+
+            <div class="roadmap-item completed">
+                <span class="status-badge completed">✓ Completed</span>
+                <h3>Mummy Bootstrap Agent</h3>
+                <p>Self-running bootstrap scripts (Mummy.bat, Mummy.ps1, Mummy.sh) for distributing .Crypt files with automatic CryptArtist Studio download and launch.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>In Progress</h2>
+
+            <div class="roadmap-item in-progress">
+                <span class="status-badge in-progress">🔄 In Progress</span>
+                <h3>Mobile Support</h3>
+                <p>Android and iOS support via React Native or Flutter. Estimated completion: Q3 2026.</p>
+            </div>
+
+            <div class="roadmap-item in-progress">
+                <span class="status-badge in-progress">🔄 In Progress</span>
+                <h3>Cloud Sync</h3>
+                <p>Cloud storage integration for .Crypt files with automatic sync, versioning, and collaboration features.</p>
+            </div>
+
+            <div class="roadmap-item in-progress">
+                <span class="status-badge in-progress">🔄 In Progress</span>
+                <h3>Plugin System</h3>
+                <p>Extensible plugin architecture allowing third-party developers to create custom programs and features.</p>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Planned Features</h2>
+
+            <div class="roadmap-item planned">
+                <span class="status-badge planned">📋 Planned</span>
+                <h3>New Programs</h3>
+                <p>9 new programs planned for future releases:</p>
+                <ul>
+                    <li><strong>CꜴS (Crypto Studio)</strong> - Blockchain and cryptocurrency tools</li>
+                    <li><strong>SLM (Small Language Model)</strong> - Local LLM integration</li>
+                    <li><strong>BRD (Brand Designer)</strong> - Brand identity and logo design</li>
+                    <li><strong>MKT (Marketing Suite)</strong> - Social media and marketing automation</li>
+                    <li><strong>NET (Network Hub)</strong> - P2P networking and collaboration</li>
+                    <li><strong>SYN (Synthesizer)</strong> - Music production and synthesis</li>
+                    <li><strong>TRN (Trainer)</strong> - AI model training and fine-tuning</li>
+                    <li><strong>ARK (Archive)</strong> - Data archival and backup</li>
+                    <li><strong>COM (Community)</strong> - Social features and marketplace</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item planned">
+                <span class="status-badge planned">📋 Planned</span>
+                <h3>Existing Program Enhancements</h3>
+                <ul>
+                    <li>Media Mogul: Advanced color grading, motion tracking, VFX library</li>
+                    <li>VibeCodeWorker: Collaborative coding, live pair programming</li>
+                    <li>GameStudio: Multiplayer support, advanced physics</li>
+                    <li>ValleyNet: More integrations, advanced task scheduling</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item planned">
+                <span class="status-badge planned">📋 Planned</span>
+                <h3>Platform Support</h3>
+                <ul>
+                    <li>Web version (browser-based)</li>
+                    <li>Docker containerization</li>
+                    <li>Cloud deployment (AWS, Azure, GCP)</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item planned">
+                <span class="status-badge planned">📋 Planned</span>
+                <h3>AI and Machine Learning</h3>
+                <ul>
+                    <li>Local LLM support (Llama, Mistral)</li>
+                    <li>Fine-tuning capabilities</li>
+                    <li>Custom model training</li>
+                    <li>Advanced prompt engineering tools</li>
+                </ul>
+            </div>
+
+            <div class="roadmap-item planned">
+                <span class="status-badge planned">📋 Planned</span>
+                <h3>Community and Ecosystem</h3>
+                <ul>
+                    <li>Plugin marketplace</li>
+                    <li>Template library</li>
+                    <li>Community forums</li>
+                    <li>Collaborative features</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>How to Contribute</h2>
+            <p>Interested in helping shape the future of CryptArtist Studio? Here are ways you can contribute:</p>
+            <ul>
+                <li><strong>Vote on features:</strong> Comment on GitHub issues to show interest in features</li>
+                <li><strong>Report bugs:</strong> Help us identify and fix issues</li>
+                <li><strong>Contribute code:</strong> Submit pull requests for features or fixes</li>
+                <li><strong>Improve documentation:</strong> Help us write better docs and tutorials</li>
+                <li><strong>Donate:</strong> Support development at <a href="https://mattyjacks.com">mattyjacks.com</a></li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="shortcuts.html">← Shortcuts</a>
+            <a href="index.html">Back to Docs →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

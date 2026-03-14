@@ -1866,4 +1866,557 @@ The `.CryptArt` file's `"program"` field determines the route:
 
 ---
 
+## Prompt 45 - .Crypt File Format & Multi-Window Workspace
+
+**Prompt 45:**
+> Make a new filetype, .Crypt which stands for "CryptArtist Crypt" as opposed to the existing "CryptArtist Art". It is basically a .zip file with a manifest called Memorial.txt and a central folder of .CryptArt files called Skeleton/ and folders called Grave/, Urn/, Epitaph/, Vault/, Catacombs/, Reliquary/, Soul/, and LastWords/. Include most things in folders and not zips so it's easier to navigate. Soul/ contains AI prompts and outputs. LastWords/ is the log files. Increase workspaces to 69. Opening a .Crypt from Windows Explorer opens all .CryptArt files. Save dialog uses anatomical terms (Bones, Flesh, Ashes, Brain). Format must never need upgrading - full forward compatibility.
+
+**Date:** March 14, 2026
+**Version:** 1.69.420.5
+
+### Changes Made
+
+#### 1. .Crypt File Format Specification
+
+**File Structure (ZIP archive with folder-based contents):**
+```
+MyProject.Crypt (ZIP archive)
+├── Memorial.txt          (Manifest - version, author, metadata)
+├── Skeleton/               (Main .CryptArt files)
+├── Grave/                (Shared assets - images, audio, fonts)
+├── Urn/                  (Backups & version history)
+├── Epitaph/              (Documentation - README, CHANGELOG, LICENSE)
+├── Vault/                (Encrypted secrets - API keys, credentials)
+├── Catacombs/            (Nested .Crypt files - hierarchical projects)
+├── Reliquary/            (Curated collections - favorites, templates)
+├── Soul/                 (AI prompts & outputs used in this crypt)
+└── LastWords/            (Log files - build, operations, errors, activity)
+```
+
+**Key Design Decisions:**
+- Outer `.Crypt` is a ZIP for distribution/archiving
+- Internal folders (not ZIP files) for easy navigation in file explorer
+- Memorial.txt is JSON manifest with `$crypt: 1` format version
+- All 9 folders are optional except Skeleton/ and Memorial.txt
+- Forward-compatible: future versions can add new folders without breaking older versions
+- Readers MUST ignore unknown folders and manifest fields
+- Writers MUST NOT remove or rename existing folders
+- No migration scripts ever needed - v1.0 files work forever
+
+#### 2. Forward Compatibility (Never Upgrade)
+
+**7 Design Principles:**
+1. **Ignore Unknown Components** - silently skip unrecognized folders
+2. **Additive-Only Changes** - new folders/fields are always optional
+3. **Version Tolerance** - `$crypt` version with graceful fallback
+4. **Extensible Manifest** - JSON allows new fields without breaking old parsers
+5. **Unknown Folder Handling** - show "Other Components" in UI, allow extraction
+6. **Graceful Degradation** - missing optional components don't cause errors
+7. **No Migration Scripts** - v1.0 files work in v2.0, v3.0, v100.0
+
+#### 3. Save Dialog with Anatomical Terms
+
+**CryptSaveDialog.tsx presents checkboxes with fun terms:**
+
+| Term | Folder | Description |
+|------|--------|-------------|
+| **Bones** | Skeleton/ | Skeletal structure - all .CryptArt project files (required) |
+| **Flesh** | Grave/ | The body - shared assets (images, audio, fonts) |
+| **Ashes** | Urn/ | The remains - backups, versions, exports |
+| **Brain** | Soul/ | The mind - AI prompts, outputs, context |
+| **Epitaph** | Epitaph/ | The inscription - documentation |
+| **Vault** | Vault/ | The treasure - encrypted secrets |
+| **Catacombs** | Catacombs/ | The chambers - nested .Crypt files |
+| **Reliquary** | Reliquary/ | The relics - curated collections |
+| **LastWords** | LastWords/ | The record - all logs |
+
+**Features:** All checked by default, real-time size estimates, Save All / Save Selected / Cancel.
+
+#### 4. Increased Workspace Limit (20 to 69)
+
+- Updated `INITIAL_WORKSPACE_STATE.maxWorkspaces` from 20 to 69
+- Updated WorkspaceProvider enforces new 69 limit
+- Allows opening entire `.Crypt` files with many projects simultaneously
+
+#### 5. Rust Backend - 6 New Tauri Commands
+
+- `create_crypt(path, manifest_json)` - Create new .Crypt ZIP with Memorial.txt and all 9 empty folders
+- `open_crypt(path)` - Open .Crypt ZIP and read Memorial.txt manifest
+- `list_crypt_contents(path)` - List all entries (name, size, compressed_size, is_dir)
+- `extract_from_crypt(crypt_path, entry_path)` - Extract a single file as text
+- `add_to_crypt(crypt_path, entry_path, content)` - Add/replace a file in existing .Crypt
+- `validate_crypt(path)` - Validate integrity (Memorial.txt valid JSON, Skeleton/ exists, known/unknown folders)
+
+**Also updated:**
+- `is_crypt_path()` helper to detect .Crypt CLI args
+- CLI arg scanning to detect both .CryptArt and .Crypt files on startup
+
+#### 6. CryptManager.tsx - Main Crypt UI
+
+**Features:**
+- Open .Crypt files via file dialog or file association
+- Display Memorial.txt metadata (version, author, date, tags)
+- Browse all folders with expandable sections
+- Shows file count and size per folder
+- "Open" button on individual .CryptArt files to extract into workspace
+- "Open All Projects" button to bulk-open all Skeleton/ .CryptArt files (up to 69)
+- Unknown folder detection with amber warning banner
+- Recent .Crypt files stored in localStorage
+- Route: `/crypt-manager`
+
+#### 7. File Association Updates
+
+- `tauri.conf.json`: Added `.Crypt`/`.crypt` file association
+- `fileAssociation.ts`: Detects .crypt paths, reads manifest via `open_crypt`, routes to `/crypt-manager`
+- Pending .Crypt data stored in sessionStorage for CryptManager to pick up
+
+#### 8. Suite Launcher Updates
+
+- Added "Open .Crypt..." button (purple, skeleton emoji) next to existing "Open .CryptArt Files..."
+- Routes to `/crypt-manager` when clicked
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `v1/src/utils/crypt.ts` | **New** - .Crypt format types, manifest parse/create/serialize, CRYPT_COMPONENTS with anatomical terms, formatBytes |
+| `v1/src/components/CryptSaveDialog.tsx` | **New** - Save dialog with Bones/Flesh/Ashes/Brain checkboxes, size estimates |
+| `v1/src/components/CryptManager.tsx` | **New** - Main UI for browsing/opening .Crypt files, folder browser, bulk open |
+| `v1/src/utils/workspace.ts` | Updated maxWorkspaces from 20 to 69 |
+| `v1/src/utils/fileAssociation.ts` | Added .Crypt detection, readAndParseCryptFile, CryptOpenResult type |
+| `v1/src/utils/constants.ts` | Added CRYPT_MANAGER route |
+| `v1/src/App.tsx` | Added CryptManager import, route title, /crypt-manager route |
+| `v1/src/components/SuiteLauncher.tsx` | Added "Open .Crypt..." button |
+| `v1/src-tauri/src/main.rs` | Added 6 Tauri commands (create/open/list/extract/add/validate), is_crypt_path helper, CLI arg detection |
+| `v1/src-tauri/tauri.conf.json` | Added .Crypt file association |
+| `prompts/bigprompt-3.md` | Updated with forward compatibility, save dialog, fixed inconsistencies |
+
+### Planned (Future Prompts)
+
+- `WindowManager.tsx` - Multi-window lifecycle via Tauri WindowBuilder
+- `SecretModeProvider.tsx` - Secret/incognito window mode (no history/cache)
+- `TaskbarMenu.tsx` - Windows taskbar right-click context menu
+- Suite Launcher opening programs in separate OS windows
+- Keyboard shortcuts for window management (Ctrl+N, Ctrl+Shift+N, etc.)
+
+### Success Criteria
+
+- .Crypt files can be created, opened, browsed, and validated
+- Save dialog presents anatomical terms (Bones, Flesh, Ashes, Brain, etc.)
+- Forward compatibility ensures files never need upgrading
+- Opening .Crypt opens up to 69 .CryptArt files in workspaces
+- All 9 folders in .Crypt structure work correctly
+- Unknown folders from future versions shown gracefully
+- Rust backend handles all ZIP operations
+- File association works for both .CryptArt and .Crypt
+
+---
+
+## Prompt 46 - Pyramid/Mummy Self-Running Bootstrap & Curses
+
+**Prompt 46:**
+> Add Pyramid/ folder with a Mummy file inside - a self-runnable AI agent that unpacks the .Crypt and launches it from just the .Crypt file while downloading CryptArtist Studio from GitHub. All you need is a .Crypt file on a new computer. Mummies can have Curses - a .txt file left on the host computer as a trace.
+
+**Date:** March 14, 2026
+**Version:** 1.69.420.6
+
+### Changes Made
+
+#### 1. Pyramid/ Folder - Self-Running Bootstrap
+
+New 11th folder in the .Crypt structure. Contains bootstrap scripts that make a .Crypt file completely self-contained:
+
+**Contents:**
+```
+Pyramid/
+├── Mummy.bat      (Windows double-click launcher)
+├── Mummy.ps1      (PowerShell bootstrap - download + install + launch)
+├── Mummy.sh       (Linux/macOS bash bootstrap)
+├── Mummy.json     (Configuration: download URL, curse settings, preconfigs)
+└── Curse/         (Curse template directory)
+```
+
+**How it works:**
+1. User has only a `.Crypt` file on a fresh computer
+2. Rename to `.zip` or use any ZIP extractor to open it
+3. Navigate to `Pyramid/` and double-click `Mummy.bat` (or run `Mummy.sh`)
+4. Mummy checks if CryptArtist Studio is installed
+5. If not, downloads from `https://github.com/mattyjacks/CryptArtistStudio/tree/main/download`
+6. Tries GitHub Releases API first, falls back to opening browser
+7. Launches CryptArtist Studio with the `.Crypt` file
+8. Optionally places a Curse on the host computer
+
+#### 2. Mummy Scripts (3 platforms)
+
+- **Mummy.bat** - Windows batch file wrapper, detects installed app, calls PowerShell for download/curse
+- **Mummy.ps1** - Full PowerShell agent: GitHub API download, ZIP extraction, MSI/EXE install, curse placement
+- **Mummy.sh** - Bash script for Linux/macOS: platform detection, app search, browser fallback, curse via heredoc
+
+All scripts are stored UNCOMPRESSED in the ZIP (CompressionMethod::Stored) so they remain directly executable when extracted.
+
+#### 3. Mummy.json Configuration
+
+```json
+{
+  "downloadUrl": "https://github.com/mattyjacks/CryptArtistStudio/tree/main/download",
+  "version": "latest",
+  "autoLaunch": true,
+  "preconfigs": {
+    "theme": "dark-purple",
+    "defaultProgram": "media-mogul",
+    "settings": {}
+  },
+  "curse": {
+    "enabled": true,
+    "message": "Custom curse message...",
+    "location": "desktop",
+    "filename": "CryptArtist_Curse_MyProject",
+    "askFirst": true
+  }
+}
+```
+
+#### 4. Curses - Host Computer Trace Files
+
+A **Curse** is a harmless `.txt` file left on the host computer after the Mummy runs. Like an Egyptian curse that haunts whoever opens the tomb:
+
+- Contains: timestamp, crypt name/author, custom message, system fingerprint (OS, hostname, username)
+- Placed on Desktop by default (configurable: `"desktop"`, `"documents"`, `"temp"`)
+- User is **ALWAYS asked permission** before placement (`askFirst: true`)
+- Can be benign (fun message) or functional (watermark, license notice, reminder)
+- Creator configures curse message and settings in the Save Dialog
+
+#### 5. Rust Backend - `populate_pyramid` Command
+
+New Tauri command that writes all Mummy scripts + config into an existing .Crypt's Pyramid/ folder:
+- Reads existing ZIP, copies all entries, replaces Pyramid/ contents
+- Writes Mummy.bat, Mummy.ps1, Mummy.sh as STORED (uncompressed)
+- Writes Mummy.json as DEFLATED
+- Creates Pyramid/Curse/ subdirectory
+
+#### 6. Save Dialog - Curse Configuration UI
+
+When "Mummy" (Pyramid/) is checked in the save dialog:
+- Amber-colored config section appears below the component list
+- Checkbox to enable/disable curse
+- Text input for custom curse message
+- Info text explaining what the Mummy does
+
+#### 7. CryptManager - Pyramid Display
+
+- Pyramid/ folder shows "Mummy Inside" badge when populated
+- Custom description: "Self-running bootstrap - downloads CryptArtist & opens this .Crypt"
+- Individual Mummy files visible in expanded folder view
+
+#### 8. "Awaken the Mummy" - Resilient Auto-Run Button
+
+When a `.Crypt` has a populated `Pyramid/` folder, the CryptManager header shows an amber **"Awaken the Mummy"** button (with pulse animation). Clicking it:
+
+1. Reads `MummyRunnerConfig` from Pyramid/Mummy.json (falls back to defaults)
+2. Extracts all Skeleton/ `.CryptArt` files into workspaces (up to 69)
+3. Navigates to the **ValleyNet** program (`mummyMode.program` default: `"valley-net"`)
+4. Starts a resilient health-check interval (`setInterval` at `healthCheckMs`)
+5. If all workspaces disappear, auto-restarts after `restartDelayMs` (3s default)
+6. After `maxConsecutiveRestarts` (10), pauses for `pauseDurationMs` (30s) to prevent runaway
+7. Consecutive counter resets when workspaces are detected as active
+8. Runs **forever** without hanging (all async, non-blocking)
+9. **"Silence the Mummy"** button (red) stops the loop instantly via `useRef` abort flag
+10. `useEffect` cleanup on unmount prevents leaked timers
+
+**Mummy Status Banner** shows:
+- Active/Paused state with appropriate icon
+- Restart counter badge
+- "FOREVER MODE" green pulse badge
+- Current status text (running, restarting, paused)
+- Inline "Silence" button
+
+**MummyRunnerConfig defaults:**
+```json
+{
+  "program": "valley-net",
+  "autoRestart": true,
+  "restartDelayMs": 3000,
+  "maxConsecutiveRestarts": 10,
+  "pauseDurationMs": 30000,
+  "healthCheckMs": 5000
+}
+```
+
+#### 9. Bootstrap Scripts Default to ValleyNet
+
+All three Mummy scripts (`.bat`, `.ps1`, `.sh`) updated to:
+- Mention ValleyNet in output text
+- Pass `--program valley-net` flag when launching CryptArtist Studio
+- Display "The Mummy runs forever, restarting on errors"
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `v1/src/utils/crypt.ts` | Added Pyramid to KNOWN_FOLDERS, CRYPT_COMPONENTS; MummyConfig, CurseConfig, **MummyRunnerConfig** types; DEFAULT_MUMMY_RUNNER config; generateMummyBat/Ps1/Sh with ValleyNet default + `--program valley-net` flag; createMummyConfig, serializeMummyConfig |
+| `v1/src-tauri/src/main.rs` | Added Pyramid/ to create_crypt folders and validate_crypt known_folders; new `populate_pyramid` command; registered in invoke handler |
+| `v1/src/components/CryptSaveDialog.tsx` | Added Mummy/Curse imports, curseMessage/curseEnabled state, populate_pyramid call on save, curse config UI section |
+| `v1/src/components/CryptManager.tsx` | "Mummy Inside" badge; **"Awaken the Mummy"** button with resilient auto-restart runner; "Silence the Mummy" button; Mummy Status Banner with FOREVER MODE; `getMummyConfig`, `awakenMummy`, `silenceMummy` callbacks; health-check interval with pause/resume; `useRef` abort + cleanup |
+| `prompts/bigprompt-3.md` | Added Pyramid/ to file structure, terminology, folder structure; **"Awaken the Mummy" resilient runner spec** with safety design and MummyRunnerConfig |
+
+### New Terminology
+
+| Term | Meaning |
+|------|---------|
+| **Pyramid** | The tomb that activates itself - self-running bootstrap folder |
+| **Mummy** | The guardian agent script that awakens and downloads CryptArtist Studio |
+| **Curse** | A trace file (.txt) left on the host computer after the Mummy runs |
+| **Awaken** | Activate the Mummy's resilient forever-mode runner |
+| **Silence** | Stop the Mummy's auto-restart loop |
+
+### Success Criteria
+
+- .Crypt files with Pyramid/ can bootstrap CryptArtist Studio from scratch
+- Mummy.bat works on Windows (double-click to run)
+- Mummy.sh works on Linux/macOS
+- Curse files are placed with user permission
+- Mummy.json is configurable from the Save Dialog
+- All 10 folders (9 original + Pyramid) work correctly
+- Scripts stored uncompressed for direct extraction usability
+- **"Awaken the Mummy" button appears when Pyramid/ is populated**
+- **Clicking Awaken opens ValleyNet and runs forever with auto-restart**
+- **"Silence the Mummy" stops the loop instantly**
+- **No system hangs - all async with pause protection**
+
+---
+<!-- End of prompt archive -->
+
+## Prompt 47: 100 Improvements to .Crypt System
+
+**Date:** 2026-03-14
+**Scope:** crypt.ts, CryptManager.tsx, CryptSaveDialog.tsx, main.rs, Mummy scripts, bigprompt-3.md
+
+### Overview
+
+100 improvements across the entire .Crypt file system - validators, helpers, UX enhancements, Rust backend hardening, Mummy script resilience, and documentation.
+
+### Changes by File
+
+#### `v1/src/utils/crypt.ts` (~20 improvements)
+1. Added `CRYPT_MIME_TYPE` constant (`application/x-cryptartist-crypt`)
+2. Added `MAX_CRYPT_NAME_LENGTH` constant (128)
+3. Added `MAX_DESCRIPTION_LENGTH` constant (2048)
+4. Added `MAX_ENTRIES_PER_FOLDER` constant (10000)
+5. Added `MAX_CRYPT_SIZE_BYTES` constant (4 GB)
+6. Added `PYRAMID_FILES` constant (known Mummy filenames)
+7. Added `SUPPORTED_PLATFORMS` constant
+8. Added `CurseLocation` type (`"desktop" | "documents" | "temp"`)
+9. Added `SupportedPlatform` type
+10. Added `CryptError` class with typed error codes
+11. Added `CryptErrorCode` union type (10 codes)
+12. Added `isValidCryptName()` validator with reason messages
+13. Added `sanitizeCryptName()` helper
+14. Added `validateManifestFields()` - returns warnings array
+15. Added `validateCurseConfig()` - validates curse settings
+16. Added `validateMummyConfig()` - validates runner config bounds
+17. Fixed `formatBytes()` to handle negative values and added TB unit
+18. Added `formatDuration()` - human-readable ms to time string
+19. Added `getCryptAge()` - human-readable age from manifest dates
+20. Added `getCryptSummary()` - one-line summary string
+21. Added `getFileTypeIcon()` - emoji icons by file extension (12 types)
+22. Added `getCompressionRatio()` - percentage string from sizes
+23. Added `estimateSaveTime()` - rough time estimate from byte count
+24. Added `parseMummyConfig()` - safe JSON parse returning null on error
+25. Added `mergeMummyConfigs()` - deep merge with overlay semantics
+26. Added `countCryptArtFiles()` - count .CryptArt entries
+27. Added `getFolderEntryCount()` - count entries by folder prefix
+
+#### `v1/src/components/CryptManager.tsx` (~20 improvements)
+28. Added search/filter bar for files and folders
+29. Added search clear button
+30. Added filtered folder count display
+31. Added "Collapse All" button for folder tree
+32. Added 6-panel stats bar (Projects, Folders, Entries, Size, Compression, Age)
+33. Added compression ratio display using `getCompressionRatio()`
+34. Added crypt age display using `getCryptAge()`
+35. Added file type icons using `getFileTypeIcon()` (replaces generic page icon)
+36. Added confirmation dialog before awakening the Mummy
+37. Added Ctrl+Shift+M keyboard shortcut for Awaken/Silence toggle
+38. Added tooltip text on Awaken/Silence buttons showing shortcut
+39. Added Mummy elapsed time ticker (updates every second)
+40. Added elapsed time badge in Mummy status banner
+41. Added `mummyStartTime` state tracking
+42. Added `mummyElapsed` formatted string state
+43. Fixed `hasPyramid` used-before-declaration error (moved computed values above useEffect)
+44. Added `totalCompressed` computed value for compression stats
+45. Added `totalProjects` count using `countCryptArtFiles()`
+46. Added `nonEmptyFolders` count for stats display
+
+#### `v1/src/components/CryptSaveDialog.tsx` (~15 improvements)
+47. Added name validation with `isValidCryptName()` - red border + error message
+48. Added `MAX_CRYPT_NAME_LENGTH` as maxLength on name input
+49. Added version input field (semver, default "1.0.0")
+50. Changed description from single-line input to multi-line textarea
+51. Added description character counter (`{length}/{MAX_DESCRIPTION_LENGTH}`)
+52. Added tags input with Enter-to-add and + button
+53. Added tag pills with remove (x) button
+54. Added tag limit (max 20) with disabled state
+55. Added "Deselect Optional" / "Minimal" preset button
+56. Added save progress bar (0-100%) with visual indicator
+57. Added save progress percentage in button text
+58. Added `estimateSaveTime()` display in footer
+59. Added save name validation before save (blocks invalid names)
+60. Added progress tracking through all save phases (manifest, entries, pyramid)
+61. Tags are now passed to `createManifest()` instead of empty array
+62. Version is now set on manifest from user input
+
+#### Mummy Scripts (~10 improvements)
+63. Mummy.bat: Added `MUMMY_VERSION` display (v1.1.0)
+64. Mummy.bat: Added crypt filename in header and REM block
+65. Mummy.bat: Added timestamp display (DATE + TIME)
+66. Mummy.bat: Added log file writing (`Mummy.log`)
+67. Mummy.bat: Added retry logic (up to 3 attempts) for download
+68. Mummy.bat: Added third install path check (Programs/ directory)
+69. Mummy.bat: Added disk space check hint
+70. Mummy.bat: Added launch success/failure logging
+71. Mummy.ps1: Added `Write-Log` function for persistent logging
+72. Mummy.ps1: Added `Test-NetworkConnection` function (pings github.com)
+73. Mummy.ps1: Added `Get-FreeDiskSpaceMB` function
+74. Mummy.ps1: Added network connectivity check before download (with retry)
+75. Mummy.ps1: Added disk space warning (<500MB)
+76. Mummy.ps1: Added GitHub API response logging (release tag)
+77. Mummy.ps1: Added download URL logging
+78. Mummy.ps1: Added curse placement logging
+79. Mummy.ps1: Added error logging on all failure paths
+
+#### `v1/src-tauri/src/main.rs` (~15 improvements)
+80. `create_crypt`: Added `.Crypt` extension validation
+81. `create_crypt`: Added manifest JSON validation (must parse, must have `$crypt`)
+82. `create_crypt`: Added `Pyramid/Curse/` subdirectory in initial creation
+83. `create_crypt`: Added file size logging after creation
+84. `open_crypt`: Added file existence check before open
+85. `open_crypt`: Added file size logging
+86. `open_crypt`: Added Memorial.txt JSON validation on read
+87. `open_crypt`: Improved error messages (descriptive, not generic)
+88. `list_crypt_contents`: Added total size and compressed size tracking + logging
+89. `list_crypt_contents`: Added index in ZIP entry error messages
+90. `extract_from_crypt`: Added path traversal guard (`..`, leading `/` or `\`)
+91. `extract_from_crypt`: Added entry size logging
+92. `extract_from_crypt`: Improved error message for binary entries
+93. `add_to_crypt`: Added temp file cleanup on rename failure
+94. `add_to_crypt`: Added content size logging
+95. `populate_pyramid`: Added temp file cleanup on rename failure
+96. `populate_pyramid`: Added final archive size logging
+97. `validate_crypt`: Added `knownFolderCount` and `unknownFolderCount` fields
+98. `validate_crypt`: Added `fileSize` field
+99. `validate_crypt`: Added summary logging with counts
+
+#### `prompts/bigprompt-3.md` (~10 improvements)
+100. Added "Best Practices" section (Creating .Crypt Files, Mummy/Pyramid, Performance)
+101. Added "Security Considerations" section (10 security points)
+102. Added "Troubleshooting" section (6 common issues with solutions)
+103. Added "FAQ" section (7 questions and answers)
+104. Added "Keyboard Shortcuts" table
+105. Added "File Size Limits & Constants" table
+106. Added "Error Codes" reference table (10 codes)
+
+### New Terminology
+
+| Term | Description |
+|------|-------------|
+| `CryptError` | Typed error class for .Crypt operations |
+| `CryptErrorCode` | Union type of 10 error codes |
+| Stats Bar | 6-panel dashboard in CryptManager header |
+| Confirmation Dialog | Pre-awaken dialog explaining Mummy behavior |
+| Save Progress | Visual progress bar during .Crypt save |
+| Mummy.log | Persistent log file in Pyramid/ folder |
+
+### Success Criteria
+
+- All new validators reject invalid input with clear messages
+- Name validation prevents empty/long/special-character names
+- Search bar filters files across all folders in real-time
+- Stats bar shows accurate counts and compression ratios
+- File type icons correctly identify 12+ extension types
+- Confirmation dialog prevents accidental Mummy awakening
+- Ctrl+Shift+M shortcut toggles Mummy on/off
+- Mummy elapsed timer updates every second
+- Save dialog shows real-time progress (0-100%)
+- Tags can be added/removed with Enter key or + button
+- Rust backend rejects path traversal attempts
+- Rust backend validates JSON before writing
+- Temp files are cleaned up on write failure
+- Mummy.bat retries download up to 3 times
+- Mummy.ps1 checks network and disk space before downloading
+- All operations log to Mummy.log for debugging
+- bigprompt-3.md has complete Best Practices, Security, FAQ, and Troubleshooting sections
+
+---
+<!-- End of prompt archive -->
+
+## Prompt 48: Rename Coffin/ to Skeleton/ + Improvements
+
+**Date:** 2026-03-14
+**Scope:** Full codebase rename of Coffin/ to Skeleton/, new utility functions, expanded file type icons, README .Crypt section, bigprompt-3.md updates
+
+### Overview
+
+The `Coffin/` folder in the .Crypt file format has been renamed to `Skeleton/` - bones belong in a skeleton. This is a comprehensive rename across all code files, Rust backend, documentation, and prompt archives, plus additional improvements.
+
+### Changes
+
+#### Rename: Coffin/ -> Skeleton/ (all files)
+
+**Files modified:**
+- `v1/src/utils/crypt.ts` - KNOWN_FOLDERS, CRYPT_COMPONENTS, comments, `MISSING_SKELETON` error code
+- `v1/src/components/CryptManager.tsx` - `handleOpenAllSkeletonFiles`, `skeletonFolder`, toast messages, confirmation dialog text
+- `v1/src/components/CryptSaveDialog.tsx` - `folderContents` JSDoc, `totalProjects` filter prefix
+- `v1/src-tauri/src/main.rs` - `create_crypt` folder list, `validate_crypt` known_folders/hasSkeleton, error messages
+- `prompts/bigprompt-3.md` - All 23 Coffin references replaced with Skeleton, including folder structure diagrams, terminology mapping, code samples, save dialog tables, forward compatibility examples
+- `prompts/all-prompts.md` - All 8 Coffin references replaced with Skeleton
+
+#### New Utility Functions (`crypt.ts`)
+1. `getSkeletonProjectCount()` - Count .CryptArt files specifically in Skeleton/
+2. `isMummyPopulated()` - Check if Pyramid/ has any Mummy files
+3. `getEntryFolder()` - Extract folder name from entry path
+4. `validateEntryPath()` - Validate entry paths (no traversal, no absolute, no control chars)
+5. `folderHasContent()` - Check if a folder has any non-directory entries
+6. `FOLDER_DESCRIPTIONS` - Human-readable description map for all 10 known folders
+
+#### Expanded File Type Icons (`getFileTypeIcon`)
+Added 30+ new file extensions across 8 categories:
+- **Web:** html, htm, css, scss, sass, less
+- **Code:** ts, tsx, js, jsx, mjs, py, rs, go, java, c, cpp, h, hpp
+- **Config:** toml, yaml, yml, ini, cfg, conf
+- **Documents:** xml, xsl, pdf
+- **Installers:** exe, msi, dmg, deb, rpm
+- **Fonts:** ttf, otf, woff, woff2
+- **Archives:** 7z, rar (added to existing zip/tar/gz)
+- **Scripts:** bash (added to existing bat/ps1/sh)
+
+#### Rust Backend Improvements (`main.rs`)
+- `list_crypt_contents`: Added per-folder file counts via HashMap
+- `list_crypt_contents`: Added `skeleton_projects` counter for .CryptArt files in Skeleton/
+- `list_crypt_contents`: Enhanced logging with skeleton project count
+
+#### Documentation Updates
+- `bigprompt-3.md`: Full Skeleton rename + stale MISSING_COFFIN error code fixed
+- `README.md`: Added comprehensive .Crypt file format section
+- `all-prompts.md`: This prompt (Prompt 48) added
+
+### Terminology Update
+
+| Old Term | New Term | Description |
+|----------|----------|-------------|
+| **Coffin/** | **Skeleton/** | Main project files folder (the "bones" of the crypt) |
+| `hasCoffin` | `hasSkeleton` | Validation field in `validate_crypt` response |
+| `MISSING_COFFIN` | `MISSING_SKELETON` | Error code for missing main folder |
+| `handleOpenAllCoffinFiles` | `handleOpenAllSkeletonFiles` | CryptManager callback |
+| `coffinFolder` | `skeletonFolder` | Local variable in CryptManager |
+
+### Success Criteria
+
+- Zero references to "Coffin" remain in .ts, .tsx, .rs, or .md files
+- All new utility functions are exported and type-safe
+- File type icons cover 40+ extensions
+- Rust backend tracks per-folder counts and skeleton project count
+- README.md documents the .Crypt file format with Skeleton/ terminology
+- Both `cargo check` and `tsc --noEmit` pass with zero errors
+
+---
 <!-- End of prompt archive -->

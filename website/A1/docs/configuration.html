@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Configuration</h1>
+            <p>API keys, FFmpeg, Godot, and Tauri configuration</p>
+        </div>
+
+        <div class="content-section">
+            <h2>API Keys</h2>
+            
+            <h3>Supported Providers</h3>
+            <ul>
+                <li><strong>OpenAI</strong> - GPT-4, GPT-4 Turbo, GPT-3.5-Turbo, DALL-E</li>
+                <li><strong>Anthropic</strong> - Claude 3 Opus, Sonnet, Haiku</li>
+                <li><strong>Google</strong> - Gemini Pro, Gemini Vision</li>
+                <li><strong>OpenRouter</strong> - 200+ models from multiple providers</li>
+            </ul>
+
+            <h3>Setting Up API Keys</h3>
+            <ol>
+                <li>Open CryptArtist Studio</li>
+                <li>Go to Settings (gear icon)</li>
+                <li>Click "API Keys" tab</li>
+                <li>Enter your API key for each provider</li>
+                <li>Click "Save" to persist</li>
+            </ol>
+
+            <h3>Getting API Keys</h3>
+            <ul>
+                <li><strong>OpenAI:</strong> <a href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</a></li>
+                <li><strong>Anthropic:</strong> <a href="https://console.anthropic.com">console.anthropic.com</a></li>
+                <li><strong>Google:</strong> <a href="https://makersuite.google.com/app/apikey">makersuite.google.com/app/apikey</a></li>
+                <li><strong>OpenRouter:</strong> <a href="https://openrouter.ai/keys">openrouter.ai/keys</a></li>
+            </ul>
+
+            <h3>Security Best Practices</h3>
+            <ul>
+                <li>Never share your API keys</li>
+                <li>Rotate keys regularly</li>
+                <li>Use separate keys for development and production</li>
+                <li>Monitor API usage and costs</li>
+                <li>Revoke compromised keys immediately</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>FFmpeg Setup</h2>
+            
+            <h3>Automatic Download</h3>
+            <p>FFmpeg is automatically downloaded on first run. No manual installation needed for most users.</p>
+
+            <h3>Manual Installation</h3>
+            <p>If automatic download fails, install FFmpeg manually:</p>
+            
+            <h4>Windows</h4>
+            <div class="code-block">
+# Using Chocolatey
+choco install ffmpeg
+
+# Or download from https://ffmpeg.org/download.html
+            </div>
+
+            <h4>macOS</h4>
+            <div class="code-block">
+# Using Homebrew
+brew install ffmpeg
+            </div>
+
+            <h4>Linux</h4>
+            <div class="code-block">
+# Ubuntu/Debian
+sudo apt-get install ffmpeg
+
+# Fedora
+sudo dnf install ffmpeg
+
+# Arch
+sudo pacman -S ffmpeg
+            </div>
+
+            <h3>Verifying Installation</h3>
+            <p>Check FFmpeg status in Settings → System Status or via CLI:</p>
+            <div class="code-block">
+ffmpeg -version
+            </div>
+        </div>
+
+        <div class="content-section">
+            <h2>Godot Integration</h2>
+            
+            <h3>Automatic Detection</h3>
+            <p>CryptArtist Studio automatically detects Godot Engine if installed in standard locations:</p>
+            <ul>
+                <li>Windows: <code>C:\Program Files\Godot</code></li>
+                <li>macOS: <code>/Applications/Godot.app</code></li>
+                <li>Linux: <code>/usr/bin/godot</code></li>
+            </ul>
+
+            <h3>Manual Configuration</h3>
+            <p>If Godot is not automatically detected:</p>
+            <ol>
+                <li>Go to Settings → Godot</li>
+                <li>Click "Browse" and select your Godot executable</li>
+                <li>Click "Save"</li>
+            </ol>
+
+            <h3>Downloading Godot</h3>
+            <p>Download Godot Engine from <a href="https://godotengine.org/download">godotengine.org/download</a></p>
+            <ul>
+                <li>Recommended: Godot 4.0 or later</li>
+                <li>Standard or Mono version both supported</li>
+            </ul>
+
+            <h3>Verifying Installation</h3>
+            <p>Check Godot status in Settings → System Status</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Tauri Configuration</h2>
+            
+            <h3>Configuration File</h3>
+            <p>Tauri configuration is in <code>src-tauri/tauri.conf.json</code></p>
+
+            <h3>Key Settings</h3>
+            <ul>
+                <li><strong>productName</strong> - Application name</li>
+                <li><strong>version</strong> - Application version</li>
+                <li><strong>identifier</strong> - Unique app identifier</li>
+                <li><strong>build.devPath</strong> - Development server URL</li>
+                <li><strong>build.frontendDist</strong> - Frontend build output directory</li>
+                <li><strong>windows/macOS/linux</strong> - Platform-specific settings</li>
+            </ul>
+
+            <h3>File Associations</h3>
+            <p>CryptArtist Studio registers file associations for:</p>
+            <ul>
+                <li><strong>.CryptArt</strong> - Project files</li>
+                <li><strong>.Crypt</strong> - Collection files</li>
+            </ul>
+
+            <p>Double-clicking these files opens them in CryptArtist Studio automatically.</p>
+
+            <h3>Custom Configuration</h3>
+            <p>To customize Tauri configuration:</p>
+            <ol>
+                <li>Edit <code>src-tauri/tauri.conf.json</code></li>
+                <li>Rebuild the application</li>
+                <li>Changes take effect on next launch</li>
+            </ol>
+        </div>
+
+        <div class="content-section">
+            <h2>Environment Variables</h2>
+            
+            <h3>Development Environment</h3>
+            <div class="code-block">
+# Enable debug logging
+RUST_LOG=debug
+
+# Use custom FFmpeg path
+FFMPEG_PATH=/path/to/ffmpeg
+
+# Use custom Godot path
+GODOT_PATH=/path/to/godot
+            </div>
+
+            <h3>Production Environment</h3>
+            <ul>
+                <li><strong>RUST_LOG</strong> - Set to "warn" or "error" for production</li>
+                <li><strong>NODE_ENV</strong> - Set to "production" for optimized builds</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Pro Tip:</strong> Use environment variables for sensitive configuration that shouldn't be committed to version control. Store them in a <code>.env</code> file (which is git-ignored).
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="architecture.html">← Architecture</a>
+            <a href="troubleshooting.html">Troubleshooting →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

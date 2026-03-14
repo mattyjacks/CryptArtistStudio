@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Formats - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul, .content-section ol {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .code-block {
+            background: #1a1a2e;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #00ff00;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table th, table td {
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 12px;
+            text-align: left;
+            color: #ccc;
+        }
+        table th {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            font-weight: 600;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>File Formats</h1>
+            <p>The .CryptArt and .Crypt file formats - permanently future-proof project files</p>
+        </div>
+
+        <div class="content-section">
+            <h2>.CryptArt File Format</h2>
+            
+            <h3>Overview</h3>
+            <p>The .CryptArt file format is the universal project file for all CryptArtist Studio programs. It is a JSON file with the extension .CryptArt and the registered MIME type application/x-cryptartist-art.</p>
+
+            <h3>Design Goals</h3>
+            <p>The .CryptArt format was designed with one overriding goal: <strong>it must never need a base format upgrade</strong>. The envelope schema is stable forever. Any .CryptArt file ever created will always be readable by any version of CryptArtist Studio.</p>
+
+            <h3>Key Principles</h3>
+            <ul>
+                <li><strong>Permanent Envelope</strong> - The envelope schema ($cryptart, program, data) never changes.</li>
+                <li><strong>Universal Readability</strong> - Any .CryptArt file from any version is always parseable.</li>
+                <li><strong>Additive Only</strong> - New fields and capabilities are added without breaking old files.</li>
+                <li><strong>Self-Identifying</strong> - The $cryptart magic key identifies the file and its envelope version.</li>
+                <li><strong>Open Program IDs</strong> - Any string is a valid program ID. No closed union types.</li>
+            </ul>
+
+            <h3>File Structure</h3>
+            <div class="code-block">
+{
+  "$cryptart": 1,
+  "program": "media-mogul",
+  "appVersion": "1.69.420",
+  "data": {
+    "workspace": "edit",
+    "timeline": { ... },
+    "mediaPool": [ ... ]
+  }
+}
+            </div>
+
+            <h3>Required Fields</h3>
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>$cryptart</td>
+                    <td>number</td>
+                    <td>Format version (always 1, only increments on breaking changes)</td>
+                </tr>
+                <tr>
+                    <td>program</td>
+                    <td>string</td>
+                    <td>Program ID (e.g., "media-mogul", "vibecode-worker")</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>Program-specific data (structure varies by program)</td>
+                </tr>
+            </table>
+
+            <h3>Recommended Fields</h3>
+            <table>
+                <tr>
+                    <th>Field</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>appVersion</td>
+                    <td>string</td>
+                    <td>Version of CryptArtist Studio that created the file</td>
+                </tr>
+                <tr>
+                    <td>name</td>
+                    <td>string</td>
+                    <td>Human-readable project name</td>
+                </tr>
+                <tr>
+                    <td>description</td>
+                    <td>string</td>
+                    <td>Project description</td>
+                </tr>
+                <tr>
+                    <td>author</td>
+                    <td>string</td>
+                    <td>Creator name</td>
+                </tr>
+                <tr>
+                    <td>createdAt</td>
+                    <td>string (ISO-8601)</td>
+                    <td>Creation timestamp</td>
+                </tr>
+                <tr>
+                    <td>updatedAt</td>
+                    <td>string (ISO-8601)</td>
+                    <td>Last modification timestamp</td>
+                </tr>
+            </table>
+
+            <h3>Backward Compatibility</h3>
+            <p>The parser handles all historical .CryptArt file versions:</p>
+            <ul>
+                <li><strong>Pre-v1 files</strong> (no $cryptart key) are auto-upgraded in memory on parse.</li>
+                <li>The old version field is silently migrated to appVersion.</li>
+                <li>Unknown fields are preserved and passed through unchanged.</li>
+                <li>Any string is valid as a program ID - no validation against a closed list.</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>.Crypt File Format</h2>
+            
+            <h3>Overview</h3>
+            <p>The .Crypt file format (CryptArtist Crypt) is a collection container for multiple .CryptArt files with metadata, versioning, and organizational structure. A .Crypt file is fundamentally a ZIP archive with a specific internal directory structure and manifest.</p>
+
+            <h3>File Structure</h3>
+            <div class="code-block">
+MyProject.Crypt (ZIP archive)
+├── Memorial.txt          (Manifest - metadata, versioning, credits)
+├── Skeleton/             (Main .CryptArt project files)
+├── Grave/                (Shared assets - images, audio, fonts)
+├── Urn/                  (Backups & version history)
+├── Epitaph/              (Documentation - README, CHANGELOG, LICENSE)
+├── Vault/                (Encrypted secrets - API keys, credentials)
+├── Catacombs/            (Nested .Crypt files - sub-projects)
+├── Reliquary/            (Curated collections - favorites, templates)
+├── Soul/                 (AI prompts & outputs)
+├── LastWords/            (Log files - build, operations, errors, activity)
+└── Pyramid/              (Self-running bootstrap - Mummy agent + Curse traces)
+            </div>
+
+            <h3>Folder Descriptions</h3>
+            <table>
+                <tr>
+                    <th>Folder</th>
+                    <th>Purpose</th>
+                    <th>Content</th>
+                </tr>
+                <tr>
+                    <td>Skeleton/</td>
+                    <td>Main project files</td>
+                    <td>Collection of .CryptArt files (the "bones" of the crypt)</td>
+                </tr>
+                <tr>
+                    <td>Grave/</td>
+                    <td>Shared assets</td>
+                    <td>Images, audio, fonts, brushes, textures, color palettes</td>
+                </tr>
+                <tr>
+                    <td>Urn/</td>
+                    <td>Backups & history</td>
+                    <td>Previous versions, exports, snapshots, archives</td>
+                </tr>
+                <tr>
+                    <td>Epitaph/</td>
+                    <td>Documentation</td>
+                    <td>README.md, CHANGELOG.md, LICENSE, guides, credits</td>
+                </tr>
+                <tr>
+                    <td>Vault/</td>
+                    <td>Encrypted secrets</td>
+                    <td>API keys, credentials, sensitive config</td>
+                </tr>
+                <tr>
+                    <td>Catacombs/</td>
+                    <td>Nested projects</td>
+                    <td>Sub-collections of .Crypt files (hierarchical organization)</td>
+                </tr>
+                <tr>
+                    <td>Reliquary/</td>
+                    <td>Curated selections</td>
+                    <td>Favorites, templates, presets, recommended files</td>
+                </tr>
+                <tr>
+                    <td>Soul/</td>
+                    <td>AI prompts & outputs</td>
+                    <td>Prompts used, AI responses, context, training data</td>
+                </tr>
+                <tr>
+                    <td>LastWords/</td>
+                    <td>Log files</td>
+                    <td>Build logs, operation logs, error logs, activity history</td>
+                </tr>
+                <tr>
+                    <td>Pyramid/</td>
+                    <td>Self-running bootstrap</td>
+                    <td>Mummy scripts (Mummy.bat, Mummy.ps1, Mummy.sh), config (Mummy.json), Curse/ templates</td>
+                </tr>
+            </table>
+
+            <h3>Forward Compatibility</h3>
+            <p>The .Crypt format is designed to never need upgrading:</p>
+            <ul>
+                <li><strong>Ignore Unknown Components</strong> - Silently skip unrecognized folders</li>
+                <li><strong>Additive-Only Changes</strong> - New folders/fields are always optional</li>
+                <li><strong>Graceful Degradation</strong> - Missing optional components don't cause errors</li>
+                <li><strong>No Migration Scripts</strong> - v1.0 files work in v2.0, v3.0, v100.0</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Why these formats matter:</strong> Your projects are future-proof. A .CryptArt file created today will be readable 10 years from now, even if the app has evolved dramatically. This is a core design principle of CryptArtist Studio.
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="programs.html">← Programs</a>
+            <a href="workspace.html">File Format Guide →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

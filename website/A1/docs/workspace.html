@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace Management - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table th, table td {
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 12px;
+            text-align: left;
+            color: #ccc;
+        }
+        table th {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            font-weight: 600;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Workspace Management</h1>
+            <p>Multi-file workspaces, groups, and resource sharing</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Multi-File Workspaces</h2>
+            
+            <h3>Overview</h3>
+            <p>CryptArtist Studio supports opening multiple .CryptArt files simultaneously through a workspace management system. This enables multi-project workflows, resource sharing between projects, and side-by-side editing.</p>
+
+            <h3>Opening Multiple Files</h3>
+            <ul>
+                <li>Use the "Open .CryptArt Files..." button in the Suite Launcher to open a multi-file dialog</li>
+                <li>Each file creates a separate workspace</li>
+                <li>Maximum 69 workspaces can be open simultaneously</li>
+                <li>Each workspace maintains its own state and data</li>
+            </ul>
+
+            <h3>Workspace Bar</h3>
+            <p>A global tab bar appears above the main content area, showing all open workspaces with their names and program icons. You can:</p>
+            <ul>
+                <li>Click a tab to switch between workspaces</li>
+                <li>Right-click a tab to access context menu options</li>
+                <li>Close individual workspaces with the X button</li>
+                <li>Drag tabs to reorder them</li>
+            </ul>
+
+            <h3>Workspace Limit</h3>
+            <p>The maximum number of concurrent workspaces is <strong>69</strong> (a nice number 😎). This allows for large multi-project workflows while maintaining system stability.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Workspace Groups and Resource Sharing</h2>
+            
+            <h3>Overview</h3>
+            <p>Workspaces can be combined into groups to enable resource sharing between projects. This allows you to:</p>
+            <ul>
+                <li>Share media pools across projects</li>
+                <li>Share AI context and conversation history</li>
+                <li>Share settings and preferences</li>
+                <li>Organize related projects together</li>
+            </ul>
+
+            <h3>Creating Workspace Groups</h3>
+            <p>To create a workspace group:</p>
+            <ol>
+                <li>Right-click on a workspace tab</li>
+                <li>Select "Combine with..." from the context menu</li>
+                <li>Choose another workspace to combine with</li>
+                <li>The workspaces are now grouped and can share resources</li>
+            </ol>
+
+            <h3>Resource Sharing Types</h3>
+            <table>
+                <tr>
+                    <th>Resource Type</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+                <tr>
+                    <td>Media Pool</td>
+                    <td>Shared images, videos, audio files</td>
+                    <td>Use the same assets across multiple projects</td>
+                </tr>
+                <tr>
+                    <td>AI Context</td>
+                    <td>Shared conversation history and prompts</td>
+                    <td>Maintain AI context across related projects</td>
+                </tr>
+                <tr>
+                    <td>Settings</td>
+                    <td>Shared preferences and configuration</td>
+                    <td>Apply consistent settings to grouped projects</td>
+                </tr>
+                <tr>
+                    <td>Files</td>
+                    <td>Shared file references</td>
+                    <td>Reference files across projects</td>
+                </tr>
+                <tr>
+                    <td>Chat History</td>
+                    <td>Shared AI chat conversations</td>
+                    <td>Maintain conversation context</td>
+                </tr>
+            </table>
+
+            <h3>Workspace Context Menu</h3>
+            <p>Right-click on a workspace tab to access:</p>
+            <ul>
+                <li><strong>Combine with...</strong> - Create a workspace group</li>
+                <li><strong>Share Media</strong> - Enable media pool sharing</li>
+                <li><strong>Share AI Context</strong> - Enable AI context sharing</li>
+                <li><strong>Share Settings</strong> - Enable settings sharing</li>
+                <li><strong>Duplicate</strong> - Create a copy of the workspace</li>
+                <li><strong>Close</strong> - Close the workspace</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>Workspace Features</h2>
+            
+            <h3>Workspace Persistence</h3>
+            <p>Your workspace configuration is automatically saved:</p>
+            <ul>
+                <li>Open workspaces are restored on app restart</li>
+                <li>Workspace order and grouping are preserved</li>
+                <li>Active workspace is remembered</li>
+            </ul>
+
+            <h3>Program-Specific Workspaces</h3>
+            <p>Different programs have different workspace features:</p>
+            <ul>
+                <li><strong>Media Mogul:</strong> Edit, Node Mode, Color, Audio, AI Studio, Podcast, Deliver</li>
+                <li><strong>VibeCodeWorker:</strong> File Explorer, Editor, Bottom Panel, AI Chat</li>
+                <li><strong>GameStudio:</strong> Split, Code Focus, Media Focus, Godot Focus</li>
+            </ul>
+
+            <h3>Switching Between Workspaces</h3>
+            <ul>
+                <li>Click workspace tabs in the tab bar</li>
+                <li>Use keyboard shortcuts (if configured)</li>
+                <li>Use Alt+Tab to cycle through all workspaces</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Pro Tip:</strong> Use workspace groups to organize related projects. For example, group all video projects together to share a media pool, or group code projects to share AI context.
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="file-formats.html">← File Formats</a>
+            <a href="architecture.html">Architecture →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>

@@ -95,6 +95,7 @@ export const ROUTES = {
   CLONE_TOOL: "/clone-tool",
   DICTATE_PIC: "/dictate-pic",
   LUCK_FACTORY: "/luck-factory",
+  CRYPT_MANAGER: "/crypt-manager",
   SETTINGS: "/settings",
   PRIVACY: "/privacy",
   TERMS: "/terms",

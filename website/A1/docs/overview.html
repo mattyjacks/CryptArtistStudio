@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview - CryptArtist Studio</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .doc-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .doc-header {
+            margin-bottom: 40px;
+        }
+        .doc-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .doc-header p {
+            font-size: 1.1em;
+            color: #aaa;
+        }
+        .content-section {
+            margin-bottom: 40px;
+        }
+        .content-section h2 {
+            font-size: 1.6em;
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+            padding-bottom: 10px;
+        }
+        .content-section h3 {
+            font-size: 1.2em;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #ccc;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+        .content-section ul, .content-section ol {
+            color: #ccc;
+            line-height: 1.8;
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .content-section li {
+            margin-bottom: 10px;
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .highlight-box strong {
+            color: #667eea;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+        }
+        .nav-links a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover {
+            color: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="doc-content">
+        <div class="doc-header">
+            <h1>Overview</h1>
+            <p>What is CryptArtist Studio and why it's different</p>
+        </div>
+
+        <div class="content-section">
+            <h2>What is CryptArtist Studio?</h2>
+            <p>CryptArtist Studio is a free, open-source, professional-grade creative suite built with Tauri v2, React 18, TypeScript, and Rust. It bundles eleven powerful programs into a single desktop application: a video/image editor, a vibe-coding IDE, a screen recorder, an autonomous AI agent, an integrated game development studio, a terminal-based command center, a P2P compute-sharing tool, an installer builder, a GIMP-style image editor with AI, a luck-based AI seed generator, and a full settings hub.</p>
+            
+            <p>The project is community-funded through donations at <a href="https://mattyjacks.com">mattyjacks.com</a> and <a href="https://givegigs.com">givegigs.com</a>.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Key Highlights</h2>
+            
+            <h3>🎬 Eleven Programs in One</h3>
+            <p>Video editing, code editing, screen recording, AI agent, game development, terminal commander, P2P compute sharing, installer builder, AI image editor, luck seed generator, and a settings hub all in a single ~15 MB download.</p>
+
+            <h3>🔒 Security Hardened</h3>
+            <p>300 vulnerability fixes across frontend and backend, including CSP, input validation, rate limiting, XSS prevention, audit logging, encrypted storage, SVG sanitization, WebSocket monitoring, and API guards.</p>
+
+            <h3>🤖 AI-Powered Everything</h3>
+            <p>Every program integrates with OpenAI, Anthropic, Google, or any OpenAI-compatible API endpoint. Users bring their own keys.</p>
+
+            <h3>📄 The .CryptArt File Format</h3>
+            <p>A permanently future-proof JSON project file that will never need a format upgrade. Any .CryptArt file ever created will always be readable by any version of the app.</p>
+
+            <h3>🖥️ Cross-Platform</h3>
+            <p>Runs on Windows, macOS, and Linux via Tauri. Mobile support (Android/iOS) is in progress.</p>
+
+            <h3>📚 Full CLI and REST API</h3>
+            <p>Every feature is accessible from the command line or via HTTP API, enabling integration with other AI tools and automation pipelines.</p>
+
+            <h3>📊 Comprehensive Logging</h3>
+            <p>Three rolling log files track everything: a session log, a recent log (last 1,000 lines), and a full history log.</p>
+
+            <h3>💰 Community-Funded</h3>
+            <p>No subscriptions, no ads. Supported by donations at mattyjacks.com and givegigs.com.</p>
+
+            <h3>🔓 Open Source</h3>
+            <p>CryptArtist Custom License v1.69.420.3. Fork it, extend it, make it yours.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Philosophy</h2>
+            <p>CryptArtist Studio is built on the belief that creative tools should be:</p>
+            <ul>
+                <li><strong>Free</strong> - No paywalls, no feature gates, no "pro" tiers.</li>
+                <li><strong>Open</strong> - CryptArtist Custom License v1.69.420.3, fully auditable, community-driven.</li>
+                <li><strong>Permanent</strong> - File formats that never break, software that respects your work.</li>
+                <li><strong>AI-Native</strong> - AI is not bolted on; it is woven into every workflow.</li>
+                <li><strong>User-Controlled</strong> - Your API keys, your data, your machine. No cloud dependency.</li>
+            </ul>
+        </div>
+
+        <div class="content-section">
+            <h2>History</h2>
+            <p>CryptArtist Studio started as a DaVinci Resolve competitor - a professional video editor with AI integration. It has since evolved into a full creative suite with eleven distinct programs, all sharing a unified dark theme, a common project file format (.CryptArt), and deep AI integration powered by the user's own API keys.</p>
+        </div>
+
+        <div class="content-section">
+            <h2>Technology Stack</h2>
+            
+            <h3>Frontend</h3>
+            <ul>
+                <li>React 18 with TypeScript</li>
+                <li>Tauri v2 for desktop integration</li>
+                <li>TailwindCSS for styling</li>
+                <li>Monaco Editor for code editing</li>
+                <li>WebGL for graphics rendering</li>
+            </ul>
+
+            <h3>Backend</h3>
+            <ul>
+                <li>Rust with Tauri command handlers</li>
+                <li>FFmpeg for media processing</li>
+                <li>ZIP archive handling for .Crypt files</li>
+                <li>File system operations with safety guards</li>
+            </ul>
+
+            <h3>Media Engine</h3>
+            <ul>
+                <li>FFmpeg for encoding/decoding</li>
+                <li>Pexels API for stock media</li>
+                <li>ElevenLabs for text-to-speech</li>
+                <li>OpenAI DALL-E for image generation</li>
+            </ul>
+
+            <h3>Build System</h3>
+            <ul>
+                <li>Vite for frontend bundling</li>
+                <li>Cargo for Rust compilation</li>
+                <li>Tauri CLI for desktop packaging</li>
+            </ul>
+        </div>
+
+        <div class="highlight-box">
+            <strong>Ready to get started?</strong> Check out the <a href="getting-started.html">Getting Started guide</a> to install CryptArtist Studio and begin creating.
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <img src="../logo_square.png" alt="CryptArtist Studio Logo" style="max-width: 120px; height: auto; border-radius: 12px;">
+        </div>
+        <div class="nav-links">
+            <a href="index.html">← Back to Docs</a>
+            <a href="getting-started.html">Getting Started →</a>
+        </div>
+    </div>
+
+    <script src="../script.js"></script>
+</body>
+</html>
