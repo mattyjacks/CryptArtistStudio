@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "../../utils/toast";
 import TaxBatchUpload from "./TaxBatchUpload";
@@ -15,6 +15,22 @@ export default function TaxCopilot() {
 
     const [activeTab, setActiveTab] = useState<TaxTab>("upload");
     const [batchId, setBatchId] = useState<string | null>(null);
+    const [backendStatus, setBackendStatus] = useState<"checking" | "connected" | "disconnected">("checking");
+
+    useEffect(() => {
+        const checkHealth = async () => {
+            try {
+                const res = await fetch("/health");
+                if (res.ok) setBackendStatus("connected");
+                else setBackendStatus("disconnected");
+            } catch {
+                setBackendStatus("disconnected");
+            }
+        };
+        checkHealth();
+        const interval = setInterval(checkHealth, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleUploadComplete = useCallback((newBatchId: string) => {
         setBatchId(newBatchId);
@@ -31,7 +47,14 @@ export default function TaxCopilot() {
                     <span className="text-3xl">📊</span>
                     <div>
                         <h1 className="text-xl font-bold gradient-text">Tax Copilot</h1>
-                        <p className="text-xs text-studio-secondary">Intelligent AI extraction & Blockchain Auditing</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-xs text-studio-secondary">Intelligent AI extraction & Blockchain Auditing</p>
+                            {backendStatus === "connected" ? (
+                                <span className="text-[10px] bg-green-500/10 text-green-400 px-1.5 py-0.5 rounded border border-green-500/20">● API Online</span>
+                            ) : (
+                                <span className="text-[10px] bg-red-500/10 text-red-400 px-1.5 py-0.5 rounded border border-red-500/20" title="Ensure tax-backend/main.py is running">● API Offline</span>
+                            )}
+                        </div>
                     </div>
                 </div>
 
