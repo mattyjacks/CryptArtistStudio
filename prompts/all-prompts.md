@@ -10,6 +10,10 @@
 
 # CryptArtist Studio - AI Conversation Prompts (March 2026)
 
+## MacOS Availability (Russ)
+**Prompt 24:**
+> Make this project/app available on MacOS using Tauri.
+
 ## 100 Improvements Focus
 **Prompt 23:**
 > make 100 improvements.
