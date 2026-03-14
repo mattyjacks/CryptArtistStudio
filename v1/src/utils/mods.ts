@@ -75,7 +75,8 @@ export async function installModFromZip(file: File): Promise<{
     const BUILTIN_IDS = [
       "media-mogul", "vibecode-worker", "demo-recorder",
       "valley-net", "game-studio", "commander",
-      "settings", "donate-personal-seconds",
+      "settings", "donate-personal-seconds", "clone-tool",
+      "dictate-pic", "luck-factory", "suite-launcher",
     ];
     if (BUILTIN_IDS.includes(manifest.programId)) {
       return { success: false, message: `Cannot use reserved program ID '${manifest.programId}'` };

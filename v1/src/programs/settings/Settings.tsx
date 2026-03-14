@@ -1,3 +1,4 @@
+/* Wave3-sep */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useEffect, useRef } from "react";
@@ -74,6 +75,26 @@ const API_KEYS: ApiKeyEntry[] = [
     setParam: "key",
   },
   {
+    id: "anthropic",
+    label: "Anthropic API Key",
+    icon: "\u{1F9E0}",
+    description: "Direct access to Claude models (3.5 Sonnet, Opus, Haiku) without going through OpenRouter.",
+    placeholder: "sk-ant-...",
+    getCmd: "get_anthropic_key",
+    setCmd: "save_anthropic_key",
+    setParam: "key",
+  },
+  {
+    id: "google",
+    label: "Google AI API Key",
+    icon: "\u{1F50D}",
+    description: "Direct access to Gemini models (Pro 1.5, Flash 2.0) for AI chat and generation.",
+    placeholder: "AIza...",
+    getCmd: "get_google_key",
+    setCmd: "save_google_key",
+    setParam: "key",
+  },
+  {
     id: "elevenlabs",
     label: "ElevenLabs API Key",
     icon: "\u{1F50A}",
@@ -81,6 +102,16 @@ const API_KEYS: ApiKeyEntry[] = [
     placeholder: "sk_...",
     getCmd: "get_elevenlabs_key",
     setCmd: "save_elevenlabs_key",
+    setParam: "key",
+  },
+  {
+    id: "supabase",
+    label: "GiveGigs / Supabase Key",
+    icon: "\u{1F4B0}",
+    description: "Connects to GiveGigs.com for the DonatePersonalSeconds human task marketplace.",
+    placeholder: "eyJ...",
+    getCmd: "get_supabase_key",
+    setCmd: "save_supabase_key",
     setParam: "key",
   },
 ];
@@ -857,16 +888,16 @@ export default function Settings() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u2699\uFE0F"} Settings v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{API_KEYS.filter((k) => keyValues[k.id]).length}/{API_KEYS.length} keys configured</span>
         </div>
         <div className="flex items-center gap-3">
           <span>Default OR model: {orDefaultModel.split("/").pop()}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Mode: {orDefaultMode}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{exportCount} exports</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Accent: {accentColor}</span>
         </div>
       </footer>

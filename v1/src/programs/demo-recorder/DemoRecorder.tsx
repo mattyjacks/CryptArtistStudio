@@ -1,3 +1,5 @@
+/* Wave3-sep */
+/* Wave3 */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -564,11 +566,11 @@ export default function DemoRecorder() {
           </div>
         )}
             {/* Improvement 578: A11y & Microinteraction */}
-        <button aria-label="Action Button" title="Click to interact" onClick={handleOpenProject} className="transition-transform active:scale-95 btn text-[10px] py-1 px-3">
+        <button onClick={handleOpenProject} className="transition-transform active:scale-95 btn text-[10px] py-1 px-3">
           Open .CryptArt
         </button>
             {/* Improvement 579: A11y & Microinteraction */}
-        <button aria-label="Action Button" title="Click to interact" onClick={handleSaveProject} className="transition-transform active:scale-95 btn text-[10px] py-1 px-3">
+        <button onClick={handleSaveProject} className="transition-transform active:scale-95 btn text-[10px] py-1 px-3">
           Save .CryptArt
         </button>
         {/* Improvement 351: AI panel toggle */}
@@ -597,7 +599,7 @@ export default function DemoRecorder() {
               ))}
             </select>
             {/* Improvement 580: A11y & Microinteraction */}
-            <button aria-label="Action Button" title="Click to interact" onClick={() => setShowAiPanel(false)} className="transition-transform active:scale-95 text-studio-muted hover:text-studio-text text-[10px]">x</button>
+            <button onClick={() => setShowAiPanel(false)} className="transition-transform active:scale-95 text-studio-muted hover:text-studio-text text-[10px]" aria-label="Close">x</button>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {/* AI Narration */}
@@ -770,11 +772,11 @@ export default function DemoRecorder() {
               ) : (
                 <>
             {/* Improvement 581: A11y & Microinteraction */}
-                  <button aria-label="Action Button" title="Click to interact" onClick={handlePause} className="transition-transform active:scale-95 btn px-4">
+                  <button onClick={handlePause} className="transition-transform active:scale-95 btn px-4">
                     {paused ? "\u25B6" : "\u23F8"} {paused ? "Resume" : "Pause"}
                   </button>
                   {/* Improvement 79: Screenshot button */}
-                  <button aria-label="Action Button" onClick={handleScreenshot} className="transition-transform active:scale-95 btn px-3" title="Take Screenshot">
+                  <button onClick={handleScreenshot} className="transition-transform active:scale-95 btn px-3" title="Take Screenshot" aria-label="Take Screenshot">
                     {"\u{1F4F7}"}
                   </button>
                   <button onClick={handleStop} className={`btn btn-accent px-4 ${recording ? "rec-pulse" : ""}`}>
@@ -984,17 +986,17 @@ export default function DemoRecorder() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F3A5}"} DRe v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{resolution} @ {fps}fps</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{qualityPreset}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{recordingFormat.toUpperCase()}</span>
           {/* Improvement 276: Region mode */}
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{regionMode}</span>
           {/* Improvement 283: FPS monitor */}
-          {showFpsMonitor && recording && <><span>|</span><span className="text-studio-green tabular-nums">{currentFps}fps</span></>}
+          {showFpsMonitor && recording && <><span className="text-studio-border">|</span><span className="text-studio-green tabular-nums">{currentFps}fps</span></>}
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -1003,9 +1005,9 @@ export default function DemoRecorder() {
           >
             {"\u{1F4F7}"} {webcamEnabled ? "ON" : "OFF"}
           </button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 282: PiP */}
-          {pipMode && <><span className="text-studio-cyan">PiP</span><span>|</span></>}
+          {pipMode && <><span className="text-studio-cyan">PiP</span><span className="text-studio-border">|</span></>}
           <select
             value={timeLimit}
             onChange={(e) => setTimeLimit(Number(e.target.value))}
@@ -1019,20 +1021,20 @@ export default function DemoRecorder() {
             <option value={1800}>30 min</option>
             <option value={3600}>1 hour</option>
           </select>
-          <span>|</span>
-          {annotationMode !== "none" && <><span className="text-studio-cyan">{"\u270F\uFE0F"} {annotationMode}</span><span>|</span></>}
-          {watermarkEnabled && <><span className="text-studio-secondary">WM</span><span>|</span></>}
-          {autoStopSilence && <><span className="text-studio-yellow">Sil</span><span>|</span></>}
+          <span className="text-studio-border">|</span>
+          {annotationMode !== "none" && <><span className="text-studio-cyan">{"\u270F\uFE0F"} {annotationMode}</span><span className="text-studio-border">|</span></>}
+          {watermarkEnabled && <><span className="text-studio-secondary">WM</span><span className="text-studio-border">|</span></>}
+          {autoStopSilence && <><span className="text-studio-yellow">Sil</span><span className="text-studio-border">|</span></>}
           {/* Improvement 280: Auto-chapters */}
-          {autoChapters && <><span className="text-studio-purple">Ch:{chapters.length}</span><span>|</span></>}
+          {autoChapters && <><span className="text-studio-purple">Ch:{chapters.length}</span><span className="text-studio-border">|</span></>}
           {/* Improvement 281: Active profile */}
-          {activeProfile && <><span className="text-studio-cyan">{activeProfile}</span><span>|</span></>}
+          {activeProfile && <><span className="text-studio-cyan">{activeProfile}</span><span className="text-studio-border">|</span></>}
           {/* Improvement 285: Size estimate */}
-          {estimatedSize && <><span>{estimatedSize}</span><span>|</span></>}
+          {estimatedSize && <><span>{estimatedSize}</span><span className="text-studio-border">|</span></>}
           <span>{inputLoggerEnabled ? "Log" : ""}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{streamTargets.filter((t) => t.enabled).length} st</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{recordings.length} rec</span>
         </div>
       </footer>
@@ -1066,11 +1068,11 @@ export default function DemoRecorder() {
             </div>
             <div className="modal-footer">
             {/* Improvement 583: A11y & Microinteraction */}
-              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowLoggerWarning(false)} className="transition-transform active:scale-95 btn">
+              <button onClick={() => setShowLoggerWarning(false)} className="transition-transform active:scale-95 btn">
                 Cancel
               </button>
             {/* Improvement 584: A11y & Microinteraction */}
-              <button aria-label="Action Button" title="Click to interact" onClick={confirmInputLogger} className="transition-transform active:scale-95 btn btn-accent">
+              <button onClick={confirmInputLogger} className="transition-transform active:scale-95 btn btn-accent">
                 I Understand, Enable
               </button>
             </div>

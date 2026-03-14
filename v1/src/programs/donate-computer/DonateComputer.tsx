@@ -1,3 +1,4 @@
+/* Wave3-sep */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -550,7 +551,7 @@ export default function DonatePersonalSeconds() {
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
             {/* Improvement 585: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+          <button onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg">{"\u{1F5E1}\uFE0F"}</span>
           <span className="text-sm font-bold bg-gradient-to-r from-red-400 via-orange-400 to-yellow-400 bg-clip-text text-transparent">
             DonatePersonalSeconds
@@ -689,16 +690,16 @@ export default function DonatePersonalSeconds() {
                 {!isRunning ? (
                   <>
             {/* Improvement 589: A11y & Microinteraction */}
-                    <button aria-label="Action Button" title="Click to interact" onClick={handleDonate} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
+                    <button onClick={handleDonate} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 hover:-translate-y-0.5 transition-all">
                       {"\u{1F5E1}\uFE0F"} Donate Personal Seconds
                     </button>
             {/* Improvement 590: A11y & Microinteraction */}
-                    <button aria-label="Action Button" title="Click to interact" onClick={handleBorrow} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-studio-text bg-studio-panel border border-studio-border hover:border-cyan-500/30 hover:-translate-y-0.5 transition-all shadow-lg shadow-cyan-500/10">
+                    <button onClick={handleBorrow} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-studio-text bg-studio-panel border border-studio-border hover:border-cyan-500/30 hover:-translate-y-0.5 transition-all shadow-lg shadow-cyan-500/10">
                       {"\u26A1"} Borrow Compute
                     </button>
                   </>
                 ) : (
-                  <button aria-label="Action Button" title="Click to interact" onClick={handleStop} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-red-400 bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-all">
+                  <button onClick={handleStop} className="transition-transform active:scale-95 px-6 py-3 rounded-xl font-bold text-sm text-red-400 bg-red-400/10 border border-red-400/30 hover:bg-red-400/20 transition-all">
                     {"\u23F9"} Stop Session
                   </button>
                 )}
@@ -812,7 +813,7 @@ export default function DonatePersonalSeconds() {
                   </div>
                 </div>
             {/* Improvement 595: A11y & Microinteraction */}
-                <button aria-label="Action Button" title="Click to interact" onClick={handlePostTask} disabled={!newTaskTitle.trim()} className="transition-transform active:scale-95 btn btn-cyan text-[10px] px-4 py-1.5">
+                <button onClick={handlePostTask} disabled={!newTaskTitle.trim()} className="transition-transform active:scale-95 btn btn-cyan text-[10px] px-4 py-1.5">
                   Post Task
                 </button>
               </section>
@@ -860,7 +861,7 @@ export default function DonatePersonalSeconds() {
                           </div>
                         </div>
                         {task.status === "open" && task.createdBy !== peerId && (
-                          <button aria-label="Action Button" title="Click to interact" onClick={() => handleClaimTask(task.id)} className="transition-transform active:scale-95 btn btn-cyan text-[9px] px-3 py-1 shrink-0">
+                          <button onClick={() => handleClaimTask(task.id)} className="transition-transform active:scale-95 btn btn-cyan text-[9px] px-3 py-1 shrink-0">
                             Claim
                           </button>
                         )}
@@ -1021,18 +1022,18 @@ export default function DonatePersonalSeconds() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F5E1}\uFE0F"} DPS v1.0.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{resources?.os || "Detecting..."}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{isRunning ? (status === "donating" ? "DONATING" : "BORROWING") : "OFFLINE"}</span>
         </div>
         <div className="flex items-center gap-3">
           <span>{"\u{1F512}"} {encryption.algorithm}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Peers: {peers.length}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Tasks: {stats.tasksCompleted}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Human: {stats.humanTasksPosted}</span>
         </div>
       </footer>

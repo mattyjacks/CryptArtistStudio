@@ -159,7 +159,7 @@ function CombineDialog({
             This workspace is already part of "{existingGroup.name}" with {existingGroup.workspaceIds.length} workspaces.
           </p>
             {/* Improvement 550: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={onClose} className="transition-transform active:scale-95 btn btn-cyan text-[11px] px-4 py-1.5">OK</button>
+          <button onClick={onClose} className="transition-transform active:scale-95 btn btn-cyan text-[11px] px-4 py-1.5">OK</button>
         </div>
       </>
     );
@@ -192,7 +192,7 @@ function CombineDialog({
             others.map((w) => (
               <label
                 key={w.id}
-                className="flex items-center gap-2.5 px-3 py-2 hover:bg-studio-hover transition-colors cursor-pointer border-b border-studio-border last:border-b-0"
+                role="tablist" className="flex items-center gap-2.5 px-3 py-2 hover:bg-studio-hover transition-colors cursor-pointer border-b border-studio-border last:border-b-0"
               >
                 <input
                   type="checkbox"
@@ -220,7 +220,7 @@ function CombineDialog({
 
         <div className="flex justify-end gap-2">
             {/* Improvement 552: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={onClose} className="transition-transform active:scale-95 btn text-[11px] px-4 py-1.5">
+          <button onClick={onClose} className="transition-transform active:scale-95 btn text-[11px] px-4 py-1.5">
             Cancel
           </button>
           <button type="button"

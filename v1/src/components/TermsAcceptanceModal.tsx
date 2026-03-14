@@ -1,3 +1,4 @@
+/* Wave3-sep */
 /* Wave2: type=button applied */
 import { useState } from "react";
 
@@ -261,7 +262,7 @@ export default function TermsAcceptanceModal({ onAccept }: TermsAcceptanceModalP
           <div className="flex items-center justify-between mt-2">
             <div className="flex items-center gap-3 text-[10px] text-studio-muted">
               <a href="mailto:Matt@MattyJacks.com" className="text-studio-cyan hover:underline">Matt@MattyJacks.com</a>
-              <span>|</span>
+              <span className="text-studio-border">|</span>
               <a href="https://mattyjacks.com/Contact" target="_blank" rel="noopener noreferrer" className="text-studio-cyan hover:underline">MattyJacks.com/Contact</a>
             </div>
             <button type="button"

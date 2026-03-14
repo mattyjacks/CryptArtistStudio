@@ -14,7 +14,7 @@ export default function Inspector() {
       <div className="panel-header">
         <h3>Inspector</h3>
             {/* Improvement 510: A11y & Microinteraction */}
-        <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 btn-ghost text-[10px]">Reset</button>
+        <button className="transition-transform active:scale-95 btn-ghost text-[10px]">Reset</button>
       </div>
       <div className="panel-body">
         {/* Transform */}

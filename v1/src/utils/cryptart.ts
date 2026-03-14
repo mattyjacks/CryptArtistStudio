@@ -72,6 +72,12 @@ export const KNOWN_PROGRAMS = [
   "demo-recorder",
   "valley-net",
   "game-studio",
+  "commander",
+  "donate-personal-seconds",
+  "clone-tool",
+  "dictate-pic",
+  "luck-factory",
+  "settings",
 ] as const;
 
 // Program type is a string, not a closed union - future programs just work.

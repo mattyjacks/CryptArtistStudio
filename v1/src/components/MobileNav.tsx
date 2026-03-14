@@ -13,6 +13,10 @@ const navItems = [
   { path: "/valley-net", label: "AI Agent", icon: "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F" },
   { path: "/game-studio", label: "Games", icon: "\u{1F3AE}" },
   { path: "/commander", label: "CLI", icon: "\u{1F431}" },
+  { path: "/donate-personal-seconds", label: "DPS", icon: "\u{1F5E1}\uFE0F" },
+  { path: "/clone-tool", label: "Clone", icon: "\u{1F4E6}" },
+  { path: "/dictate-pic", label: "Pic", icon: "\u{1F967}" },
+  { path: "/luck-factory", label: "Luck", icon: "\u{1F340}" },
   { path: "/settings", label: "Settings", icon: "\u2699\uFE0F" },
 ];
 

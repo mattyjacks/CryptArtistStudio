@@ -27,6 +27,10 @@ export const PROGRAMS = {
   VALLEY_NET: "valley-net",
   GAME_STUDIO: "game-studio",
   COMMANDER: "commander",
+  DONATE_PERSONAL_SECONDS: "donate-personal-seconds",
+  CLONE_TOOL: "clone-tool",
+  DICTATE_PIC: "dictate-pic",
+  LUCK_FACTORY: "luck-factory",
   SETTINGS: "settings",
 } as const;
 
@@ -39,6 +43,10 @@ export const PROGRAM_NAMES: Record<ProgramId, string> = {
   "valley-net": "ValleyNet",
   "game-studio": "GameStudio",
   "commander": "CryptArt Commander",
+  "donate-personal-seconds": "DonatePersonalSeconds",
+  "clone-tool": "Clone Tool",
+  "dictate-pic": "DictatePic",
+  "luck-factory": "Luck Factory",
   "settings": "Settings",
 };
 
@@ -49,6 +57,10 @@ export const PROGRAM_ICONS: Record<ProgramId, string> = {
   "valley-net": "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F",
   "game-studio": "\u{1F3AE}",
   "commander": "\u{1F431}",
+  "donate-personal-seconds": "\u{1F5E1}\uFE0F",
+  "clone-tool": "\u{1F4E6}",
+  "dictate-pic": "\u{1F967}",
+  "luck-factory": "\u{1F340}",
   "settings": "\u2699\uFE0F",
 };
 
@@ -59,6 +71,10 @@ export const PROGRAM_VERSIONS: Record<ProgramId, string> = {
   "valley-net": "1.69.420.4",
   "game-studio": "1.69.420.4",
   "commander": "1.69.420.4",
+  "donate-personal-seconds": "1.69.420.4",
+  "clone-tool": "1.69.420.4",
+  "dictate-pic": "1.69.420.4",
+  "luck-factory": "1.69.420.4",
   "settings": "1.69.420.4",
 };
 
@@ -74,6 +90,11 @@ export const ROUTES = {
   VALLEY_NET: "/valley-net",
   GAME_STUDIO: "/game-studio",
   COMMANDER: "/commander",
+  DONATE_PERSONAL_SECONDS: "/donate-personal-seconds",
+  DPS_LEADERBOARD: "/dps-leaderboard",
+  CLONE_TOOL: "/clone-tool",
+  DICTATE_PIC: "/dictate-pic",
+  LUCK_FACTORY: "/luck-factory",
   SETTINGS: "/settings",
   PRIVACY: "/privacy",
   TERMS: "/terms",
@@ -98,13 +119,21 @@ export const STORAGE_KEYS = {
   FONT_FAMILY: "cryptartist_font_family",
   SIDEBAR_WIDTH: "cryptartist_sidebar_width",
   NOTIFICATIONS_ENABLED: "cryptartist_notifications",
+  LUCK_STRING: "cryptartist_luck_string",
+  LUCK_SEED: "cryptartist_luck_seed",
+  AI_DEFAULT_MODE: "cryptartist_ai_default_mode",
+  INSTALLED_PLUGINS: "cryptartist_installed_plugins",
+  INSTALLED_MODS: "cryptartist_installed_mods",
+  INSTALLED_THEMES: "cryptartist_installed_themes",
+  DICTATE_PIC_TOOL: "cryptartist_dictatepic_tool",
+  DICTATE_PIC_BRUSH_SIZE: "cryptartist_dictatepic_brush",
 } as const;
 
 // ---------------------------------------------------------------------------
 // API Providers
 // ---------------------------------------------------------------------------
 
-export const API_PROVIDERS = ["openai", "anthropic", "google", "openrouter", "local"] as const;
+export const API_PROVIDERS = ["openai", "anthropic", "google", "openrouter", "elevenlabs", "local"] as const;
 export type ApiProvider = typeof API_PROVIDERS[number];
 
 export const AI_MODELS: Record<ApiProvider, string[]> = {
@@ -119,6 +148,7 @@ export const AI_MODELS: Record<ApiProvider, string[]> = {
     "mistralai/mistral-large", "deepseek/deepseek-chat", "deepseek/deepseek-r1",
     "qwen/qwen-2.5-72b-instruct", "cohere/command-r-plus",
   ],
+  elevenlabs: ["eleven_multilingual_v2", "eleven_turbo_v2", "eleven_monolingual_v1"],
   local: ["llama-3", "mistral", "codellama"],
 };
 
@@ -261,6 +291,13 @@ export const FILE_ICONS: Record<string, string> = {
   mp4: "\u{1F3AC}",
   mp3: "\u{1F3B5}",
   gd: "\u{1F3AE}",
+  lua: "\u{1F319}",
+  glsl: "\u{1F308}",
+  wgsl: "\u{1F308}",
+  hlsl: "\u{1F308}",
+  zig: "\u26A1",
+  nim: "\u{1F451}",
+  cryptart: "\u{1F480}\u{1F3A8}",
   txt: "\u{1F4C4}",
 };
 

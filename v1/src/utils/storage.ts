@@ -157,7 +157,7 @@ export function safeStorageUsage(): number {
     let total = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key?.startsWith("cryptartist")) {
+      if (key?.startsWith(PREFIX)) {
         total += (localStorage.getItem(key) || "").length;
       }
     }

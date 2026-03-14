@@ -1,3 +1,5 @@
+/* Wave3-sep */
+/* Wave3 */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useRef, useEffect } from "react";
@@ -588,7 +590,7 @@ User task: ${userMsg.content}`;
                 <option key={n} value={n}>{n} tokens</option>
               ))}
             </select>
-            <button onClick={() => setShowSystemPrompt(false)} className="text-[10px] text-studio-muted hover:text-studio-text">x</button>
+            <button onClick={() => setShowSystemPrompt(false)} className="text-[10px] text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
           </div>
           <textarea
             value={customSystemPrompt}
@@ -759,7 +761,7 @@ User task: ${userMsg.content}`;
                 value={conversationSearch}
                 onChange={(e) => setConversationSearch(e.target.value)}
                 className="input text-[10px] py-0.5 flex-1"
-                placeholder="Search messages..." autoComplete="off" spellCheck={false}
+                enterKeyHint="search" placeholder="Search messages..." autoComplete="off" spellCheck={false}
               />
               <span className="text-[9px] text-studio-muted">{messages.length} msgs</span>
               {pinnedMessages.length > 0 && <span className="text-[9px] text-studio-yellow">{pinnedMessages.length} pinned</span>}
@@ -887,7 +889,7 @@ User task: ${userMsg.content}`;
           <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F9E0}"} Agent Memory</h2>
-              <button onClick={() => setShowMemory(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowMemory(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               {agentMemory.length === 0 ? (
@@ -904,7 +906,7 @@ User task: ${userMsg.content}`;
                         <div className="text-[10px] font-semibold text-studio-cyan">{m.key}</div>
                         <div className="text-[10px] text-studio-secondary">{m.value}</div>
                       </div>
-                      <button onClick={() => setAgentMemory((prev) => prev.filter((_, idx) => idx !== i))} className="text-[9px] text-studio-muted hover:text-studio-red">x</button>
+                      <button onClick={() => setAgentMemory((prev) => prev.filter((_, idx) => idx !== i))} className="text-[9px] text-studio-muted hover:text-studio-red" aria-label="Close">x</button>
                     </div>
                   ))}
                 </div>
@@ -924,7 +926,7 @@ User task: ${userMsg.content}`;
           <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F527}"} Workflow Builder</h2>
-              <button onClick={() => setShowWorkflowBuilder(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowWorkflowBuilder(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               {workflows.length === 0 ? (
@@ -963,7 +965,7 @@ User task: ${userMsg.content}`;
           <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4DA}"} Knowledge Base</h2>
-              <button onClick={() => setShowKnowledgeBase(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowKnowledgeBase(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               {knowledgeBase.length === 0 ? (
@@ -1027,41 +1029,41 @@ User task: ${userMsg.content}`;
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{activePersona ? personas.find((p) => p.id === activePersona)?.icon || "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F" : "\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F"} VNet v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 292: Model */}
           <span>{selectedModel}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{skills.filter((s) => s.enabled).length}/{skills.length} skills</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{plugins.filter((p) => p.enabled).length} plugins</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 288: RAG */}
-          {ragEnabled && <><span className="text-studio-cyan">RAG</span><span>|</span></>}
+          {ragEnabled && <><span className="text-studio-cyan">RAG</span><span className="text-studio-border">|</span></>}
           <span className={safeMode ? "text-studio-green" : "text-studio-yellow"}>{safeMode ? "Safe" : "Open"}</span>
         </div>
         <div className="flex items-center gap-3">
           <span>{taskHistory.length} tasks</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{autonomyLevel}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{tokenUsage.total} tok</span>
           {/* Improvement 293: Cost */}
-          {costEstimate > 0 && <><span>|</span><span>${costEstimate.toFixed(4)}</span></>}
-          <span>|</span>
+          {costEstimate > 0 && <><span className="text-studio-border">|</span><span>${costEstimate.toFixed(4)}</span></>}
+          <span className="text-studio-border">|</span>
           {/* Improvement 287: KB count */}
           <button onClick={() => setShowKnowledgeBase(true)} className="hover:text-studio-cyan transition-colors">
             {"\u{1F4DA}"} {knowledgeBase.length} docs
           </button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <button onClick={() => setShowMemory(true)} className="hover:text-studio-cyan transition-colors">
             {"\u{1F9E0}"} {agentMemory.length}
           </button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 289: Tool log */}
           <button onClick={() => setShowToolLog(true)} className="hover:text-studio-cyan transition-colors">
             {"\u{1F527}"} {toolLog.length}
           </button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{sessionDuration < 60 ? `${sessionDuration}s` : `${Math.floor(sessionDuration / 60)}m`}</span>
         </div>
       </footer>

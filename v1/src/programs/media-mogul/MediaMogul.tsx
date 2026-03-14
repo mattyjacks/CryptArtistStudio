@@ -1,3 +1,5 @@
+/* Wave3-sep */
+/* Wave3 */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useEffect } from "react";
@@ -504,7 +506,7 @@ export default function MediaMogul() {
         <div className="h-[120px] border-t border-studio-border bg-studio-panel p-3 animate-fade-in">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-semibold text-studio-secondary">{"\u{1F4DD}"} Project Notes</span>
-            <button onClick={() => setShowNotes(false)} className="text-[10px] text-studio-muted hover:text-studio-text">x</button>
+            <button onClick={() => setShowNotes(false)} className="text-[10px] text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
           </div>
           <textarea
             value={projectNotes}
@@ -531,7 +533,7 @@ export default function MediaMogul() {
           <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F3A8}"} LUT Browser</h2>
-              <button onClick={() => setShowLutBrowser(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowLutBrowser(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               <div className="flex flex-col gap-1">
@@ -559,7 +561,7 @@ export default function MediaMogul() {
           <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F3B5}"} Audio Mixer</h2>
-              <button onClick={() => setShowMixer(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowMixer(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               <div className="flex gap-4">
@@ -611,7 +613,7 @@ export default function MediaMogul() {
           <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4AC}"} Subtitle Editor</h2>
-              <button onClick={() => setShowSubtitleEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowSubtitleEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               {subtitles.length === 0 ? (
@@ -650,41 +652,41 @@ export default function MediaMogul() {
             <span className="status-dot status-dot-green" />
             {renderProgress !== null ? `Rendering ${renderProgress}%` : "Ready"}
           </span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>1920 x 1080 ({aspectRatio})</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>24.000 fps</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>F{currentFrame}</span>
-          {clipCount > 0 && <><span>|</span><span>{clipCount} clips</span></>}
-          {markers.length > 0 && <><span>|</span><span>{markers.length} mkr</span></>}
+          {clipCount > 0 && <><span className="text-studio-border">|</span><span>{clipCount} clips</span></>}
+          {markers.length > 0 && <><span className="text-studio-border">|</span><span>{markers.length} mkr</span></>}
           {/* Improvement 264: Subtitles */}
-          {subtitles.length > 0 && <><span>|</span><span>{subtitles.length} subs</span></>}
+          {subtitles.length > 0 && <><span className="text-studio-border">|</span><span>{subtitles.length} subs</span></>}
         </div>
         <div className="flex items-center gap-3">
           <span className="text-studio-secondary">{workspace.toUpperCase()}</span>
-          <span>|</span>
-          {proxyEditing && <><span className="text-studio-yellow">PROXY</span><span>|</span></>}
+          <span className="text-studio-border">|</span>
+          {proxyEditing && <><span className="text-studio-yellow">PROXY</span><span className="text-studio-border">|</span></>}
           {/* Improvement 269: HDR */}
-          {hdrMode && <><span className="text-studio-cyan">HDR</span><span>|</span></>}
+          {hdrMode && <><span className="text-studio-cyan">HDR</span><span className="text-studio-border">|</span></>}
           {/* Improvement 272: Multicam */}
-          {multicamEnabled && <><span className="text-studio-purple">MC:{multicamAngles}</span><span>|</span></>}
+          {multicamEnabled && <><span className="text-studio-purple">MC:{multicamAngles}</span><span className="text-studio-border">|</span></>}
           {/* Improvement 273: Chroma key */}
-          {chromaKey && <><span className="text-studio-green">CK</span><span>|</span></>}
+          {chromaKey && <><span className="text-studio-green">CK</span><span className="text-studio-border">|</span></>}
           {/* Improvement 268: Stabilization */}
-          {stabilization && <><span>STAB</span><span>|</span></>}
+          {stabilization && <><span>STAB</span><span className="text-studio-border">|</span></>}
           <span>{timelineSnap ? "Snap" : "Free"}</span>
-          <span>|</span>
-          {playbackSpeed !== 1 && <><span>{playbackSpeed}x</span><span>|</span></>}
+          <span className="text-studio-border">|</span>
+          {playbackSpeed !== 1 && <><span>{playbackSpeed}x</span><span className="text-studio-border">|</span></>}
           {/* Improvement 262: LUT */}
-          {activeLut && <><span className="text-studio-cyan">LUT</span><span>|</span></>}
+          {activeLut && <><span className="text-studio-cyan">LUT</span><span className="text-studio-border">|</span></>}
           {/* Improvement 275: Render preset */}
           <span>{renderPreset}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{exportFormat.toUpperCase()}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{apiKey ? "\u{1F7E2}" : "\u{1F7E1}"}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{"\u{1F4FA}"} MMo v0.1.0</span>
         </div>
       </footer>

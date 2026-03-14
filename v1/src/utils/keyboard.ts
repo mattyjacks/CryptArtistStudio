@@ -83,6 +83,30 @@ export function useGlobalShortcuts(navigate: (path: string) => void) {
       description: "Open GameStudio",
     },
     {
+      key: "6",
+      ctrl: true,
+      action: () => navigate("/commander"),
+      description: "Open CryptArt Commander",
+    },
+    {
+      key: "7",
+      ctrl: true,
+      action: () => navigate("/donate-personal-seconds"),
+      description: "Open DonatePersonalSeconds",
+    },
+    {
+      key: "8",
+      ctrl: true,
+      action: () => navigate("/clone-tool"),
+      description: "Open Clone Tool",
+    },
+    {
+      key: "9",
+      ctrl: true,
+      action: () => navigate("/settings"),
+      description: "Open Settings",
+    },
+    {
       key: "0",
       ctrl: true,
       action: () => navigate("/"),

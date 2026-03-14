@@ -41,7 +41,10 @@ export type AIActionKey =
   | "game-dev"
   | "narration"
   | "commander-chat"
-  | "commander-openrouter";
+  | "commander-openrouter"
+  | "dictate-pic-generate"
+  | "dictate-pic-inpaint"
+  | "dictate-pic-describe";
 
 export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5-mini";
 export const DEFAULT_AI_MODE: AIEfficiencyMode = "smart";
@@ -69,6 +72,9 @@ export const AI_ACTIONS: { id: AIActionKey; label: string }[] = [
   { id: "narration", label: "DemoRecorder Narration" },
   { id: "commander-chat", label: "Commander Chat Command" },
   { id: "commander-openrouter", label: "Commander OpenRouter Command" },
+  { id: "dictate-pic-generate", label: "DictatePic AI Generate" },
+  { id: "dictate-pic-inpaint", label: "DictatePic AI Inpaint" },
+  { id: "dictate-pic-describe", label: "DictatePic AI Describe" },
 ];
 
 // ---------------------------------------------------------------------------

@@ -416,7 +416,7 @@ export default function SettingsModal({
         {/* Footer */}
         <div className="modal-footer">
             {/* Improvement 515: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={onClose} className="transition-transform active:scale-95 btn">
+          <button onClick={onClose} className="transition-transform active:scale-95 btn">
             Close
           </button>
         </div>

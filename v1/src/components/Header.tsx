@@ -127,11 +127,11 @@ export default function Header({ workspace, setWorkspace, onOpenSettings }: Head
               </div>
               <div className="py-1">
             {/* Improvement 507: A11y & Microinteraction */}
-                <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Account Settings</button>
+                <button className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Account Settings</button>
             {/* Improvement 508: A11y & Microinteraction */}
-                <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Manage Cloud Storage</button>
+                <button className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors">Manage Cloud Storage</button>
             {/* Improvement 509: A11y & Microinteraction */}
-                <button aria-label="Action Button" title="Click to interact" className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors text-studio-red">Sign Out</button>
+                <button className="transition-transform active:scale-95 w-full text-left px-3 py-1.5 text-[10px] hover:bg-studio-hover transition-colors text-studio-red">Sign Out</button>
               </div>
             </div>
           )}

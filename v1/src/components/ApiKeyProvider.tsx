@@ -60,6 +60,8 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
     const fieldMap: Record<ApiKeyName, keyof ApiKeyState> = {
       openai: "openaiKey",
       openrouter: "openrouterKey",
+      anthropic: "anthropicKey",
+      google: "googleKey",
       pexels: "pexelsKey",
       supabase: "supabaseKey",
       elevenlabs: "elevenlabsKey",
@@ -75,6 +77,8 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
       const fieldMap: Record<ApiKeyName, keyof ApiKeyState> = {
         openai: "openaiKey",
         openrouter: "openrouterKey",
+        anthropic: "anthropicKey",
+        google: "googleKey",
         pexels: "pexelsKey",
         supabase: "supabaseKey",
         elevenlabs: "elevenlabsKey",
@@ -89,6 +93,8 @@ export function ApiKeyProvider({ children }: ApiKeyProviderProps) {
     return {
       openai: !!state.openaiKey,
       openrouter: !!state.openrouterKey,
+      anthropic: !!state.anthropicKey,
+      google: !!state.googleKey,
       pexels: !!state.pexelsKey,
       supabase: !!state.supabaseKey,
       elevenlabs: !!state.elevenlabsKey,

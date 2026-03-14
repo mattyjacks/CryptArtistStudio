@@ -225,6 +225,8 @@ pub struct AppState {
     pub givegigs_key: Mutex<String>,
     pub openrouter_key: Mutex<String>,
     pub elevenlabs_key: Mutex<String>,
+    /// File paths passed via OS file association (double-click .CryptArt in Explorer/Finder)
+    pub files_to_open: Mutex<Vec<String>>,
 }
 
 impl AppState {
@@ -237,7 +239,22 @@ impl AppState {
             givegigs_key: Mutex::new(String::new()),
             openrouter_key: Mutex::new(String::new()),
             elevenlabs_key: Mutex::new(String::new()),
+            files_to_open: Mutex::new(Vec::new()),
         }
+    }
+
+    pub fn set_files_to_open(&self, files: Vec<String>) {
+        let mut pending = self.files_to_open.lock().unwrap_or_else(|e| e.into_inner());
+        pending.extend(files);
+    }
+
+    pub fn get_files_to_open(&self) -> Vec<String> {
+        self.files_to_open.lock().unwrap_or_else(|e| e.into_inner()).clone()
+    }
+
+    pub fn clear_files_to_open(&self) {
+        let mut pending = self.files_to_open.lock().unwrap_or_else(|e| e.into_inner());
+        pending.clear();
     }
 
     /// Path to the local FFmpeg binary.

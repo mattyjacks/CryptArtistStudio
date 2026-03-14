@@ -1,3 +1,5 @@
+/* Wave3-sep */
+/* Wave3 */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -1490,7 +1492,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                     className="input text-[11px] py-0.5 flex-1"
-                    placeholder="Search in files..." autoComplete="off" spellCheck={false}
+                    enterKeyHint="search" placeholder="Search in files..." autoComplete="off" spellCheck={false}
                   />
                   <input
                     type="text"
@@ -1690,7 +1692,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4CB}"} Code Snippets</h2>
-              <button onClick={() => setShowSnippets(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowSnippets(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               <div className="flex flex-col gap-2">
@@ -1742,7 +1744,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4D1}"} Symbol Outline</h2>
-              <button onClick={() => setShowOutline(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowOutline(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               {outlineSymbols.length === 0 ? (
@@ -1773,7 +1775,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           <span>{"\u{1F469}\u{1F3FB}\u200D\u{1F4BB}"} VCW v0.1.0</span>
           {gitBranch && (
             <>
-              <span>|</span>
+              <span className="text-studio-border">|</span>
               <span className="flex items-center gap-1">
                 <span className="text-studio-cyan">{"\u{1F33F}"}</span>
                 {gitBranch}
@@ -1781,51 +1783,51 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
               </span>
             </>
           )}
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Ln {cursorLine}, Col {cursorCol}</span>
           {/* Improvement 254: Multiple cursors */}
           {cursorCount > 1 && <span className="text-studio-cyan">({cursorCount} cursors)</span>}
           {/* Improvement 257: Selection count */}
           {selectionCount > 0 && (
             <>
-              <span>|</span>
+              <span className="text-studio-border">|</span>
               <span>{selectionCount} selected</span>
             </>
           )}
           {/* Improvement 244: Bookmarks */}
           {bookmarks.length > 0 && (
             <>
-              <span>|</span>
+              <span className="text-studio-border">|</span>
               <span>{"\u{1F516}"} {bookmarks.length}</span>
             </>
           )}
         </div>
         <div className="flex items-center gap-3">
           <span>{activeTab ? `${fileIcon(activeTab.name)} ${activeTab.language}` : "No file"}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{fileEncoding}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{lineEnding}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 247: Indent */}
           <span>{detectedIndent === "spaces" ? `Spaces: ${editorTabSize}` : "Tabs"}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{editorZoom}%</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 241: Split indicator */}
-          {splitView && <><span className="text-studio-cyan">Split</span><span>|</span></>}
+          {splitView && <><span className="text-studio-cyan">Split</span><span className="text-studio-border">|</span></>}
           {/* Improvement 255: Inline blame */}
-          {inlineBlame && <><span className="text-studio-purple">Blame</span><span>|</span></>}
+          {inlineBlame && <><span className="text-studio-purple">Blame</span><span className="text-studio-border">|</span></>}
           <span>{apiProvider}/{vcwModel}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{vcwApiKey ? "\u{1F7E2}" : "\u{1F7E1}"}</span>
-          {autoSave && <><span>|</span><span className="text-studio-green">AS</span></>}
-          {openTabs.length > 0 && <><span>|</span><span>{openTabs.length} files</span></>}
+          {autoSave && <><span className="text-studio-border">|</span><span className="text-studio-green">AS</span></>}
+          {openTabs.length > 0 && <><span className="text-studio-border">|</span><span>{openTabs.length} files</span></>}
           {problems.filter((p) => p.severity === "error").length > 0 && (
-            <><span>|</span><span className="text-red-400">{problems.filter((p) => p.severity === "error").length} err</span></>
+            <><span className="text-studio-border">|</span><span className="text-red-400">{problems.filter((p) => p.severity === "error").length} err</span></>
           )}
           {/* Improvement 260: Word count */}
-          {wordCount > 0 && <><span>|</span><span>{wordCount}w</span></>}
+          {wordCount > 0 && <><span className="text-studio-border">|</span><span>{wordCount}w</span></>}
         </div>
       </footer>
     </div>

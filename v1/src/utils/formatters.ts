@@ -64,6 +64,9 @@ export function languageFromExtension(ext: string): string {
     json: "json", yaml: "yaml", yml: "yaml", toml: "toml", xml: "xml",
     md: "markdown", sql: "sql", sh: "shell", bash: "shell", ps1: "powershell",
     dockerfile: "dockerfile", makefile: "makefile",
+    gd: "gdscript", lua: "lua", r: "r", zig: "zig", nim: "nim",
+    glsl: "glsl", wgsl: "wgsl", hlsl: "hlsl", vert: "glsl", frag: "glsl",
+    cryptart: "json",
   };
   return map[ext] || "plaintext";
 }

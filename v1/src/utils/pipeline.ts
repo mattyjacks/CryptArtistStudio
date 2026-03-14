@@ -264,6 +264,68 @@ export const BUILTIN_PIPELINES: PipelineDefinition[] = [
       },
     ],
   },
+  {
+    id: "ai-image-edit-pipeline",
+    name: "AI Image Edit Pipeline",
+    description: "Generate an image with AI, edit in DictatePic, then import to Media Mogul or GameStudio",
+    icon: "\u{1F916}\u2192\u{1F967}\u2192\u{1F3AE}",
+    tags: ["image", "ai", "edit", "dictatepic"],
+    steps: [
+      {
+        id: "ai-generate",
+        name: "Generate base image with AI",
+        program: "dictate-pic",
+        triggerEvent: "image:generated",
+        completionEvent: "image:generated",
+      },
+      {
+        id: "edit-image",
+        name: "Edit and refine in DictatePic",
+        program: "dictate-pic",
+        triggerEvent: "image:edited",
+        completionEvent: "image:edited",
+      },
+      {
+        id: "import-asset",
+        name: "Import as game asset",
+        program: "game-studio",
+        triggerEvent: "game:asset-imported",
+        completionEvent: "game:asset-imported",
+        optional: true,
+      },
+    ],
+  },
+  {
+    id: "build-and-deploy",
+    name: "Build and Deploy",
+    description: "Write code in VibeCodeWorker, test in GameStudio, then build installers with Clone Tool",
+    icon: "\u{1F469}\u200D\u{1F4BB}\u2192\u{1F3AE}\u2192\u{1F4E6}",
+    tags: ["build", "deploy", "clone", "installer"],
+    steps: [
+      {
+        id: "write-code",
+        name: "Write or generate code",
+        program: "vibecode-worker",
+        triggerEvent: "code:snippet-created",
+        completionEvent: "code:file-saved",
+      },
+      {
+        id: "test-game",
+        name: "Test in GameStudio",
+        program: "game-studio",
+        triggerEvent: "game:scene-created",
+        completionEvent: "game:project-exported",
+        optional: true,
+      },
+      {
+        id: "build-installer",
+        name: "Build installers with Clone Tool",
+        program: "clone-tool",
+        triggerEvent: "build:started",
+        completionEvent: "build:completed",
+      },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------

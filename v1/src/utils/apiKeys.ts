@@ -19,6 +19,10 @@ export interface ApiKeyState {
   openaiKey: string;
   /** OpenRouter API key */
   openrouterKey: string;
+  /** Anthropic API key */
+  anthropicKey: string;
+  /** Google AI API key */
+  googleKey: string;
   /** Pexels stock media API key */
   pexelsKey: string;
   /** Supabase / GiveGigs key */
@@ -42,7 +46,7 @@ export interface ApiKeyActions {
   getKeyStatus: () => Record<ApiKeyName, boolean>;
 }
 
-export type ApiKeyName = "openai" | "openrouter" | "pexels" | "supabase" | "elevenlabs";
+export type ApiKeyName = "openai" | "openrouter" | "anthropic" | "google" | "pexels" | "supabase" | "elevenlabs";
 
 export type ApiKeyContextType = ApiKeyState & ApiKeyActions;
 
@@ -53,6 +57,8 @@ export type ApiKeyContextType = ApiKeyState & ApiKeyActions;
 export const defaultApiKeyState: ApiKeyState = {
   openaiKey: "",
   openrouterKey: "",
+  anthropicKey: "",
+  googleKey: "",
   pexelsKey: "",
   supabaseKey: "",
   elevenlabsKey: "",
@@ -72,6 +78,8 @@ export const ApiKeyContext = createContext<ApiKeyContextType>({
   getKeyStatus: () => ({
     openai: false,
     openrouter: false,
+    anthropic: false,
+    google: false,
     pexels: false,
     supabase: false,
     elevenlabs: false,
@@ -89,6 +97,8 @@ export function useApiKeys(): ApiKeyContextType {
 const KEY_COMMANDS: Record<ApiKeyName, { get: string; save: string; stateField: keyof ApiKeyState }> = {
   openai: { get: "get_api_key", save: "save_api_key", stateField: "openaiKey" },
   openrouter: { get: "get_openrouter_key", save: "save_openrouter_key", stateField: "openrouterKey" },
+  anthropic: { get: "get_anthropic_key", save: "save_anthropic_key", stateField: "anthropicKey" },
+  google: { get: "get_google_key", save: "save_google_key", stateField: "googleKey" },
   pexels: { get: "get_pexels_key", save: "save_pexels_key", stateField: "pexelsKey" },
   supabase: { get: "get_supabase_key", save: "save_supabase_key", stateField: "supabaseKey" },
   elevenlabs: { get: "get_elevenlabs_key", save: "save_elevenlabs_key", stateField: "elevenlabsKey" },

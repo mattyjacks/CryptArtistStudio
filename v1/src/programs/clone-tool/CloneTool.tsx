@@ -1,3 +1,4 @@
+/* Wave3-sep */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 // ---------------------------------------------------------------------------
@@ -233,7 +234,7 @@ export default function CloneTool() {
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
             {/* Improvement 553: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+          <button onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg">{"\u{1F4E6}"}</span>
           <span className="text-sm font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Clone Tool</span>
           <span className="badge text-[8px]">CLN</span>
@@ -346,7 +347,7 @@ export default function CloneTool() {
                       <input ref={iconInputRef} type="file" accept="image/*" className="hidden" onChange={handleIconUpload} />
                     </label>
                     {config.customIcon && (
-                      <button aria-label="Action Button" title="Click to interact" onClick={() => updateConfig("customIcon", null)} className="transition-transform active:scale-95 block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
+                      <button onClick={() => updateConfig("customIcon", null)} className="transition-transform active:scale-95 block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
                     )}
                   </div>
                   <div className="text-center">
@@ -362,7 +363,7 @@ export default function CloneTool() {
                       <input ref={splashInputRef} type="file" accept="image/*" className="hidden" onChange={handleSplashUpload} />
                     </label>
                     {config.customSplash && (
-                      <button aria-label="Action Button" title="Click to interact" onClick={() => updateConfig("customSplash", null)} className="transition-transform active:scale-95 block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
+                      <button onClick={() => updateConfig("customSplash", null)} className="transition-transform active:scale-95 block mx-auto mt-1 text-[8px] text-red-400 hover:underline">Remove</button>
                     )}
                   </div>
                 </div>
@@ -499,7 +500,7 @@ export default function CloneTool() {
               {(status === "idle" || status === "done" || status === "error") && (
                 <div className="flex items-center justify-center gap-3">
             {/* Improvement 570: A11y & Microinteraction */}
-                  <button aria-label="Action Button" title="Click to interact" onClick={handleBuild} disabled={config.targets.length === 0} className="transition-transform active:scale-95 px-8 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+                  <button onClick={handleBuild} disabled={config.targets.length === 0} className="transition-transform active:scale-95 px-8 py-3 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/20 hover:shadow-violet-500/40 hover:-translate-y-0.5 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
                     {"\u{1F6E0}\uFE0F"} Build {config.targets.length} Target{config.targets.length !== 1 ? "s" : ""}
                   </button>
                 </div>
@@ -548,7 +549,7 @@ export default function CloneTool() {
                 <div className="flex items-center justify-between px-3 py-2 bg-studio-panel border-b border-studio-border">
                   <span className="text-[11px] font-semibold text-studio-text">{"\u{1F4DD}"} Build Log</span>
             {/* Improvement 572: A11y & Microinteraction */}
-                  <button aria-label="Action Button" title="Click to interact" onClick={() => setLogs([])} className="transition-transform active:scale-95 text-[9px] text-studio-muted hover:text-cyan-400">Clear</button>
+                  <button onClick={() => setLogs([])} className="transition-transform active:scale-95 text-[9px] text-studio-muted hover:text-cyan-400">Clear</button>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto p-1">
                   {logs.length > 0 ? logs.map((log, i) => (
@@ -572,14 +573,14 @@ export default function CloneTool() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F4E6}"} Clone Tool v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{config.targets.length} target{config.targets.length !== 1 ? "s" : ""}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{config.source === "default" ? "Default" : "Current"}</span>
         </div>
         <div className="flex items-center gap-3">
           <span>{config.appName} v{config.version}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{status === "idle" ? "Ready" : status}</span>
         </div>
       </footer>

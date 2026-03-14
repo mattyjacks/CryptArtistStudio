@@ -10,6 +10,7 @@ mod logger;
 mod state;
 
 use state::AppState;
+use tauri::Manager;
 use clap::{Parser, Subcommand};
 use std::io::Read;
 use std::path::PathBuf;
@@ -1594,12 +1595,60 @@ fn run_api_server(port: u16, api_key: Option<String>) {
 // Application Bootstrap
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// File Association Commands (OS double-click .CryptArt -> open in app)
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn get_file_to_open(state: tauri::State<'_, AppState>) -> Result<Vec<String>, String> {
+    log_cmd!("get_file_to_open", "Checking for pending .CryptArt files");
+    let files = state.get_files_to_open();
+    if !files.is_empty() {
+        log_cmd!("get_file_to_open", "Found {} pending file(s): {:?}", files.len(), files);
+    }
+    Ok(files)
+}
+
+#[tauri::command]
+async fn clear_file_to_open(state: tauri::State<'_, AppState>) -> Result<(), String> {
+    log_cmd!("clear_file_to_open", "Clearing pending .CryptArt files");
+    state.clear_files_to_open();
+    Ok(())
+}
+
+/// Check if a string looks like a .CryptArt file path
+fn is_cryptart_path(s: &str) -> bool {
+    let lower = s.to_lowercase();
+    lower.ends_with(".cryptart") && !s.starts_with('-')
+}
+
 fn main() {
     // Initialize the logging system FIRST
     logger::init_logger();
     log_info!("main", "CryptArtist Studio v{} starting", env!("CARGO_PKG_VERSION"));
 
-    let cli = Cli::parse();
+    // -----------------------------------------------------------------------
+    // File Association: Pre-scan CLI args for .CryptArt file paths.
+    // When the OS opens a .CryptArt file, it launches the app with the path
+    // as an argument. We extract those BEFORE clap parsing to avoid conflicts.
+    // -----------------------------------------------------------------------
+    let raw_args: Vec<String> = std::env::args().collect();
+    let mut cryptart_files: Vec<String> = Vec::new();
+    let mut filtered_args: Vec<String> = Vec::new();
+
+    for (i, arg) in raw_args.iter().enumerate() {
+        if i == 0 {
+            // Always keep the program name
+            filtered_args.push(arg.clone());
+        } else if is_cryptart_path(arg) {
+            log_info!("main", "File association detected: {}", arg);
+            cryptart_files.push(arg.clone());
+        } else {
+            filtered_args.push(arg.clone());
+        }
+    }
+
+    let cli = Cli::parse_from(&filtered_args);
     
     // Headless CLI execution
     if let Some(cmd) = cli.command {
@@ -1930,9 +1979,22 @@ fn main() {
     // Normal GUI execution
     log_info!("main", "Starting GUI mode");
     log_info!("main", "Log directory: {}", logger::logger().get_log_dir());
+
+    // Store any .CryptArt files found in CLI args
+    let pending_files = cryptart_files.clone();
+
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
+        .setup(move |app| {
+            // Inject any .CryptArt file paths from CLI args into AppState
+            if !pending_files.is_empty() {
+                let state = app.state::<AppState>();
+                log_info!("setup", "Storing {} .CryptArt file(s) from CLI args", pending_files.len());
+                state.set_files_to_open(pending_files.clone());
+            }
+            Ok(())
+        })
         .manage(AppState::new())
         .invoke_handler(tauri::generate_handler![
             check_ffmpeg_installed,
@@ -1979,6 +2041,8 @@ fn main() {
             elevenlabs_speech_to_text,
             export_all_api_keys,
             import_all_api_keys,
+            get_file_to_open,
+            clear_file_to_open,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CryptArtist Studio");

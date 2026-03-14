@@ -1,6 +1,6 @@
 /* Wave2: type=button applied */
 import { useState, useEffect, Component, type ReactNode } from "react";
-import { Routes, Route, useLocation, Link } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate, Link } from "react-router-dom";
 import SuiteLauncher from "./components/SuiteLauncher";
 import MediaMogul from "./programs/media-mogul/MediaMogul";
 import VibeCodeWorker from "./programs/vibecode-worker/VibeCodeWorker";
@@ -13,6 +13,7 @@ import DonatePersonalSeconds from "./programs/donate-personal-seconds/DonatePers
 import DPSLeaderboard from "./programs/donate-personal-seconds/DPSLeaderboard";
 import CloneTool from "./programs/clone-tool/CloneTool";
 import LuckFactory from "./programs/luck-factory/LuckFactory";
+import DictatePic from "./programs/dictate-pic/DictatePic";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
 import TermsAcceptanceModal from "./components/TermsAcceptanceModal";
@@ -26,6 +27,7 @@ import { logger } from "./utils/logger";
 import { applyTheme } from "./utils/themes";
 import { initializePlatform } from "./utils/cross-platform";
 import { initializeSecurityHardening, initializeSecurityHardeningV2 } from "./utils/security";
+import { checkFileAssociation, listenForFileOpen } from "./utils/fileAssociation";
 
 // ---------------------------------------------------------------------------
 // Types (kept for backward compatibility with existing components)
@@ -138,6 +140,8 @@ const routeTitles: Record<string, string> = {
   "/donate-personal-seconds": "DonatePersonalSeconds - CryptArtist Studio",
   "/dps-leaderboard": "DPS Leaderboard - CryptArtist Studio",
   "/clone-tool": "Clone Tool - CryptArtist Studio",
+  "/luck-factory": "Luck Factory - CryptArtist Studio",
+  "/dictate-pic": "DictatePic - CryptArtist Studio",
   "/privacy": "Privacy Policy - CryptArtist Studio",
   "/terms": "Terms of Use - CryptArtist Studio",
 };
@@ -160,6 +164,7 @@ export default function App() {
   const isMobileView = useIsMobileViewport();
   const deviceType = useDeviceType();
   const showBottomNav = deviceType === "mobile" || deviceType === "tablet";
+  const navigate = useNavigate();
   useDocumentTitle();
 
   useEffect(() => {
@@ -171,6 +176,16 @@ export default function App() {
     initializeSecurityHardening();
     initializeSecurityHardeningV2();
   }, []);
+
+  // File Association: Check for .CryptArt files passed via OS file explorer
+  useEffect(() => {
+    if (!termsAccepted) return;
+    // Check for files passed as CLI args on cold start
+    checkFileAssociation(navigate);
+    // Listen for files opened while the app is already running (macOS)
+    const cleanup = listenForFileOpen(navigate);
+    return () => { cleanup.then((fn) => fn()); };
+  }, [termsAccepted, navigate]);
 
   const handleAcceptTerms = () => {
     localStorage.setItem(TERMS_ACCEPTED_KEY, "true");
@@ -208,6 +223,7 @@ export default function App() {
                 <Route path="/dps-leaderboard" element={<DPSLeaderboard />} />
                 <Route path="/clone-tool" element={<CloneTool />} />
                 <Route path="/luck-factory" element={<LuckFactory />} />
+                <Route path="/dictate-pic" element={<DictatePic />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfUse />} />
                 <Route path="*" element={<NotFound />} />

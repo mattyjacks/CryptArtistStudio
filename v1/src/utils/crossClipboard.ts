@@ -31,6 +31,10 @@ export type ClipboardContentType =
   | "texture"
   | "project-data"
   | "terminal-output"
+  | "layer"
+  | "brush-preset"
+  | "luck-seed"
+  | "build-config"
   | "custom";
 
 export interface ClipboardEntry {
@@ -176,6 +180,11 @@ class CrossClipboard {
       "valley-net": ["text", "ai-prompt", "ai-response", "code", "terminal-output"],
       "demo-recorder": ["recording", "video", "audio", "file-path"],
       "commander": ["text", "code", "terminal-output", "file-path"],
+      "dictate-pic": ["image", "sprite", "texture", "layer", "brush-preset", "file-path"],
+      "luck-factory": ["text", "luck-seed"],
+      "clone-tool": ["build-config", "file-path", "file-paths"],
+      "donate-personal-seconds": ["text", "file-path"],
+      "settings": ["text"],
     };
     const acceptedTypes = typeMap[program] ?? [];
     return this.history.some((e) => acceptedTypes.includes(e.contentType));

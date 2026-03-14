@@ -37,6 +37,9 @@ const TRUSTED_DOMAINS = [
   "api.pexels.com",
   "openrouter.ai",
   "api.openai.com",
+  "api.anthropic.com",
+  "generativelanguage.googleapis.com",
+  "api.elevenlabs.io",
   "godotengine.org",
   "localhost",
 ];

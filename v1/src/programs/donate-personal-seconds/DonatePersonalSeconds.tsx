@@ -1,3 +1,4 @@
+/* Wave3-sep */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -1016,18 +1017,18 @@ export default function DonatePersonalSeconds() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F5E1}\uFE0F"} DPS v1.0.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{resources?.os || "Detecting..."}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{isRunning ? (status === "donating" ? "DONATING" : "BORROWING") : "OFFLINE"}</span>
         </div>
         <div className="flex items-center gap-3">
           <span>{"\u{1F512}"} {encryption.algorithm}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Peers: {peers.length}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Tasks: {stats.tasksCompleted}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Human: {stats.humanTasksPosted}</span>
         </div>
       </footer>

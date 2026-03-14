@@ -410,7 +410,7 @@ export default function AIStudio({
                   API key required for AI features
                 </p>
             {/* Improvement 500: A11y & Microinteraction */}
-                <button aria-label="Action Button" title="Click to interact" onClick={onOpenSettings} className="transition-transform active:scale-95 btn btn-cyan text-[10px] py-1">
+                <button onClick={onOpenSettings} className="transition-transform active:scale-95 btn btn-cyan text-[10px] py-1">
                   ⚙️ Open Settings
                 </button>
               </div>

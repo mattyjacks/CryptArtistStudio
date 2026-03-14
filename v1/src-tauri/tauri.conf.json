@@ -36,11 +36,20 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
+    "windows": {
+      "nsis": {
+        "displayLanguageSelector": false,
+        "installMode": "both",
+        "languages": ["English"],
+        "startMenuFolder": "CryptArtist Studio"
+      }
+    },
     "fileAssociations": [
       {
-        "ext": ["CryptArt"],
+        "ext": ["CryptArt", "cryptart"],
         "mimeType": "application/x-cryptartist-art",
-        "description": "CryptArtist Art"
+        "description": "CryptArtist Studio Project",
+        "role": "Editor"
       }
     ]
   }

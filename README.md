@@ -9,10 +9,11 @@
 ---
 
 **CryptArtist Studio** is a free, open-source, professional-grade creative suite built with
-Tauri v2, React 18, TypeScript, and Rust. It bundles eight powerful programs into a single
+Tauri v2, React 18, TypeScript, and Rust. It bundles eleven powerful programs into a single
 desktop application: a video/image editor, a vibe-coding IDE, a screen recorder, an
 autonomous AI agent, an integrated game development studio, a terminal-based command center,
-a P2P compute-sharing tool, and a full settings hub.
+a P2P compute-sharing tool, an installer builder, a GIMP-style image editor with AI, a
+luck-based AI seed generator, and a full settings hub.
 
 The project is community-funded through donations at
 [mattyjacks.com](https://mattyjacks.com) and [givegigs.com](https://givegigs.com).
@@ -32,10 +33,17 @@ The project is community-funded through donations at
   - [GameStudio](#gamestudio--gst)
   - [CryptArt Commander](#cryptart-commander--cac)
   - [DonatePersonalSeconds](#donatepersonalseconds--dps)
+  - [Clone Tool](#clone-tool--cln)
+  - [DictatePic](#dictatepic--dc)
+  - [Luck Factory](#luck-factory--lck)
   - [Settings](#settings--set)
 - [Workspace Management](#workspace-management)
   - [Multi-File Workspaces](#multi-file-workspaces)
   - [Workspace Groups and Resource Sharing](#workspace-groups-and-resource-sharing)
+- [Plugin, Mod, and Theme System](#plugin-mod-and-theme-system)
+  - [Plugins](#plugins)
+  - [Mods](#mods)
+  - [Themes](#themes)
 - [The .CryptArt File Format](#the-cryptart-file-format)
   - [Format Overview](#format-overview)
   - [Required Fields](#required-fields)
@@ -121,15 +129,15 @@ The project is community-funded through donations at
 ## Overview
 
 CryptArtist Studio started as a DaVinci Resolve competitor - a professional video editor
-with AI integration. It has since evolved into a full creative suite with five distinct
+with AI integration. It has since evolved into a full creative suite with eleven distinct
 programs, all sharing a unified dark theme, a common project file format (`.CryptArt`),
 and deep AI integration powered by the user's own API keys.
 
 ### Key Highlights
 
-- **Eight Programs in One** - Video editing, code editing, screen recording, AI agent,
-  game development, terminal commander, P2P compute sharing, and a settings hub all
-  in a single ~15 MB download.
+- **Eleven Programs in One** - Video editing, code editing, screen recording, AI agent,
+  game development, terminal commander, P2P compute sharing, installer builder, AI image
+  editor, luck seed generator, and a settings hub all in a single ~15 MB download.
 - **Security Hardened** - 300 vulnerability fixes across frontend and backend,
   including CSP, input validation, rate limiting, XSS prevention, audit logging,
   encrypted storage, SVG sanitization, WebSocket monitoring, and API guards.
@@ -163,7 +171,7 @@ CryptArtist Studio is built on the belief that creative tools should be:
 ## Programs in the Suite
 
 When you launch CryptArtist Studio, you are greeted by the **Suite Launcher [🗺️SLr]** - a
-full-window launcher displaying the CryptArtist logo and ten program cards.
+full-window launcher displaying the CryptArtist logo and twelve program cards.
 The Suite Launcher is itself a launchable program from within the grid.
 Each card shows the program's emoji logo, name, short code, and a one-line description.
 The launcher includes search and filter, favorites, category sorting, grid/list views,
@@ -181,7 +189,9 @@ an AI readiness indicator.
 | 6 | **CryptArt Commander** | Cat | CAC | `6` | Terminal-based command center for API and CLI control |
 | 7 | **DonatePersonalSeconds** | Computer | DPS | `7` | P2P compute resource sharing for distributed tasks |
 | 8 | **Clone Tool** | Package | CLN | `9` | Create .exe, .dmg, .deb installers from your config |
-| 9 | **Settings** | Gear | Set | `0` | API key management, OpenRouter, appearance, and data |
+| 9 | **DictatePic** | Pie | D(pi)c | `-` | GIMP-style image editor with AI generation, inpainting, and style transfer |
+| 10 | **Luck Factory** | Clover | Lck | `-` | AI luck seed generator with guided meditation and affirmations |
+| 11 | **Settings** | Gear | Set | `0` | API key management, OpenRouter, appearance, and data |
 
 The Suite Launcher [SLr] also displays a donation banner encouraging users to support
 development at [mattyjacks.com](https://mattyjacks.com) and
@@ -853,6 +863,161 @@ Export all API keys to a `Forbidden-Secrets-of-CryptArtist-Keys-N.txt` file:
 
 ---
 
+### Clone Tool - CLN
+
+**Clone Tool** is an installer builder that creates platform-specific application
+packages from your current CryptArtist Studio configuration.
+
+#### Features
+
+- **Multi-Platform Targets** - Build for Windows (.exe, .msi), macOS (.dmg, .app),
+  Linux (.deb, .AppImage, .rpm), Android (.apk), and iOS (.ipa).
+- **Five Configuration Tabs** - General (app name, version, author), Targets (platform
+  selection), Window (dimensions, fullscreen, resizable), Includes (plugins, themes,
+  mods, settings, API keys), and Build (progress, logs).
+- **Custom Branding** - Upload custom app icons and splash screens with validation.
+- **Build Source** - Clone from default config or current running config.
+- **Include Options** - Optionally bundle plugins, themes, mods, settings, and API
+  keys (with security warning for keys).
+- **Code Signing** - Optional code signing, compression, and auto-update toggles.
+- **Build Simulation** - Multi-stage build process with progress bar and detailed
+  build log output.
+
+#### .CryptArt Data Payload (Clone Tool)
+
+```json
+{
+  "appName": "My Custom Studio",
+  "targets": ["windows-exe", "linux-appimage"],
+  "includePlugins": true,
+  "includeThemes": true,
+  "buildResults": [ ... ]
+}
+```
+
+---
+
+### DictatePic - D(pi)c
+
+**DictatePic** is a professional image editor built on GIMP principles with integrated
+AI features for generation, inpainting, upscaling, background removal, and style transfer.
+
+#### Layout
+
+The DictatePic window follows a classic image editor layout:
+
+| Area | Position | Description |
+|---|---|---|
+| **Toolbox** | Left sidebar | 28 tools organized by group (selection, transform, paint, fill, retouch, AI, other) |
+| **Canvas** | Center | Zoomable canvas with checkerboard transparency, rulers, and grid |
+| **Layers Panel** | Right sidebar | Layer stack with visibility, lock, opacity, blend modes |
+| **Properties** | Right sidebar (below layers) | Tool options, brush size, opacity, hardness, colors |
+| **History** | Right sidebar (bottom) | Undo history with named entries |
+
+#### Tools (28 Total)
+
+| Group | Tools |
+|---|---|
+| **Selection** | Rectangle Select, Ellipse Select, Free Select (Lasso), Magic Wand |
+| **Transform** | Move, Crop, Rotate, Scale, Flip |
+| **Paint** | Paintbrush, Pencil, Eraser, Airbrush, Clone Stamp |
+| **Fill** | Bucket Fill, Gradient |
+| **Retouch** | Blur, Sharpen, Smudge, Dodge, Burn, Heal |
+| **Other** | Text, Color Picker, Measure, Path/Bezier |
+| **AI** | AI Generate, AI Inpaint, AI Upscale, AI Remove Background, AI Style Transfer |
+
+#### Filters (16)
+
+Gaussian Blur, Sharpen, Edge Detect, Emboss, Noise Reduction, Posterize, Threshold,
+Invert Colors, Desaturate, Sepia, Levels, Curves, Hue/Saturation, Color Balance,
+Brightness/Contrast, Unsharp Mask.
+
+#### AI Features
+
+- **AI Generate** - Generate images from text prompts via OpenAI/OpenRouter
+- **AI Inpaint** - Fill selected areas with AI-generated content
+- **AI Upscale** - Enhance image resolution using AI super-resolution
+- **AI Remove Background** - Automatically remove image backgrounds
+- **AI Style Transfer** - Apply artistic styles to images (photorealistic, anime,
+  oil painting, watercolor, sketch, pixel art, cinematic, abstract)
+
+#### Canvas Features
+
+- **Zoom** - 10% to 800% zoom with scroll wheel support
+- **Pan** - Click and drag to pan the canvas
+- **Grid and Guides** - Toggleable grid overlay and snap-to-grid
+- **Rulers** - Horizontal and vertical pixel rulers
+- **Color Modes** - RGB, RGBA, Grayscale, Indexed
+- **Bit Depths** - 8-bit, 16-bit, 32-bit
+- **Blend Modes** - 15 blend modes (Normal, Multiply, Screen, Overlay, etc.)
+
+#### .CryptArt Data Payload (DictatePic)
+
+```json
+{
+  "canvasSize": { "w": 1920, "h": 1080 },
+  "layers": [ ... ],
+  "colorMode": "RGBA",
+  "bitDepth": 8,
+  "activeTool": "brush",
+  "history": [ ... ]
+}
+```
+
+---
+
+### Luck Factory - Lck
+
+**Luck Factory** is a unique AI seed generator that anchors CryptArtist Studio's
+"Lucky" AI mode to a deterministic value derived from user-provided intentions.
+
+#### How It Works
+
+1. **Introduction** - The program explains the concept of anchoring AI operations
+   to a cryptographic luck signature.
+2. **Input** - The user enters any string (name, wish, mantra, emojis, Unicode text)
+   to serve as their luck anchor.
+3. **Meditation** - A guided meditation sequence plays seven affirmations while the
+   luck score is computed, including:
+   - "Centering the mind..."
+   - "Aligning the cosmic probability vectors..."
+   - "Breathing in fortune, exhaling uncertainty..."
+   - "Tuning into the universal frequency of 777..."
+   - "Manifesting serendipitous outcomes..."
+4. **Result** - Three values are displayed:
+   - **Base Score** (0-999) - Computed from the string hash
+   - **Threshold Preset** (69, 420, or 777) - Based on base score range
+   - **Final Seed** - Combined value used by the Lucky AI mode
+
+#### Luck Presets
+
+| Base Score Range | Preset | Meaning |
+|---|---|---|
+| 0-499 | 69 | Standard luck |
+| 500-899 | 420 | Elevated luck |
+| 900-999 | 777 | Maximum luck |
+
+#### Integration
+
+- The final luck seed is stored in `localStorage` as `cryptartist_lucky_seed`
+- The luck string is stored as `cryptartist_lucky_string`
+- All programs with the "Lucky" AI mode use this seed to influence AI prompts
+- Luck Factory is automatically opened when a user selects the Lucky mode for
+  the first time without an existing luck seed
+
+#### .CryptArt Data Payload (Luck Factory)
+
+```json
+{
+  "luckString": "To the moon",
+  "baseLuck": 482,
+  "presetLuck": 69,
+  "finalLuck": 551
+}
+```
+
+---
+
 ## Workspace Management
 
 CryptArtist Studio supports opening multiple `.CryptArt` files simultaneously through
@@ -1056,7 +1221,7 @@ and cross-program routing.
 
 ### Integration Status
 
-All five main programs are fully integrated with the interoperability layer:
+All eleven programs are integrated with the interoperability layer:
 
 | Program | useApiKeys | useInteropEmit | useCrossClipboard | useInterop (listen) | Save Events | AI Events |
 |---|---|---|---|---|---|---|
@@ -1065,6 +1230,97 @@ All five main programs are fully integrated with the interoperability layer:
 | GameStudio [GSt] | X | X | X | code:snippet-created, media:exported | X | X |
 | ValleyNet [VNt] | X | X | X | agent:task-started | X | X |
 | DemoRecorder [DRe] | X | X | X | - | X | - |
+| CryptArt Commander [CAC] | X | X | - | - | - | X |
+| DonatePersonalSeconds [DPS] | - | X | - | - | - | - |
+| Clone Tool [CLN] | - | X | - | - | - | - |
+| DictatePic [D(pi)c] | X | X | - | - | - | X |
+| Luck Factory [Lck] | - | - | - | - | - | - |
+| Settings [Set] | X | X | - | ai:key-updated | - | X |
+
+---
+
+## Plugin, Mod, and Theme System
+
+CryptArtist Studio includes a full extension system for plugins, mods, and themes.
+All three are distributed as ZIP files with a `manifest.json` inside.
+
+### Plugins
+
+Plugins extend existing programs with new features. They are managed by the
+**Plugin Manager** (`src/components/PluginManager.tsx`) and the plugin system
+(`src/utils/plugins.ts`).
+
+| Field | Description |
+|---|---|
+| `id` | Unique plugin identifier (e.g., `com.example.my-plugin`) |
+| `name` | Display name |
+| `version` | Semver version string |
+| `author` | Plugin author |
+| `description` | Short description |
+| `targetProgram` | Which program this plugin extends |
+| `entryPoint` | Main script file inside the ZIP |
+| `permissions` | Requested capabilities (filesystem, network, ai, etc.) |
+
+Plugins are installed from ZIP files via Settings > Plugins, stored in localStorage,
+and loaded on program startup.
+
+### Mods
+
+Mods are self-contained mini-programs that appear as launchable entries in the
+Suite Launcher. They are managed by the **Mod Manager** (`src/components/ModManager.tsx`)
+and the mod system (`src/utils/mods.ts`).
+
+| Field | Description |
+|---|---|
+| `id` | Unique mod identifier |
+| `name` | Display name shown in Suite Launcher |
+| `emoji` | Emoji icon for the launcher card |
+| `code` | Short 3-letter code |
+| `description` | One-line description |
+| `gradient` | CSS gradient for the launcher card |
+| `component` | Main React component file |
+
+Built-in program IDs (`media-mogul`, `vibecode-worker`, etc.) are reserved and
+cannot be overridden by mods.
+
+### Themes
+
+Themes change the visual appearance of the entire application. They are managed by
+the **Theme Manager** (`src/components/ThemeManager.tsx`) and the theme system
+(`src/utils/themes.ts`).
+
+#### Built-in Themes
+
+| Theme | Description |
+|---|---|
+| **Primordial** | The default dark theme with deep navy/purple tones |
+| **Blank** | A minimal, clean dark theme with reduced visual noise |
+
+#### Custom Themes
+
+Custom themes are ZIP files containing a `manifest.json` and a `theme.css` file.
+The CSS file uses CSS custom properties to override the default theme tokens:
+
+```css
+:root {
+  --studio-bg: #0a0a0f;
+  --studio-panel: #12121a;
+  --studio-surface: #1a1a2e;
+  --studio-border: #2a2a3e;
+  --studio-text: #e0e0e8;
+  --studio-accent: #00d4ff;
+  /* ... additional tokens ... */
+}
+```
+
+#### Theme Features
+
+- **Live Preview** - Preview themes before applying
+- **Theme Creator** - Built-in editor for creating custom themes
+- **Export** - Export custom themes as ZIP files for sharing
+- **CSS Variables** - Full control over colors, fonts, spacing, and effects
+- **Animation Control** - `body.no-animations` class disables all animations
+- **Scrollbar Control** - `body.scrollbar-hidden` class hides scrollbars
 
 ---
 
@@ -1230,6 +1486,12 @@ The parser handles all historical `.CryptArt` file versions:
 | `demo-recorder` | DemoRecorder |
 | `valley-net` | ValleyNet |
 | `game-studio` | GameStudio |
+| `commander` | CryptArt Commander |
+| `donate-personal-seconds` | DonatePersonalSeconds |
+| `clone-tool` | Clone Tool |
+| `dictate-pic` | DictatePic |
+| `luck-factory` | Luck Factory |
+| `settings` | Settings |
 
 Any string is valid as a program ID. Third-party programs can use their own IDs
 (e.g., `my-custom-tool`) without any changes to the format.
@@ -1407,18 +1669,23 @@ CryptArtistStudio/
     |   |
     |   |-- components/                    # Shared UI components
     |   |   |-- AIStudio.tsx               # AI-powered video generation
+    |   |   |-- ApiKeyProvider.tsx          # Shared API key React context provider
     |   |   |-- ErrorBoundary.tsx          # React error boundary
     |   |   |-- FFmpegSetup.tsx            # FFmpeg download progress UI
+    |   |   |-- GlobalMenuBar.tsx          # Desktop/mobile menu bar (File, Edit, View...)
     |   |   |-- Header.tsx                 # Media Mogul header with workspace tabs
     |   |   |-- Inspector.tsx              # Property inspector panel
     |   |   |-- LoadingSpinner.tsx         # Loading animation component
     |   |   |-- MediaBrowser.tsx           # Media pool + Pexels integration
     |   |   |-- MobileNav.tsx              # Mobile-responsive navigation
+    |   |   |-- ModManager.tsx             # Mod installation and management UI
     |   |   |-- NodeEditor.tsx             # Node-based compositing editor
+    |   |   |-- PluginManager.tsx          # Plugin installation and management UI
     |   |   |-- PreviewCanvas.tsx          # Video preview viewport
     |   |   |-- SettingsModal.tsx          # Global settings with API keys
     |   |   |-- SuiteLauncher.tsx          # Main launcher with program cards
     |   |   |-- TermsAcceptanceModal.tsx   # Privacy policy + terms acceptance
+    |   |   |-- ThemeManager.tsx           # Theme browsing, install, and creation UI
     |   |   |-- Timeline.tsx               # Multi-track video timeline
     |   |   |-- WorkspaceBar.tsx           # Workspace tab bar with context menu
     |   |   |-- WorkspaceProvider.tsx      # Workspace state management provider
@@ -1437,7 +1704,14 @@ CryptArtistStudio/
     |   |   |-- commander/
     |   |   |   |-- Commander.tsx          # CryptArt Commander terminal
     |   |   |-- donate-personal-seconds/
-    |   |   |   |-- DonatePersonalSeconds.tsx     # P2P compute resource sharing
+    |   |   |   |-- DonatePersonalSeconds.tsx  # P2P compute resource sharing
+    |   |   |   |-- DPSLeaderboard.tsx         # Leaderboard for donated seconds
+    |   |   |-- clone-tool/
+    |   |   |   |-- CloneTool.tsx          # Installer builder for all platforms
+    |   |   |-- dictate-pic/
+    |   |   |   |-- DictatePic.tsx         # GIMP-style AI image editor
+    |   |   |-- luck-factory/
+    |   |   |   |-- LuckFactory.tsx        # AI luck seed generator
     |   |   |-- settings/
     |   |       |-- Settings.tsx           # Settings hub with API keys
     |   |
@@ -1446,17 +1720,29 @@ CryptArtistStudio/
     |   |   |-- TermsOfUse.tsx             # Terms of use page
     |   |
     |   |-- utils/                         # Utility modules
+    |       |-- apiKeys.ts                 # Shared API key context and loaders
+    |       |-- audio-zip.ts               # ZIP audio import with security checks
     |       |-- constants.ts               # Shared constants and type definitions
+    |       |-- cross-platform.ts          # Platform detection, capabilities, safe areas
+    |       |-- crossClipboard.ts          # Cross-program clipboard with type routing
     |       |-- cryptart.ts                # .CryptArt file format (permanent schema)
     |       |-- debounce.ts                # Debounce utility
+    |       |-- extensions.ts              # Shared extension manifest types (plugin/mod/theme)
     |       |-- formatters.ts              # Number/date/size formatting
-    |       |-- hooks.ts                   # Shared React hooks library
+    |       |-- hooks.ts                   # Shared React hooks library (17 hooks)
+    |       |-- interop.ts                 # Cross-program event bus (pub/sub)
     |       |-- keyboard.ts                # Global keyboard shortcuts
     |       |-- logger.ts                  # Frontend logging (sends to Rust)
+    |       |-- luckyRNG.ts                # Seeded PRNG for Lucky AI mode (xmur3 + mulberry32)
+    |       |-- mods.ts                    # Mod system - self-contained programs
+    |       |-- notifications.ts           # Unified notification hub
     |       |-- openrouter.ts              # OpenRouter multi-model AI utility
+    |       |-- pipeline.ts                # Cross-program workflow pipelines
     |       |-- platform.ts                # Platform detection + mobile viewport
-    |       |-- security.ts                # Security helpers (30+ functions)
+    |       |-- plugins.ts                 # Plugin system with ZIP install
+    |       |-- security.ts                # Security helpers (150+ functions)
     |       |-- storage.ts                 # LocalStorage wrapper (validated)
+    |       |-- themes.ts                  # Theme system (Primordial, Blank, custom)
     |       |-- toast.ts                   # Toast notification system (rate-limited)
     |       |-- workspace.ts               # Workspace types, context, helpers
     |
@@ -1502,23 +1788,38 @@ CryptArtistStudio/
 The frontend follows a clean layered architecture:
 
 ```
-main.tsx                    # Entry point - initializes logger, renders App
+main.tsx                        # Entry point - initializes logger, renders App
   |
-  App.tsx                   # Router setup + terms acceptance gate
+  App.tsx                       # Router + terms gate + ErrorBoundary
     |
-    |-- SuiteLauncher       # "/" - Program selection grid
-    |-- MediaMogul          # "/media-mogul" - Video/image editor
-    |-- VibeCodeWorker      # "/vibecode-worker" - Code IDE
-    |-- DemoRecorder        # "/demo-recorder" - Screen recorder
-    |-- ValleyNet           # "/valley-net" - AI agent
-    |-- GameStudio          # "/game-studio" - Game development
-    |-- PrivacyPolicy       # "/privacy" - Privacy policy
-    |-- TermsOfUse          # "/terms" - Terms of use
+    WorkspaceProvider           # Multi-file workspace state
+      ApiKeyProvider            # Shared API keys loaded once
+        GlobalMenuBar           # Desktop/mobile menu bar
+        WorkspaceBar            # Workspace tabs
+        |
+        |-- SuiteLauncher       # "/" - Program selection grid
+        |-- MediaMogul          # "/media-mogul" - Video/image editor
+        |-- VibeCodeWorker      # "/vibecode-worker" - Code IDE
+        |-- DemoRecorder        # "/demo-recorder" - Screen recorder
+        |-- ValleyNet           # "/valley-net" - AI agent
+        |-- GameStudio          # "/game-studio" - Game development
+        |-- Commander           # "/commander" - Terminal command center
+        |-- Settings            # "/settings" - API keys, themes, plugins
+        |-- DonatePersonalSeconds # "/donate-personal-seconds" - P2P compute
+        |-- DPSLeaderboard      # "/dps-leaderboard" - Donation leaderboard
+        |-- CloneTool           # "/clone-tool" - Installer builder
+        |-- LuckFactory         # "/luck-factory" - AI luck seed generator
+        |-- DictatePic          # "/dictate-pic" - AI image editor
+        |-- PrivacyPolicy       # "/privacy" - Privacy policy
+        |-- TermsOfUse          # "/terms" - Terms of use
+        |-- NotFound            # "*" - 404 page
+        |
+        MobileNav               # Bottom nav for mobile/tablet
 ```
 
 Each program is a self-contained React component that manages its own state.
-Programs communicate with the Rust backend exclusively through Tauri's `invoke()`
-IPC mechanism.
+Programs communicate with the Rust backend through Tauri's `invoke()` IPC mechanism,
+and with each other through the interop event bus (`src/utils/interop.ts`).
 
 ### Backend Architecture
 
@@ -1760,14 +2061,14 @@ The `src/utils/constants.ts` module centralizes all magic strings and numbers:
 
 ### Development Statistics
 
-CryptArtist Studio was built over 33 AI-assisted development sessions. Here is a
+CryptArtist Studio was built over 42+ AI-assisted development sessions. Here is a
 summary of the project's scope:
 
 | Metric | Count |
 |---|---|
-| **Total Prompts** | 37+ |
-| **Programs in Suite** | 8 |
-| **Tauri Commands** | 30+ |
+| **Total Prompts** | 43+ |
+| **Programs in Suite** | 11 (+ Suite Launcher) |
+| **Tauri Commands** | 35+ |
 | **CLI Commands** | 20+ |
 | **REST API Endpoints** | 18+ |
 | **Commander Built-In Commands** | 40+ |
@@ -1775,31 +2076,36 @@ summary of the project's scope:
 | **Security Vulnerability Fixes** | 300 |
 | **Security Helper Functions** | 150+ |
 | **React Hooks (shared)** | 17 |
+| **Interop Event Types** | 30+ (11 categories) |
+| **Cross-Program Pipelines** | 6 built-in |
 | **OpenRouter Models** | 15 popular (200+ available) |
+| **AI Efficiency Modes** | 5 (Cheap, Fast, Good, Smart, Lucky) |
 | **Website Pages** | 9 |
 | **Log Files** | 3 (session, recent, full history) |
 | **Supported Languages (Editor)** | 20+ |
 | **.CryptArt Optional Fields** | 30+ |
+| **Known Program IDs** | 11 |
 | **CSS Utility Classes** | 50+ |
 | **Animation Keyframes** | 13 |
 | **TailwindCSS Color Tokens** | 24+ |
 | **Keyboard Shortcuts** | 16+ |
-| **Frontend Source Files** | 35+ |
+| **Utility Modules** | 20+ |
+| **Frontend Source Files** | 50+ |
 | **Rust Source Files** | 5 |
-| **README Lines** | 2,800+ |
+| **README Lines** | 4,600+ |
 
 #### Technology Breakdown
 
 | Language | Approximate Lines | Files |
 |---|---|---|
-| **TypeScript/TSX** | ~25,000 | ~35 |
+| **TypeScript/TSX** | ~35,000 | ~50 |
 | **Rust** | ~2,400 | 5 |
-| **CSS** | ~3,000 | 2 |
+| **CSS** | ~3,500 | 2 |
 | **HTML** | ~6,000 | 10 |
 | **JavaScript** | ~1,500 | 3 |
 | **JSON** | ~500 | 5 |
-| **Markdown** | ~3,500 | 3 |
-| **Total** | ~42,000 | ~63 |
+| **Markdown** | ~6,000 | 3 |
+| **Total** | ~55,000 | ~78 |
 
 ---
 
@@ -2077,7 +2383,7 @@ Outputs: OS, architecture, FFmpeg status, Godot status, log paths, and version i
 cryptartist-studio list-programs
 ```
 
-Outputs the five programs with their IDs, names, and descriptions.
+Outputs all eleven programs with their IDs, names, and descriptions.
 
 ---
 
@@ -2230,10 +2536,13 @@ in the Rust backend state (never in frontend localStorage):
 
 | Provider | Setting | Used By |
 |---|---|---|
-| **OpenAI** | Settings > API Keys > OpenAI Key | AI Chat, Image Generation, AI Studio |
-| **Pexels** | Settings > API Keys > Pexels Key | Media Browser, Pexels Search |
-| **Anthropic** | VibeCodeWorker Settings | VCW AI Assistant |
-| **Google** | VibeCodeWorker Settings | VCW AI Assistant |
+| **OpenAI** | Settings > API Keys > OpenAI Key | AI Chat, Image Generation, TTS, AI Studio |
+| **OpenRouter** | Settings > API Keys > OpenRouter Key | All AI features (200+ models), primary provider |
+| **Pexels** | Settings > API Keys > Pexels Key | Media Browser, stock photo/video search |
+| **ElevenLabs** | Settings > API Keys > ElevenLabs Key | TTS voiceover, STT transcription, SFX generation |
+| **GiveGigs** | Settings > API Keys > GiveGigs/Supabase Key | Media asset library via Supabase |
+| **Anthropic** | VibeCodeWorker Settings | VCW AI Assistant (via direct API) |
+| **Google** | VibeCodeWorker Settings | VCW AI Assistant (via direct API) |
 | **Custom** | VibeCodeWorker Settings | Any OpenAI-compatible endpoint |
 
 #### Setting Keys via CLI
@@ -2440,12 +2749,16 @@ Model and mode can be changed from:
 
 ### AI Efficiency Modes
 
-All major AI actions support four efficiency modes:
+All major AI actions support five efficiency modes:
 
 - **`💳 Cheap`** - Keep responses token-efficient and cost-minimized
 - **`⚡ Fast`** - Prefer fastest useful completion path
 - **`🦄 Good`** - Encourage commonwealth goodness, keep tone clever/funny, and keep code quality strict
 - **`🧠 Smart`** - Default mode with maximum precision and practical intelligence
+- **`🍀 Lucky`** - Seed AI generation from a deterministic luck value computed by Luck Factory [Lck].
+  On first use, the user is redirected to Luck Factory to anchor their luck seed with a
+  personal intention string. The seed (0-999 base + preset of 69/420/777) influences AI
+  prompt construction for serendipitous results.
 
 ### Fallback Behavior
 
@@ -2878,6 +3191,8 @@ opts in by providing API keys):
 | Service | Purpose | Data Sent |
 |---|---|---|
 | **OpenAI API** | AI chat, image generation, TTS | User prompts, code context |
+| **OpenRouter** | AI model gateway (200+ models) | User prompts, model selection |
+| **ElevenLabs** | Voice generation, STT, sound effects | Text prompts, audio files |
 | **Pexels API** | Stock photo/video search | Search queries |
 | **GiveGigs.com** | Media asset library | Supabase auth credentials |
 | **Cloudflare** | Website hosting (mattyjacks.com) | Standard web requests |
@@ -4159,8 +4474,11 @@ appropriate viewport handling.
 
 ### Can I extend it with plugins?
 
-A plugin system is planned for v0.3.0. In the meantime, the `.CryptArt` format's
-`extensions` and `plugins` fields are already defined and ready for use.
+Yes! CryptArtist Studio includes a full **Plugin, Mod, and Theme** system.
+Plugins add new features to existing programs, mods are self-contained mini-programs
+that appear in the Suite Launcher, and themes change the entire visual appearance.
+All three are distributed as ZIP files and can be installed from the Settings hub.
+See [Plugin, Mod, and Theme System](#plugin-mod-and-theme-system) for details.
 
 ### How do I report a bug?
 
@@ -4227,9 +4545,12 @@ Direct OpenAI access is also supported for users who prefer not to use OpenRoute
 
 ### How many programs are in the suite?
 
-Eight programs: Media Mogul (video/image editor), VibeCodeWorker (code IDE),
-DemoRecorder (screen recorder), ValleyNet (AI agent), GameStudio (game development),
-CryptArt Commander (terminal), DonatePersonalSeconds (P2P sharing), and Settings (config hub).
+Eleven programs plus the Suite Launcher: Media Mogul (video/image editor),
+VibeCodeWorker (code IDE), DemoRecorder (screen recorder), ValleyNet (AI agent),
+GameStudio (game development), CryptArt Commander (terminal),
+DonatePersonalSeconds (P2P sharing), Clone Tool (installer builder),
+DictatePic (GIMP-style AI image editor), Luck Factory (AI luck seed generator),
+and Settings (config hub).
 
 ### Where are log files stored?
 
@@ -4243,10 +4564,10 @@ Three files are maintained: `cryptartist-session.txt` (100 lines), `cryptartist-
 
 ### How was CryptArtist Studio built?
 
-CryptArtist Studio was built through 33+ AI-assisted "vibe coding" sessions using
+CryptArtist Studio was built through 42+ AI-assisted "vibe coding" sessions using
 Windsurf IDE with Claude models. The complete prompt history (every single prompt
 and its result) is preserved in `prompts/all-prompts.md`. The full README documents
-every aspect of the application across 2,700+ lines. This project serves as a case
+every aspect of the application across 4,600+ lines. This project serves as a case
 study in AI-assisted software development.
 
 ---
@@ -4399,7 +4720,7 @@ Made with love by [Matt](https://mattyjacks.com)
 
 ---
 
-*This README is approximately 3,200 lines long and documents every aspect of
-CryptArtist Studio. It was last updated as part of Prompt 33 in the development history.*
+*This README is approximately 4,700 lines long and documents every aspect of
+CryptArtist Studio. It was last updated as part of Prompt 43 in the development history.*
 
 </div>

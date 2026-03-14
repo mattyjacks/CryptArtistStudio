@@ -175,6 +175,8 @@ export const PROGRAM_LABELS: Record<string, string> = {
   "commander": "CryptArt Commander",
   "donate-personal-seconds": "DonatePersonalSeconds",
   "clone-tool": "Clone Tool",
+  "dictate-pic": "DictatePic",
+  "luck-factory": "Luck Factory",
   "settings": "Settings",
 };
 

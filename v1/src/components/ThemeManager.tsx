@@ -131,7 +131,7 @@ export default function ThemeManager() {
           <input ref={fileRef} type="file" accept=".zip" className="hidden" onChange={handleInstall} />
         </label>
             {/* Improvement 545: A11y & Microinteraction */}
-        <button aria-label="Action Button" title="Click to interact" onClick={() => setCreating(!creating)} className="transition-transform active:scale-95 btn text-[10px] px-3 py-1.5">
+        <button onClick={() => setCreating(!creating)} className="transition-transform active:scale-95 btn text-[10px] px-3 py-1.5">
           {creating ? "\u2715 Cancel" : "\u2795 Create New Theme"}
         </button>
       </div>
@@ -156,7 +156,7 @@ export default function ThemeManager() {
               <label className="text-[10px] text-studio-muted block mb-1">
                 Clone From Base Theme
             {/* Improvement 546: A11y & Microinteraction */}
-                <button aria-label="Action Button" title="Click to interact" onClick={handleRandomBase} className="transition-transform active:scale-95 ml-2 text-studio-cyan hover:underline text-[9px]">
+                <button onClick={handleRandomBase} className="transition-transform active:scale-95 ml-2 text-studio-cyan hover:underline text-[9px]">
                   {"\u{1F3B2}"} Random
                 </button>
               </label>
@@ -176,7 +176,7 @@ export default function ThemeManager() {
               </div>
             </div>
             {/* Improvement 547: A11y & Microinteraction */}
-            <button aria-label="Action Button" title="Click to interact" onClick={handleCreateTheme} className="transition-transform active:scale-95 btn btn-cyan text-[10px] px-4 py-1.5 self-start">
+            <button onClick={handleCreateTheme} className="transition-transform active:scale-95 btn btn-cyan text-[10px] px-4 py-1.5 self-start">
               Create Theme
             </button>
           </div>
@@ -195,7 +195,7 @@ export default function ThemeManager() {
           </div>
         </div>
         {previewId && (
-          <button aria-label="Action Button" title="Click to interact" onClick={handleCancelPreview} className="transition-transform active:scale-95 ml-auto btn text-[9px] px-2 py-1 border-yellow-500/30 text-yellow-400">
+          <button onClick={handleCancelPreview} className="transition-transform active:scale-95 ml-auto btn text-[9px] px-2 py-1 border-yellow-500/30 text-yellow-400">
             Cancel Preview
           </button>
         )}

@@ -1,3 +1,4 @@
+/* Wave3-meta */
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { HashRouter } from "react-router-dom";
@@ -6,6 +7,13 @@ window.addEventListener("unhandledrejection", (e) => {
   console.error("[CryptArtist] Unhandled promise rejection:", e.reason);
   e.preventDefault();
 });
+
+
+// Wave 3: Set theme-color meta tag
+const meta = document.createElement("meta");
+meta.name = "theme-color";
+meta.content = "#0a0e17";
+document.head.appendChild(meta);
 
 import App from "./App";
 import ErrorBoundary from "./components/ErrorBoundary";

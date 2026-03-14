@@ -1,3 +1,5 @@
+/* Wave3-sep */
+/* Wave3 */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
@@ -145,6 +147,19 @@ const programs = [
     tags: ["luck", "ai", "rng"],
   },
   {
+    id: "dictate-pic",
+    name: "DictatePic",
+    code: "D(\u03C0)c",
+    emoji: "\u{1F967}",
+    description: "Professional AI-powered image editor \u2014 GIMP clone with AI generate, inpaint, upscale, and style transfer",
+    gradient: "from-pink-600/20 to-yellow-600/20",
+    borderHover: "hover:border-pink-500/40",
+    accentColor: "text-pink-400",
+    version: "v1.0.0",
+    shortcut: "P",
+    tags: ["image", "editor", "gimp", "ai", "photo", "paint"],
+  },
+  {
     id: "random-program",
     name: "Random Program",
     code: "Rnd",
@@ -174,7 +189,7 @@ const programs = [
 
 // Improvement 138: Tips rotation
 const tips = [
-  "Press 1-8 to quick-launch any program",
+  "Press Ctrl+1 through Ctrl+9 to quick-launch any program",
   "Use Ctrl+S to save your .CryptArt project anytime",
   "Star your favorite programs for quick access",
   "DemoRecorder supports countdown timers before recording",
@@ -188,6 +203,11 @@ const tips = [
   "Configure OpenRouter in Settings to use 200+ AI models",
   "Export all API keys to a Forbidden-Secrets file from Settings",
   "Use 'or <prompt>' in Commander for OpenRouter AI chat",
+  "DictatePic has 28 drawing tools across 7 groups plus AI generation",
+  "Luck Factory seeds the AI with your personal luck signature",
+  "Clone Tool builds .exe, .dmg, and .deb installers from your config",
+  "Install plugins, mods, and themes from ZIP files in Settings",
+  "Try Lucky AI mode for serendipitous AI responses",
 ];
 
 export default function SuiteLauncher() {
@@ -504,7 +524,7 @@ export default function SuiteLauncher() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(sanitizeSearchQuery(e.target.value, 200))}
               className="input w-full pl-9 pr-4 py-2 text-sm rounded-lg bg-studio-surface border-studio-border"
-              placeholder="Search programs... (or press 1-7 to launch)" autoComplete="off" spellCheck={false}
+              enterKeyHint="search" placeholder="Search programs... (or press 1-7 to launch)" autoComplete="off" spellCheck={false}
             />
             {searchQuery && (
               <button type="button"
@@ -730,14 +750,14 @@ export default function SuiteLauncher() {
           <span className="text-studio-muted text-[10px]">|</span>
           {/* Improvement 322: Quick settings link */}
             {/* Improvement 518: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/settings")} className="transition-transform active:scale-95 text-[10px] text-studio-muted hover:text-studio-cyan transition-colors">
+          <button title="Settings" onClick={() => navigate("/settings")} className="transition-transform active:scale-95 text-[10px] text-studio-muted hover:text-studio-cyan transition-colors" aria-label="Settings">
             {"\u2699\uFE0F"} Settings
           </button>
           <span className="text-studio-muted text-[10px]">|</span>
           {/* Improvement 131: Quick actions */}
           <div className="relative" ref={quickActionsRef}>
             <button
-              onClick={() => setShowQuickActions((s) => !s)}
+              onClick={() => setShowQuickActions((s) => !s)} aria-expanded={showQuickActions}
               className="text-[10px] text-studio-muted hover:text-studio-cyan transition-colors"
             >
               {"\u26A1"} Quick Actions
@@ -769,7 +789,7 @@ export default function SuiteLauncher() {
             <div className="modal-header">
               <h2>{"\u2728"} What's New in v0.1.0</h2>
             {/* Improvement 519: A11y & Microinteraction */}
-              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowWhatsNew(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button title="Close" onClick={() => setShowWhatsNew(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body space-y-3">
               {[
@@ -817,7 +837,7 @@ export default function SuiteLauncher() {
             <div className="modal-header">
               <h2>{"\u{1F4BB}"} System Info</h2>
             {/* Improvement 520: A11y & Microinteraction */}
-              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowSystemInfo(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button title="Close" onClick={() => setShowSystemInfo(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body space-y-2">
               {[
@@ -852,11 +872,11 @@ export default function SuiteLauncher() {
             <div className="modal-header">
               <h2>Keyboard Shortcuts</h2>
             {/* Improvement 521: A11y & Microinteraction */}
-              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowShortcuts(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button title="Close" onClick={() => setShowShortcuts(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body space-y-2">
               {[
-                ["1-7", "Launch program by number"],
+                ["Ctrl+1-9", "Launch program by number"],
                 ["?", "Toggle this shortcuts panel"],
                 ["R", "Toggle recent projects"],
                 ["Ctrl+S", "Save project (in programs)"],
@@ -880,7 +900,7 @@ export default function SuiteLauncher() {
             <div className="modal-header">
               <h2>Recent Projects</h2>
             {/* Improvement 522: A11y & Microinteraction */}
-              <button aria-label="Action Button" title="Click to interact" onClick={() => setShowRecents(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button title="Close" onClick={() => setShowRecents(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               {recentProjects.length === 0 ? (
@@ -950,11 +970,11 @@ export default function SuiteLauncher() {
       {/* Legal Links Bar */}
       <div className="flex items-center justify-center gap-4 px-4 py-1.5 bg-studio-panel border-t border-studio-border text-[10px] text-studio-muted">
         <Link to="/privacy" className="hover:text-studio-cyan transition-colors">Privacy Policy</Link>
-        <span>|</span>
+        <span className="text-studio-border">|</span>
         <Link to="/terms" className="hover:text-studio-cyan transition-colors">Terms of Use</Link>
-        <span>|</span>
+        <span className="text-studio-border">|</span>
         <a href="mailto:Matt@MattyJacks.com" className="hover:text-studio-cyan transition-colors">Matt@MattyJacks.com</a>
-        <span>|</span>
+        <span className="text-studio-border">|</span>
         <a href="https://mattyjacks.com/Contact" target="_blank" rel="noopener noreferrer" className="hover:text-studio-cyan transition-colors">MattyJacks.com/Contact</a>
       </div>
 
@@ -962,33 +982,33 @@ export default function SuiteLauncher() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F480}\u{1F3A8}"} CryptArtist Studio v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 233: Health */}
           <span className="flex items-center gap-1">
             <span className={`w-1.5 h-1.5 rounded-full ${healthStatus === "good" ? "bg-studio-green" : healthStatus === "warn" ? "bg-studio-yellow" : "bg-studio-muted"}`} />
             {healthStatus === "good" ? "All systems go" : healthStatus === "warn" ? "Partial" : "Checking..."}
           </span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{favorites.length} fav</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 237: System info button */}
             {/* Improvement 523: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={() => setShowSystemInfo(true)} className="transition-transform active:scale-95 hover:text-studio-cyan transition-colors">{"\u{1F4BB}"} Info</button>
+          <button title="System Info" onClick={() => setShowSystemInfo(true)} className="transition-transform active:scale-95 hover:text-studio-cyan transition-colors" aria-label="System Info">{"\u{1F4BB}"} Info</button>
         </div>
         <div className="flex items-center gap-3">
           <span>{programs.length} programs</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{Object.values(launchCounts).reduce((a, b) => a + b, 0)} launches</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>Up {uptime < 60 ? `${uptime}s` : `${Math.floor(uptime / 60)}m ${uptime % 60}s`}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 229: View mode */}
           <span>{viewMode === "grid" ? "Grid" : "List"}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>NH, USA</span>
           {clock && (
             <>
-              <span>|</span>
+              <span className="text-studio-border">|</span>
               <span>{clock}</span>
             </>
           )}

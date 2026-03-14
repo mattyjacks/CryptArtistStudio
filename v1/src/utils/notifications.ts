@@ -25,7 +25,10 @@ export type NotificationCategory =
   | "pipeline"
   | "security"
   | "update"
-  | "donation";
+  | "donation"
+  | "image"
+  | "build"
+  | "luck";
 
 export interface Notification {
   /** Unique notification ID */

@@ -1661,4 +1661,209 @@ Added comprehensive "Cross-Program Interoperability" section with:
 
 ---
 
+## Prompt 43 - Comprehensive README Audit and Suite-Wide Improvements
+
+**Prompt 43:**
+> Complete a comprehensive audit of the CryptArtist Studio project. Update README.md
+> with accurate program counts, new program documentation, updated statistics, new
+> utility files, architecture diagrams, and missing sections. Update prompts/all-prompts.md.
+> Make 100 improvements to the v1 codebase and improvements to the website directory.
+
+**Date:** March 14, 2026
+**Version:** 1.69.420.4
+
+### Changes Made
+
+#### 1. README.md Comprehensive Audit and Updates
+
+**Program Count Fixes (8 -> 11):**
+- Updated intro paragraph from "eight powerful programs" to "eleven powerful programs"
+- Updated overview from "five distinct programs" to "eleven distinct programs"
+- Updated Key Highlights from "Eight Programs in One" to "Eleven Programs in One"
+- Updated Suite Launcher description from "ten program cards" to "twelve program cards"
+- Updated `list-programs` CLI description from "five" to "eleven"
+- Updated FAQ "How many programs" answer from eight to eleven
+- Updated Development Statistics "Programs in Suite" from 8 to 11
+
+**New Program Documentation Sections:**
+- Added **Clone Tool [CLN]** section with features, tabs, and .CryptArt payload
+- Added **DictatePic [D(pi)c]** section with layout table, 28 tools (7 groups), 16 filters,
+  5 AI features, canvas features, and .CryptArt payload
+- Added **Luck Factory [Lck]** section with 4-step workflow, luck presets table,
+  integration details, and .CryptArt payload
+- Added all three to the program table with emoji, code, shortcut, and description
+- Added all three to the Table of Contents
+
+**Known Program IDs Updated:**
+- Added 6 missing IDs: `commander`, `donate-personal-seconds`, `clone-tool`,
+  `dictate-pic`, `luck-factory`, `settings`
+
+**Integration Status Table Updated:**
+- Expanded from 5 programs to all 11 programs
+- Added interop status for Commander, DPS, Clone Tool, DictatePic, Luck Factory, Settings
+
+**Plugin, Mod, and Theme System Section (NEW):**
+- Added complete documentation for the plugin system (manifest fields, installation)
+- Added mod system documentation (launcher integration, reserved IDs)
+- Added theme system documentation (built-in themes, custom CSS, features)
+- Added ToC entries for Plugin/Mod/Theme system
+
+**Directory Structure Updated:**
+- Added 3 new components: `ApiKeyProvider.tsx`, `GlobalMenuBar.tsx`, `ModManager.tsx`,
+  `PluginManager.tsx`, `ThemeManager.tsx`
+- Added 4 new program directories: `clone-tool/`, `dictate-pic/`, `luck-factory/`,
+  `donate-personal-seconds/DPSLeaderboard.tsx`
+- Added 13 new utility files: `apiKeys.ts`, `audio-zip.ts`, `cross-platform.ts`,
+  `crossClipboard.ts`, `extensions.ts`, `interop.ts`, `mods.ts`, `notifications.ts`,
+  `pipeline.ts`, `plugins.ts`, `themes.ts`
+- Updated `security.ts` description from "30+ functions" to "150+ functions"
+- Updated `hooks.ts` description to include "(17 hooks)"
+
+**Frontend Architecture Diagram Updated:**
+- Expanded from 8 routes to all 17 routes (11 programs + pages + 404)
+- Added `WorkspaceProvider`, `ApiKeyProvider`, `GlobalMenuBar`, `WorkspaceBar`,
+  `MobileNav` to the component hierarchy
+- Added note about interop event bus communication
+
+**AI Efficiency Modes Updated:**
+- Added fifth mode: `Lucky` - Seeds AI from Luck Factory deterministic value
+- Updated description from "four" to "five" modes
+
+**API Keys Configuration Table Updated:**
+- Added OpenRouter, ElevenLabs, GiveGigs providers with settings and usage
+
+**Third-Party Services Table Updated:**
+- Added OpenRouter and ElevenLabs to the services table
+
+**Development Statistics Updated:**
+- Total Prompts: 37+ -> 43+
+- Programs in Suite: 8 -> 11 (+ Suite Launcher)
+- Tauri Commands: 30+ -> 35+
+- Added: Interop Event Types (30+), Cross-Program Pipelines (6), AI Modes (5),
+  Known Program IDs (11), Utility Modules (20+)
+- Frontend Source Files: 35+ -> 50+
+- README Lines: 2,800+ -> 4,700+
+- TypeScript/TSX lines: ~25,000 -> ~35,000
+- Total lines: ~42,000 -> ~55,000
+
+**FAQ Section Updated:**
+- "How many programs" answer updated from eight to eleven
+- "Can I extend it with plugins?" answer rewritten to reflect actual plugin system
+- "How was it built" updated session count and line count
+
+**Footer Updated:**
+- Line count from 3,200 to 4,700
+- Last updated prompt from 33 to 43
+
+#### 2. Prompts Archive Update
+
+- Added Prompt 43 documentation to `prompts/all-prompts.md`
+
+---
+
+## Prompt 44 - .CryptArt File Association (Open from File Explorer)
+
+**Prompt 44:**
+> Make it so I can open a .CryptArt file from file explorer on Windows and more platforms and it will automatically launch the correct program with it loaded in.
+
+**Date:** March 14, 2026
+**Version:** 1.69.420.4
+
+### Changes Made
+
+#### 1. Rust Backend - File Association Handling (`src-tauri/src/state.rs`)
+
+Added to `AppState`:
+- `files_to_open: Mutex<Vec<String>>` - Stores file paths passed via OS file association
+- `set_files_to_open()` - Adds pending file paths
+- `get_files_to_open()` - Retrieves pending file paths
+- `clear_files_to_open()` - Clears after frontend processes them
+
+#### 2. Rust Backend - CLI Arg Pre-Scanning & Tauri Commands (`src-tauri/src/main.rs`)
+
+**Pre-scan logic:**
+- Before clap CLI parsing, scans `std::env::args()` for `.CryptArt` file paths
+- Extracts them to avoid clap subcommand conflicts
+- Passes filtered args to `Cli::parse_from()`
+
+**New Tauri commands:**
+- `get_file_to_open` - Frontend calls on startup to check for pending files
+- `clear_file_to_open` - Frontend calls after processing pending files
+
+**`RunEvent::Opened` handler:**
+- Handles macOS `NSOpenFile` events (file opened while app is already running)
+- Converts `file://` URLs to paths, filters for `.CryptArt` files
+- Stores in AppState AND emits `cryptart-file-open` event to frontend
+
+**Helper:**
+- `is_cryptart_path()` - Checks if a string looks like a `.CryptArt` file path
+
+#### 3. Tauri Config (`src-tauri/tauri.conf.json`)
+
+Updated `fileAssociations`:
+- Added lowercase `cryptart` extension alongside `CryptArt`
+- Added `"role": "Editor"` for macOS UTI role
+- Updated description to "CryptArtist Studio Project"
+
+#### 4. Frontend - File Association Utility (`src/utils/fileAssociation.ts`)
+
+New utility module with:
+- `readAndParseCryptArtFile(filePath)` - Reads file via Tauri `read_text_file`, parses with `parseCryptArt()`, returns program/route/name/data
+- `checkFileAssociation(navigate)` - Polls backend for pending files on cold start, parses them, navigates to correct program, shows toast
+- `listenForFileOpen(navigate)` - Listens for `cryptart-file-open` events (macOS re-open while running), processes files the same way
+
+#### 5. Frontend - App Integration (`src/App.tsx`)
+
+- Imported `checkFileAssociation` and `listenForFileOpen`
+- Added `useNavigate()` hook
+- Added `useEffect` that runs after terms acceptance:
+  - Calls `checkFileAssociation(navigate)` for cold-start file opens
+  - Calls `listenForFileOpen(navigate)` for live file-open events
+  - Returns cleanup function to unlisten
+
+### How It Works (All Platforms)
+
+**Windows:**
+1. User double-clicks `MyProject.CryptArt` in File Explorer
+2. Windows launches CryptArtist Studio with the file path as a CLI argument
+3. Rust backend pre-scans args, extracts `.CryptArt` paths, stores in `AppState`
+4. Frontend calls `get_file_to_open` on startup, reads/parses the file
+5. Frontend navigates to the correct program route (e.g., `/media-mogul`)
+6. Toast notification: "Opened 'MyProject' in media-mogul"
+
+**macOS:**
+- Cold start: Same as Windows (file path in CLI args)
+- Already running: macOS sends `NSOpenFile` event -> Tauri `RunEvent::Opened` -> `cryptart-file-open` event emitted to frontend -> frontend processes and navigates
+
+**Linux:**
+- Same as Windows (file path in CLI args via `.desktop` file association)
+
+### File Format Routing
+
+The `.CryptArt` file's `"program"` field determines the route:
+- `"media-mogul"` -> `/media-mogul`
+- `"vibecode-worker"` -> `/vibecode-worker`
+- `"demo-recorder"` -> `/demo-recorder`
+- `"valley-net"` -> `/valley-net`
+- `"game-studio"` -> `/game-studio`
+- `"commander"` -> `/commander`
+- `"donate-personal-seconds"` -> `/donate-personal-seconds`
+- `"clone-tool"` -> `/clone-tool`
+- `"dictate-pic"` -> `/dictate-pic`
+- `"luck-factory"` -> `/luck-factory`
+- `"settings"` -> `/settings`
+- Any unknown program -> `/<program-id>` (forward-compatible)
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `v1/src-tauri/src/state.rs` | Added `files_to_open` field and methods to AppState |
+| `v1/src-tauri/src/main.rs` | Pre-scan args, new commands, RunEvent::Opened handler |
+| `v1/src-tauri/tauri.conf.json` | Updated fileAssociations config |
+| `v1/src/utils/fileAssociation.ts` | **New** - File association handler utility |
+| `v1/src/App.tsx` | Added file association hook on startup |
+
+---
+
 <!-- End of prompt archive -->

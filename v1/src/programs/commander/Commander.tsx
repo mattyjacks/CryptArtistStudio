@@ -1,3 +1,4 @@
+/* Wave3-sep */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -501,7 +502,7 @@ export default function Commander() {
       <header className="flex items-center justify-between px-4 py-2 bg-studio-panel border-b border-studio-border shrink-0">
         <div className="flex items-center gap-3">
             {/* Improvement 573: A11y & Microinteraction */}
-          <button aria-label="Action Button" title="Click to interact" onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
+          <button onClick={() => navigate("/")} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text text-sm">{"\u2190"} Back</button>
           <span className="text-lg font-bold">{"\u{1F431}"} CryptArt Commander</span>
           <span className="badge text-[8px]">CAC</span>
           <div className="w-px h-5 bg-studio-border mx-1" />
@@ -631,7 +632,7 @@ export default function Commander() {
                     className="btn btn-cyan text-[10px] px-3 py-1"
                   >{"\u25B6"} Run</button>
             {/* Improvement 574: A11y & Microinteraction */}
-                  <button aria-label="Action Button" title="Click to interact" onClick={saveScript} className="transition-transform active:scale-95 btn text-[10px] px-3 py-1">{"\u{1F4BE}"} Save</button>
+                  <button onClick={saveScript} className="transition-transform active:scale-95 btn text-[10px] px-3 py-1">{"\u{1F4BE}"} Save</button>
                   <button type="button"
                     onClick={() => {
                       setScripts((prev) => prev.filter((s) => s.id !== editingScript.id));
@@ -711,18 +712,18 @@ export default function Commander() {
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F431}"} CAC v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{cmdHistory.length} commands</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{scripts.length} scripts</span>
         </div>
         <div className="flex items-center gap-3">
           <span>{history.filter((h) => h.status === "error").length} errors</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{Object.keys(aliases).length} aliases</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>#{totalCmdCount}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>OR: {getActionModel("commander-openrouter").split("/").pop() || "gpt-5-mini"}</span>
         </div>
       </footer>

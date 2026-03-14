@@ -1,3 +1,5 @@
+/* Wave3-sep */
+/* Wave3 */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -1410,7 +1412,7 @@ User: ${currentInput}`;
           <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F5FA}\uFE0F"} Tilemap Editor</h2>
-              <button onClick={() => setShowTilemapEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowTilemapEditor(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               <div className="text-[10px] text-studio-muted mb-2">Layers</div>
@@ -1439,7 +1441,7 @@ User: ${currentInput}`;
           <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u2728"} Particle Presets</h2>
-              <button onClick={() => setShowParticlePreview(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowParticlePreview(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               <div className="grid grid-cols-2 gap-2">
@@ -1461,7 +1463,7 @@ User: ${currentInput}`;
           <div role="dialog" aria-modal="true" className="modal max-w-sm" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F4CA}"} Profiler</h2>
-              <button onClick={() => setShowProfiler(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowProfiler(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body space-y-2">
               {[
@@ -1493,7 +1495,7 @@ User: ${currentInput}`;
           <div role="dialog" aria-modal="true" className="modal max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2>{"\u{1F3AE}"} Input Mapping</h2>
-              <button onClick={() => setShowInputMapper(false)} className="btn-ghost text-studio-muted hover:text-studio-text">x</button>
+              <button onClick={() => setShowInputMapper(false)} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body">
               <div className="flex flex-col gap-1">
@@ -1515,15 +1517,15 @@ User: ${currentInput}`;
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
           <span>{"\u{1F3AE}"} GSt v0.1.0</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{projectName || "No project"}</span>
-          {scenes.length > 0 && <><span>|</span><span>{scenes.length} scenes</span></>}
-          {scripts.length > 0 && <><span>|</span><span>{scripts.length} scripts</span></>}
-          <span>|</span>
+          {scenes.length > 0 && <><span className="text-studio-border">|</span><span>{scenes.length} scenes</span></>}
+          {scripts.length > 0 && <><span className="text-studio-border">|</span><span>{scripts.length} scripts</span></>}
+          <span className="text-studio-border">|</span>
           <span>{gameResolution}</span>
           {vcsBranch && (
             <>
-              <span>|</span>
+              <span className="text-studio-border">|</span>
               <span className="flex items-center gap-1">
                 {"\u{1F33F}"} {vcsBranch}
                 <span className={vcsStatus === "clean" ? "text-studio-green" : "text-studio-yellow"}>
@@ -1535,7 +1537,7 @@ User: ${currentInput}`;
         </div>
         <div className="flex items-center gap-3">
           <span className="text-studio-secondary capitalize">{gameGenre}</span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <select aria-label="Select option"
             value={buildTarget}
             onChange={(e) => setBuildTarget(e.target.value as any)}
@@ -1547,7 +1549,7 @@ User: ${currentInput}`;
             <option value="web">Web/HTML5</option>
             <option value="android">Android</option>
           </select>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <button
             onClick={() => {
               if (godotInfo?.found && projectPath) {
@@ -1564,16 +1566,16 @@ User: ${currentInput}`;
           >
             {"\u25B6"} Play
           </button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {debugOverlay && <span className="text-studio-cyan">DBG</span>}
           {physicsDebug && <span className="text-studio-green">PHY</span>}
-          {(debugOverlay || physicsDebug) && <span>|</span>}
+          {(debugOverlay || physicsDebug) && <span className="text-studio-border">|</span>}
           {/* Improvement 297: Profiler button */}
           <button onClick={() => setShowProfiler(true)} className="hover:text-studio-cyan transition-colors text-studio-muted">{"\u{1F4CA}"}</button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           {/* Improvement 298: Input mapper button */}
           <button onClick={() => setShowInputMapper(true)} className="hover:text-studio-cyan transition-colors text-studio-muted">{"\u{1F3AE}"}</button>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>
             {godotInfo?.found
               ? `\u{1F7E2} Godot ${godotInfo.version}`
@@ -1581,7 +1583,7 @@ User: ${currentInput}`;
               ? "\u{1F7E1} Detecting..."
               : "\u{1F534} No Godot"}
           </span>
-          <span>|</span>
+          <span className="text-studio-border">|</span>
           <span>{openTabs.length} files</span>
         </div>
       </footer>

@@ -21,6 +21,8 @@ export type InteropProgram =
   | "suite-launcher"
   | "donate-personal-seconds"
   | "clone-tool"
+  | "dictate-pic"
+  | "luck-factory"
   | "system";
 
 export type InteropEventType =
@@ -70,6 +72,24 @@ export type InteropEventType =
   | "pipeline:step-completed"
   | "pipeline:finished"
   | "pipeline:failed"
+  // Image editing events (DictatePic)
+  | "image:edited"
+  | "image:generated"
+  | "image:inpainted"
+  | "image:upscaled"
+  | "image:style-transferred"
+  // Luck events
+  | "luck:seed-generated"
+  | "luck:mode-changed"
+  // Clone/build events
+  | "build:started"
+  | "build:completed"
+  | "build:failed"
+  // Donation events
+  | "donation:session-started"
+  | "donation:session-stopped"
+  | "donation:task-posted"
+  | "donation:task-claimed"
   // Clipboard events
   | "clipboard:copied"
   | "clipboard:pasted"
