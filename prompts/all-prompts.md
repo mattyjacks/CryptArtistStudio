@@ -10,6 +10,27 @@
 
 # CryptArtist Studio - AI Conversation Prompts (March 2026)
 
+
+## CryptArtist Studio - Standardizing Cryptographic IDs (krish)
+**Prompt: 25:**
+>Mission: Implement Cryptographic ID Standards
+
+Goal: Standardize random ID generation across the codebase to meet administrative security requirements.
+
+Technical Requirements:
+
+General Encryption IDs: Modify the random ID generator (likely in v1/src/utils/security.ts) to produce 42-character numeric strings by default.
+
+CryptArt File IDs: Update the project initialization logic (see v1/src/utils/cryptart.ts) so that every new .CryptArt file is automatically assigned a 69-character numeric random ID.
+
+Security: Use crypto.getRandomValues() to ensure these are cryptographically secure, not just Math.random().
+
+Verification:
+
+Create a test script to generate 100 IDs of each type and verify their lengths.
+
+Use the integrated browser to open the Studio and confirm a new project file correctly initializes with the 69-character ID in the metadata.
+
 ## MacOS Availability (Russ)
 **Prompt 24:**
 > Make this project/app available on MacOS using Tauri.
