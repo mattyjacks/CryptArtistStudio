@@ -9,6 +9,9 @@ mod ffmpeg_installer;
 mod logger;
 mod state;
 mod debug_play;
+mod windows;
+mod system_menu;
+mod window_commands;
 
 use state::AppState;
 use tauri::Manager;

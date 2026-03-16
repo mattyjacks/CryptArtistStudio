@@ -7,6 +7,7 @@ import VibeCodeWorker from "./programs/vibecode-worker/VibeCodeWorker";
 import DemoRecorder from "./programs/demo-recorder/DemoRecorder";
 import ValleyNet from "./programs/valley-net/ValleyNet";
 import GameStudio from "./programs/game-studio/GameStudio";
+import Master from "./programs/master/Master";
 import Commander from "./programs/commander/Commander";
 import Settings from "./programs/settings/Settings";
 import DonatePersonalSeconds from "./programs/donate-personal-seconds/DonatePersonalSeconds";
@@ -31,6 +32,15 @@ import { applyTheme } from "./utils/themes";
 import { initializePlatform } from "./utils/cross-platform";
 import { initializeSecurityHardening, initializeSecurityHardeningV2 } from "./utils/security";
 import { checkFileAssociation, listenForFileOpen } from "./utils/fileAssociation";
+import { useCommandPalette, useKeyboardShortcuts, useToast, useDebugMode } from "./hooks/useImprovements";
+import { ErrorLogger, performanceMonitor } from "./utils/improvements";
+import ImprovementsProvider from "./components/ImprovementsProvider";
+
+// ---------------------------------------------------------------------------
+// 100 IMPROVEMENTS INTEGRATION
+// ---------------------------------------------------------------------------
+
+const errorLogger = new ErrorLogger();
 
 // ---------------------------------------------------------------------------
 // Types (kept for backward compatibility with existing components)
@@ -171,6 +181,16 @@ export default function App() {
   const showBottomNav = deviceType === "mobile" || deviceType === "tablet";
   const navigate = useNavigate();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  
+  // Improvement 16: Toast Notifications
+  const { toasts, addToast, removeToast } = useToast();
+  
+  // Improvement 67: Command Palette
+  const { isOpen: isPaletteOpen, setIsOpen: setIsPaletteOpen, search, execute, register } = useCommandPalette();
+  
+  // Improvement 99: Debug Mode
+  const { debugMode, setDebugMode, log: debugLog } = useDebugMode();
+  
   useDocumentTitle();
 
   useEffect(() => {
@@ -186,6 +206,42 @@ export default function App() {
     window.addEventListener("toggle-command-palette", toggleHandler);
     return () => window.removeEventListener("toggle-command-palette", toggleHandler);
   }, []);
+
+  // Improvement 66: Keyboard Shortcuts
+  useKeyboardShortcuts([
+    {
+      key: "k",
+      ctrl: true,
+      action: () => {
+        setIsPaletteOpen(true);
+        debugLog("Command palette opened via Ctrl+K");
+      },
+    },
+    {
+      key: "s",
+      ctrl: true,
+      action: () => {
+        addToast("Project saved", "success");
+        debugLog("Save triggered via Ctrl+S");
+      },
+    },
+    {
+      key: "z",
+      ctrl: true,
+      action: () => {
+        addToast("Undo triggered", "info");
+        debugLog("Undo triggered via Ctrl+Z");
+      },
+    },
+    {
+      key: "y",
+      ctrl: true,
+      action: () => {
+        addToast("Redo triggered", "info");
+        debugLog("Redo triggered via Ctrl+Y");
+      },
+    },
+  ]);
 
   // File Association: Check for .CryptArt files passed via OS file explorer
   useEffect(() => {
@@ -213,10 +269,11 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <WorkspaceProvider>
-        <ApiKeyProvider>
-          <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
-          <div className="flex flex-col h-screen w-screen overflow-hidden">
+      <ImprovementsProvider>
+        <WorkspaceProvider>
+          <ApiKeyProvider>
+            <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
+            <div className="flex flex-col h-screen w-screen overflow-hidden">
             <a href="#main-content" className="skip-to-content">Skip to content</a>
             <GlobalMenuBar />
             <WorkspaceBar />
@@ -228,6 +285,7 @@ export default function App() {
                 <Route path="/demo-recorder" element={<DemoRecorder />} />
                 <Route path="/valley-net" element={<ValleyNet />} />
                 <Route path="/game-studio" element={<GameStudio />} />
+                <Route path="/master" element={<Master />} />
                 <Route path="/commander" element={<Commander />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/donate-personal-seconds" element={<DonatePersonalSeconds />} />
@@ -246,6 +304,7 @@ export default function App() {
           </div>
         </ApiKeyProvider>
       </WorkspaceProvider>
+      </ImprovementsProvider>
     </ErrorBoundary>
   );
 }

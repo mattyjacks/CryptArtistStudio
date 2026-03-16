@@ -178,9 +178,7 @@ export default function VibeCodeWorker() {
   const [aiInput, setAiInput] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [apiProvider, setApiProvider] = useState("openai");
-  const [vcwApiKey, setVcwApiKey] = useState("");
-  const [vcwModel, setVcwModel] = useState("gpt-4o");
+  const [vcwModel, setVcwModel] = useState("openai/gpt-5-mini");
   // Improvement 49-53: Editor config state
   const [editorWordWrap, setEditorWordWrap] = useState<"on" | "off">("on");
   const [editorMinimap, setEditorMinimap] = useState(true);
@@ -317,12 +315,7 @@ export default function VibeCodeWorker() {
   const emit = useInteropEmit("vibecode-worker");
   const clip = useCrossClipboard("vibecode-worker");
 
-  // Sync shared API key from context
-  useEffect(() => {
-    if (apiKeys.loaded && apiKeys.openaiKey && !vcwApiKey) {
-      setVcwApiKey(apiKeys.openaiKey);
-    }
-  }, [apiKeys.loaded, apiKeys.openaiKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Use shared API keys from settings
 
   // Improvement 141: Detect git branch on root path change
   useEffect(() => {
@@ -549,7 +542,7 @@ export default function VibeCodeWorker() {
     setAiMessages((prev) => [...prev, userMsg]);
     setAiInput("");
 
-    const key = vcwApiKey;
+    const key = apiKeys.openaiKey || apiKeys.openrouterKey;
     if (!key) {
       setAiMessages((prev) => [
         ...prev,
@@ -717,7 +710,7 @@ export default function VibeCodeWorker() {
     );
 
     // Use AI to analyze for test quality if we have a key
-    const key = vcwApiKey;
+    const key = apiKeys.openaiKey || apiKeys.openrouterKey;
     if (key && activeTab) {
       try {
         const codeSnippet = activeTab.content.slice(0, 6000);
@@ -810,7 +803,7 @@ Analyze for: null checks, error handling, boundary conditions, type safety, secu
     setBottomTab("webaudit");
     logger.info("VibeCodeWorker", `Web audit: ${webAudit.url}`);
 
-    const key = vcwApiKey;
+    const key = apiKeys.openaiKey || apiKeys.openrouterKey;
     // Gather all HTML/CSS/JS files from open tabs for analysis
     const webFiles = openTabs.filter((t) =>
       ["html", "css", "javascript", "typescript"].includes(t.language)
@@ -909,7 +902,6 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
         setRootPath(data.rootPath);
         loadDirectory(data.rootPath).then(setFileTree).catch(() => {});
       }
-      if (data.aiProvider) setApiProvider(data.aiProvider);
       if (data.model) setVcwModel(data.model);
       setTerminalOutput((prev) => [...prev, `$ Loaded workspace: ${active.displayName}`]);
     }
@@ -921,7 +913,6 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
         rootPath,
         openFiles: openTabs.map((t) => ({ path: t.path, name: t.name })),
         activeFile: activeTabPath,
-        aiProvider: apiProvider,
         model: vcwModel,
       };
       const cryptArt = createCryptArtFile("vibecode-worker", rootPath || "Untitled", projectData);
@@ -975,7 +966,6 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           const nodes = await loadDirectory(data.rootPath);
           setFileTree(nodes);
         }
-        if (data.aiProvider) setApiProvider(data.aiProvider);
         if (data.model) setVcwModel(data.model);
         setTerminalOutput((prev) => [...prev, `$ Loaded project: ${project.name}`]);
       }
@@ -1556,24 +1546,12 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
             <div className="p-3 border-b border-studio-border bg-studio-surface animate-fade-in">
               <h4 className="text-[10px] font-semibold uppercase text-studio-secondary mb-2">API Configuration</h4>
               <div className="flex flex-col gap-2">
-                <select aria-label="Select option"
-                  value={apiProvider}
-                  onChange={(e) => setApiProvider(e.target.value)}
-                  className="input text-[11px] py-1"
-                >
-                  <option value="openai">OpenAI</option>
-                  <option value="openrouter">OpenRouter (200+ models)</option>
-                  <option value="anthropic">Anthropic</option>
-                  <option value="google">Google</option>
-                  <option value="custom">Custom (OpenAI-compatible)</option>
-                </select>
-                <input
-                  type="password"
-                  value={vcwApiKey}
-                  onChange={(e) => setVcwApiKey(e.target.value)}
-                  className="input text-[11px] py-1"
-                  placeholder="API Key..."
-                />
+                <div className="text-[10px] text-studio-secondary">
+                  Using shared API keys from CryptArtist Studio Settings
+                </div>
+                {apiKeys.openaiKey && <div className="text-[9px] text-green-400">✓ OpenAI key available</div>}
+                {apiKeys.openrouterKey && <div className="text-[9px] text-green-400">✓ OpenRouter key available</div>}
+                {!apiKeys.openaiKey && !apiKeys.openrouterKey && <div className="text-[9px] text-yellow-400">⚠ No API keys configured in Settings</div>}
                 {/* Improvement 341: OpenRouter model selector */}
                 <div className="flex gap-1.5">
                   <input
@@ -1595,8 +1573,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
                   </select>
                 </div>
                 <div className="text-[9px] text-studio-muted">
-                  {vcwApiKey ? "\u2705 Key set" : "\u26A0\uFE0F No key - uses shared CryptArtist key if available"}
-                  {" | OR: "}{getDefaultModel().split("/").pop()}
+                  Model: {getDefaultModel().split("/").pop()}
                 </div>
               </div>
             </div>
@@ -1818,9 +1795,9 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           {splitView && <><span className="text-studio-cyan">Split</span><span className="text-studio-border">|</span></>}
           {/* Improvement 255: Inline blame */}
           {inlineBlame && <><span className="text-studio-purple">Blame</span><span className="text-studio-border">|</span></>}
-          <span>{apiProvider}/{vcwModel}</span>
+          <span>{vcwModel}</span>
           <span className="text-studio-border">|</span>
-          <span>{vcwApiKey ? "\u{1F7E2}" : "\u{1F7E1}"}</span>
+          <span>{apiKeys.openaiKey || apiKeys.openrouterKey ? "\u{1F7E2}" : "\u{1F7E1}"}</span>
           {autoSave && <><span className="text-studio-border">|</span><span className="text-studio-green">AS</span></>}
           {openTabs.length > 0 && <><span className="text-studio-border">|</span><span>{openTabs.length} files</span></>}
           {problems.filter((p) => p.severity === "error").length > 0 && (
