@@ -1,0 +1,13 @@
+{
+  "batch_id": "batch_1773508779",
+  "created_at": 1773508779.7977548,
+  "file_count": 1,
+  "files": [
+    {
+      "filename": "fw8ben.pdf",
+      "status": "processing",
+      "size": 99064,
+      "path": "D:\\Study Stuff\\CryptArtistStudio\\CryptArtistStudio\\v1\\tax-backend\\data\\batches\\batch_1773508779\\fw8ben.pdf"
+    }
+  ]
+}

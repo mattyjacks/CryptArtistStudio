@@ -230,15 +230,106 @@ pub struct AppState {
 }
 
 impl AppState {
+    fn config_dir() -> PathBuf {
+        let mut path = dirs::data_local_dir().unwrap_or_else(|| PathBuf::from("."));
+        path.push("CryptArtistStudio");
+        path
+    }
+
+    fn keys_path() -> PathBuf {
+        let mut path = Self::config_dir();
+        path.push("api-keys.json");
+        path
+    }
+
+    fn load_keys_from_disk() -> (String, String, String, String, String, String) {
+        #[derive(Deserialize)]
+        struct KeyFile {
+            #[serde(default)]
+            api_key: String,
+            #[serde(default)]
+            pexels_key: String,
+            #[serde(default)]
+            givegigs_url: String,
+            #[serde(default)]
+            givegigs_key: String,
+            #[serde(default)]
+            openrouter_key: String,
+            #[serde(default)]
+            elevenlabs_key: String,
+        }
+
+        let path = Self::keys_path();
+        if let Ok(json) = fs::read_to_string(&path) {
+            if let Ok(parsed) = serde_json::from_str::<KeyFile>(&json) {
+                return (
+                    parsed.api_key,
+                    parsed.pexels_key,
+                    parsed.givegigs_url,
+                    parsed.givegigs_key,
+                    parsed.openrouter_key,
+                    parsed.elevenlabs_key,
+                );
+            }
+        }
+
+        (
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+        )
+    }
+
+    fn save_keys_to_disk(&self) -> Result<(), String> {
+        #[derive(Serialize)]
+        struct KeyFile<'a> {
+            api_key: &'a str,
+            pexels_key: &'a str,
+            givegigs_url: &'a str,
+            givegigs_key: &'a str,
+            openrouter_key: &'a str,
+            elevenlabs_key: &'a str,
+        }
+
+        let api_key = self.get_api_key();
+        let pexels_key = self.get_pexels_key();
+        let givegigs_url = self.get_givegigs_url();
+        let givegigs_key = self.get_givegigs_key();
+        let openrouter_key = self.get_openrouter_key();
+        let elevenlabs_key = self.get_elevenlabs_key();
+
+        let data = KeyFile {
+            api_key: &api_key,
+            pexels_key: &pexels_key,
+            givegigs_url: &givegigs_url,
+            givegigs_key: &givegigs_key,
+            openrouter_key: &openrouter_key,
+            elevenlabs_key: &elevenlabs_key,
+        };
+
+        let json = serde_json::to_string_pretty(&data).map_err(|e| e.to_string())?;
+        let path = Self::keys_path();
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        fs::write(path, json).map_err(|e| e.to_string())
+    }
+
     pub fn new() -> Self {
+        let (api_key, pexels_key, givegigs_url, givegigs_key, openrouter_key, elevenlabs_key) =
+            Self::load_keys_from_disk();
+
         Self {
             project: Mutex::new(ProjectData::default()),
-            api_key: Mutex::new(String::new()),
-            pexels_key: Mutex::new(String::new()),
-            givegigs_url: Mutex::new(String::new()),
-            givegigs_key: Mutex::new(String::new()),
-            openrouter_key: Mutex::new(String::new()),
-            elevenlabs_key: Mutex::new(String::new()),
+            api_key: Mutex::new(api_key),
+            pexels_key: Mutex::new(pexels_key),
+            givegigs_url: Mutex::new(givegigs_url),
+            givegigs_key: Mutex::new(givegigs_key),
+            openrouter_key: Mutex::new(openrouter_key),
+            elevenlabs_key: Mutex::new(elevenlabs_key),
             files_to_open: Mutex::new(Vec::new()),
         }
     }
@@ -275,9 +366,11 @@ impl AppState {
     }
 
     pub fn set_api_key(&self, key: String) -> Result<(), String> {
-        let mut api_key = self.api_key.lock().map_err(|e| e.to_string())?;
-        *api_key = key;
-        Ok(())
+        {
+            let mut api_key = self.api_key.lock().map_err(|e| e.to_string())?;
+            *api_key = key;
+        }
+        self.save_keys_to_disk()
     }
 
     pub fn get_api_key(&self) -> String {
@@ -288,9 +381,11 @@ impl AppState {
     }
 
     pub fn set_pexels_key(&self, key: String) -> Result<(), String> {
-        let mut pexels_key = self.pexels_key.lock().map_err(|e| e.to_string())?;
-        *pexels_key = key;
-        Ok(())
+        {
+            let mut pexels_key = self.pexels_key.lock().map_err(|e| e.to_string())?;
+            *pexels_key = key;
+        }
+        self.save_keys_to_disk()
     }
 
     pub fn get_pexels_key(&self) -> String {
@@ -301,9 +396,11 @@ impl AppState {
     }
 
     pub fn set_givegigs_url(&self, url: String) -> Result<(), String> {
-        let mut val = self.givegigs_url.lock().map_err(|e| e.to_string())?;
-        *val = url;
-        Ok(())
+        {
+            let mut val = self.givegigs_url.lock().map_err(|e| e.to_string())?;
+            *val = url;
+        }
+        self.save_keys_to_disk()
     }
 
     pub fn get_givegigs_url(&self) -> String {
@@ -314,9 +411,11 @@ impl AppState {
     }
 
     pub fn set_givegigs_key(&self, key: String) -> Result<(), String> {
-        let mut val = self.givegigs_key.lock().map_err(|e| e.to_string())?;
-        *val = key;
-        Ok(())
+        {
+            let mut val = self.givegigs_key.lock().map_err(|e| e.to_string())?;
+            *val = key;
+        }
+        self.save_keys_to_disk()
     }
 
     pub fn get_givegigs_key(&self) -> String {
@@ -327,9 +426,11 @@ impl AppState {
     }
 
     pub fn set_openrouter_key(&self, key: String) -> Result<(), String> {
-        let mut openrouter_key = self.openrouter_key.lock().map_err(|e| e.to_string())?;
-        *openrouter_key = key;
-        Ok(())
+        {
+            let mut openrouter_key = self.openrouter_key.lock().map_err(|e| e.to_string())?;
+            *openrouter_key = key;
+        }
+        self.save_keys_to_disk()
     }
 
     pub fn get_openrouter_key(&self) -> String {
@@ -340,9 +441,11 @@ impl AppState {
     }
 
     pub fn set_elevenlabs_key(&self, key: String) -> Result<(), String> {
-        let mut elevenlabs_key = self.elevenlabs_key.lock().map_err(|e| e.to_string())?;
-        *elevenlabs_key = key;
-        Ok(())
+        {
+            let mut elevenlabs_key = self.elevenlabs_key.lock().map_err(|e| e.to_string())?;
+            *elevenlabs_key = key;
+        }
+        self.save_keys_to_disk()
     }
 
     pub fn get_elevenlabs_key(&self) -> String {

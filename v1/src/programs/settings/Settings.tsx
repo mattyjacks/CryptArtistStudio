@@ -230,9 +230,11 @@ export default function Settings() {
       toast.success(`${entry.label} saved!`);
       logger.action("Settings", `Saved ${entry.label}`);
     } catch (err) {
-      toast.error(`Failed to save: ${err}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      toast.error(`Failed to save: ${msg}`);
+    } finally {
+      setSaving(null);
     }
-    setSaving(null);
   };
 
   // Export all keys

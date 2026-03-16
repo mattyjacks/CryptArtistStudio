@@ -31,6 +31,7 @@ export const PROGRAMS = {
   CLONE_TOOL: "clone-tool",
   DICTATE_PIC: "dictate-pic",
   LUCK_FACTORY: "luck-factory",
+  TAX_COPILOT: "tax-copilot",
   SETTINGS: "settings",
 } as const;
 
@@ -47,6 +48,7 @@ export const PROGRAM_NAMES: Record<ProgramId, string> = {
   "clone-tool": "Clone Tool",
   "dictate-pic": "DictatePic",
   "luck-factory": "Luck Factory",
+  "tax-copilot": "Tax Copilot",
   "settings": "Settings",
 };
 
@@ -61,6 +63,7 @@ export const PROGRAM_ICONS: Record<ProgramId, string> = {
   "clone-tool": "\u{1F4E6}",
   "dictate-pic": "\u{1F967}",
   "luck-factory": "\u{1F340}",
+  "tax-copilot": "\u{1F4CA}",
   "settings": "\u2699\uFE0F",
 };
 
@@ -75,6 +78,7 @@ export const PROGRAM_VERSIONS: Record<ProgramId, string> = {
   "clone-tool": "1.69.420.4",
   "dictate-pic": "1.69.420.4",
   "luck-factory": "1.69.420.4",
+  "tax-copilot": "1.69.420.4",
   "settings": "1.69.420.4",
 };
 
@@ -95,6 +99,7 @@ export const ROUTES = {
   CLONE_TOOL: "/clone-tool",
   DICTATE_PIC: "/dictate-pic",
   LUCK_FACTORY: "/luck-factory",
+  TAX_COPILOT: "/tax-copilot",
   CRYPT_MANAGER: "/crypt-manager",
   SETTINGS: "/settings",
   PRIVACY: "/privacy",
