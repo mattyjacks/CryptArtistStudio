@@ -64,7 +64,7 @@
 // Current known program IDs (not enforced - any string is valid)
 // ---------------------------------------------------------------------------
 
-import { sanitizeObjectKeys, isValidISODate, logSecurityEvent } from "./security";
+import { sanitizeObjectKeys, isValidISODate, logSecurityEvent, secureRandomNumeric } from "./security";
 
 export const KNOWN_PROGRAMS = [
   "media-mogul",
@@ -231,7 +231,7 @@ export function createCryptArtFile(
     appVersion: APP_VERSION,
     data,
   };
-  if (options?.id) file.id = options.id;
+  file.id = options?.id || secureRandomNumeric(69);
   if (options?.meta) {
     file.meta = options.meta;
   } else {

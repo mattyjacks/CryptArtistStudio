@@ -112,5 +112,14 @@ export function useGlobalShortcuts(navigate: (path: string) => void) {
       action: () => navigate("/"),
       description: "Back to Suite Launcher [SLr]",
     },
+    {
+      key: "k",
+      ctrl: true,
+      action: () => {
+        // This will be handled by the App component state
+        window.dispatchEvent(new CustomEvent("toggle-command-palette"));
+      },
+      description: "Toggle Command Palette",
+    },
   ]);
 }

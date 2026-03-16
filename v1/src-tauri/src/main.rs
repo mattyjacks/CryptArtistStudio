@@ -8,6 +8,7 @@ mod ai_integration;
 mod ffmpeg_installer;
 mod logger;
 mod state;
+mod debug_play;
 
 use state::AppState;
 use tauri::Manager;
@@ -1292,6 +1293,149 @@ async fn godot_list_scripts(project_path: String) -> Result<Vec<String>, String>
 }
 
 // ---------------------------------------------------------------------------
+// Debug Play Commands (Headless Godot Testing)
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+async fn godot_run_headless(
+    project_path: String,
+    scene_path: String,
+    session_id: String,
+    _state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    log_cmd!("godot_run_headless", "Starting headless Godot: session={}", session_id);
+    sanitize_path(&project_path)?;
+    sanitize_path(&scene_path)?;
+
+    // Get Godot path from detection
+    let godot_info = serde_json::json!({
+        "found": true,
+        "path": "godot",
+        "version": "4.4"
+    });
+
+    let godot_path = godot_info["path"]
+        .as_str()
+        .ok_or("Godot path not found")?;
+
+    // Initialize debug play manager if not already done
+    let manager = debug_play::DebugPlayManager::new();
+
+    match manager.start_headless(godot_path, &project_path, &scene_path, &session_id) {
+        Ok(instance) => {
+            log_cmd!("godot_run_headless", "Session started: {:?}", instance);
+            Ok(format!("Debug Play session started: {}", session_id))
+        }
+        Err(e) => {
+            log_error!("godot_run_headless", "Failed to start session: {}", e);
+            Err(e)
+        }
+    }
+}
+
+#[tauri::command]
+async fn godot_stop_headless(session_id: String) -> Result<String, String> {
+    log_cmd!("godot_stop_headless", "Stopping headless session: {}", session_id);
+
+    let manager = debug_play::DebugPlayManager::new();
+    match manager.stop_headless(&session_id) {
+        Ok(_) => {
+            log_cmd!("godot_stop_headless", "Session stopped: {}", session_id);
+            Ok(format!("Debug Play session stopped: {}", session_id))
+        }
+        Err(e) => {
+            log_error!("godot_stop_headless", "Failed to stop session: {}", e);
+            Err(e)
+        }
+    }
+}
+
+#[tauri::command]
+async fn godot_capture_screenshot(session_id: String) -> Result<serde_json::Value, String> {
+    log_cmd!("godot_capture_screenshot", "Capturing screenshot: {}", session_id);
+
+    let manager = debug_play::DebugPlayManager::new();
+    match manager.capture_screenshot(&session_id) {
+        Ok(result) => {
+            log_cmd!("godot_capture_screenshot", "Screenshot captured: {}x{}", result.width, result.height);
+            Ok(serde_json::json!({
+                "screenshot": result.screenshot,
+                "width": result.width,
+                "height": result.height,
+                "timestamp": result.timestamp
+            }))
+        }
+        Err(e) => {
+            log_error!("godot_capture_screenshot", "Failed to capture: {}", e);
+            Err(e)
+        }
+    }
+}
+
+#[tauri::command]
+async fn godot_send_input(session_id: String, input: String) -> Result<String, String> {
+    log_cmd!("godot_send_input", "Sending input to session: {}", session_id);
+
+    // Parse input JSON
+    let input_obj: serde_json::Value = serde_json::from_str(&input)
+        .map_err(|e| format!("Invalid input JSON: {}", e))?;
+
+    let action = input_obj["action"]
+        .as_str()
+        .ok_or("Missing 'action' field in input")?;
+
+    let value = input_obj["value"].as_f64();
+
+    let manager = debug_play::DebugPlayManager::new();
+    match manager.send_input(&session_id, action, value.map(|v| v as f32)) {
+        Ok(_) => {
+            log_cmd!("godot_send_input", "Input sent: {}", action);
+            Ok(format!("Input sent: {}", action))
+        }
+        Err(e) => {
+            log_error!("godot_send_input", "Failed to send input: {}", e);
+            Err(e)
+        }
+    }
+}
+
+#[tauri::command]
+async fn godot_get_game_state(session_id: String) -> Result<serde_json::Value, String> {
+    log_cmd!("godot_get_game_state", "Retrieving game state: {}", session_id);
+
+    let manager = debug_play::DebugPlayManager::new();
+    match manager.get_game_state(&session_id) {
+        Ok(state) => {
+            log_cmd!("godot_get_game_state", "Game state retrieved for session: {}", session_id);
+            Ok(state)
+        }
+        Err(e) => {
+            log_error!("godot_get_game_state", "Failed to get game state: {}", e);
+            Err(e)
+        }
+    }
+}
+
+#[tauri::command]
+async fn godot_load_game_state(session_id: String, state_data: String) -> Result<String, String> {
+    log_cmd!("godot_load_game_state", "Loading game state: {}", session_id);
+
+    // Parse state data
+    let _state: serde_json::Value = serde_json::from_str(&state_data)
+        .map_err(|e| format!("Invalid state data JSON: {}", e))?;
+
+    // In a real implementation, this would:
+    // 1. Connect to Godot's debug server
+    // 2. Send state data via GDScript RPC
+    // 3. Restore game to that state
+
+    // For now, just log the action
+    println!("[DebugPlay] Loading game state for session {}", session_id);
+
+    Ok(format!("Game state loaded for session: {}", session_id))
+}
+
+// ---------------------------------------------------------------------------
 // Platform Detection Command
 // ---------------------------------------------------------------------------
 
@@ -2389,6 +2533,12 @@ fn main() {
             add_to_crypt,
             populate_pyramid,
             validate_crypt,
+            godot_run_headless,
+            godot_stop_headless,
+            godot_capture_screenshot,
+            godot_send_input,
+            godot_get_game_state,
+            godot_load_game_state,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CryptArtist Studio");

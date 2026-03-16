@@ -15,6 +15,7 @@ import CloneTool from "./programs/clone-tool/CloneTool";
 import LuckFactory from "./programs/luck-factory/LuckFactory";
 import DictatePic from "./programs/dictate-pic/DictatePic";
 import TaxCopilot from "./programs/tax-copilot/TaxCopilot";
+import CommandPalette from "./components/CommandPalette";
 import CryptManager from "./components/CryptManager";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfUse from "./pages/TermsOfUse";
@@ -169,6 +170,7 @@ export default function App() {
   const deviceType = useDeviceType();
   const showBottomNav = deviceType === "mobile" || deviceType === "tablet";
   const navigate = useNavigate();
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   useDocumentTitle();
 
   useEffect(() => {
@@ -179,6 +181,10 @@ export default function App() {
     initializePlatform();
     initializeSecurityHardening();
     initializeSecurityHardeningV2();
+
+    const toggleHandler = () => setIsCommandPaletteOpen(prev => !prev);
+    window.addEventListener("toggle-command-palette", toggleHandler);
+    return () => window.removeEventListener("toggle-command-palette", toggleHandler);
   }, []);
 
   // File Association: Check for .CryptArt files passed via OS file explorer
@@ -209,6 +215,7 @@ export default function App() {
     <ErrorBoundary>
       <WorkspaceProvider>
         <ApiKeyProvider>
+          <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
           <div className="flex flex-col h-screen w-screen overflow-hidden">
             <a href="#main-content" className="skip-to-content">Skip to content</a>
             <GlobalMenuBar />

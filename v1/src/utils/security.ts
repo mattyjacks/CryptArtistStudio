@@ -372,6 +372,16 @@ export function secureRandomId(prefix: string = "ca"): string {
   return `${prefix}-${secureRandomHex(8)}`;
 }
 
+export function secureRandomNumeric(length: number): string {
+  const bytes = new Uint8Array(length);
+  crypto.getRandomValues(bytes);
+  let result = "";
+  for (let i = 0; i < bytes.length; i++) {
+    result += (bytes[i] % 10).toString();
+  }
+  return result;
+}
+
 // ---------------------------------------------------------------------------
 // Vuln 87: Hash Sensitive Data Before Logging
 // ---------------------------------------------------------------------------
