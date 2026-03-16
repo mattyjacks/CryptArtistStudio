@@ -17,6 +17,8 @@ import { useInteropEmit, useInterop } from "../../utils/interop";
 import { useCrossClipboard } from "../../utils/crossClipboard";
 import { notifySuccess } from "../../utils/notifications";
 import AIOptimizer from "../../components/AIOptimizer";
+import DebugPlayWindow from "../../components/DebugPlayWindow";
+import { debugPlayService, DebugPlaySession } from "../../utils/debugPlay";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -248,6 +250,9 @@ export default function GameStudio() {
   // Improvement 410: Quick scene switcher
   const [sceneList, setSceneList] = useState<string[]>(["main.tscn", "player.tscn", "enemy.tscn", "ui.tscn"]);
   const [showInputMapper, setShowInputMapper] = useState(false);
+  // Debug Play state
+  const [debugPlaySession, setDebugPlaySession] = useState<DebugPlaySession | null>(null);
+  const [showDebugPlayWindow, setShowDebugPlayWindow] = useState(false);
   // Improvement 97: GDScript snippet library
   const gdscriptSnippets = [
     { label: "Player Movement", code: "extends CharacterBody2D\n\nvar speed = 200.0\nvar jump_velocity = -400.0\n\nfunc _physics_process(delta):\n\tvar velocity = Vector2.ZERO\n\tif Input.is_action_pressed('ui_right'):\n\t\tvelocity.x += 1\n\tif Input.is_action_pressed('ui_left'):\n\t\tvelocity.x -= 1\n\tvelocity = velocity.normalized() * speed\n\tmove_and_slide()" },
@@ -837,7 +842,71 @@ User: ${currentInput}`;
         >
           {"\u{1F916}"}
         </button>
+        <span className="text-studio-border">|</span>
+        <button
+          onClick={() => navigate('/settings')}
+          className="btn-ghost rounded-md px-3 py-1 text-sm hover:bg-studio-hover hover:text-studio-cyan transition-colors font-semibold"
+          title="Open Settings"
+        >
+          ⚙️ Settings
+        </button>
       </header>
+
+      {/* ===== GODOT NOT FOUND OVERLAY ===== */}
+      {!godotDetecting && !godotInfo?.found && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm pointer-events-auto">
+          <div className="bg-studio-panel border-2 border-studio-red rounded-xl p-8 w-[520px] max-w-[90vw] shadow-2xl text-center">
+            <div className="text-6xl mb-4">🔍</div>
+            <h2 className="text-2xl font-bold text-studio-text mb-2">Godot Engine Not Found</h2>
+            <p className="text-studio-secondary text-sm mb-6">
+              GameStudio requires Godot 4.4+ to run and export games. You can still create projects and edit code.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  if (godotInfo?.install_url) {
+                    window.open(godotInfo.install_url, '_blank');
+                  } else {
+                    window.open('https://godotengine.org/download', '_blank');
+                  }
+                }}
+                className="btn btn-accent text-base py-3 px-6 font-semibold w-full"
+              >
+                📥 Download Godot 4.4
+              </button>
+              <button
+                onClick={() => {
+                  invoke<GodotInfo>("godot_detect")
+                    .then((info) => {
+                      setGodotInfo(info);
+                      if (info.found) {
+                        toast.success(`Godot found: ${info.path}`);
+                        setTerminalOutput((prev) => [...prev, `$ Godot found: ${info.path}`, `$ Version: ${info.version}`]);
+                      } else {
+                        toast.warning("Godot still not found. Please install it first.");
+                      }
+                    })
+                    .catch((err) => {
+                      toast.error(`Detection failed: ${err}`);
+                    });
+                }}
+                className="btn text-base py-3 px-6 font-semibold w-full"
+              >
+                🔄 Rescan System
+              </button>
+              <button
+                onClick={() => {
+                  // User can dismiss and continue working on code/projects
+                  setTerminalOutput((prev) => [...prev, "$ Continuing without Godot. You can install it later."]);
+                }}
+                className="btn-ghost text-base py-2 px-6 w-full text-studio-secondary hover:text-studio-text"
+              >
+                Continue Without Godot
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===== NEW PROJECT DIALOG ===== */}
       {showNewProject && (
@@ -1513,6 +1582,27 @@ User: ${currentInput}`;
         </div>
       )}
 
+      {/* Debug Play Window */}
+      {showDebugPlayWindow && debugPlaySession && (
+        <DebugPlayWindow
+          session={debugPlaySession}
+          onClose={() => {
+            setShowDebugPlayWindow(false);
+            setDebugPlaySession(null);
+          }}
+          onCodeFixRequired={(fixes) => {
+            fixes.forEach((fix) => {
+              emit("code:fix-required", {
+                filePath: fix.filePath,
+                code: fix.code,
+                description: `AI-generated fix from Debug Play`,
+              });
+            });
+            toast.info(`Sent ${fixes.length} code fixes to VibeCodeWorker`);
+          }}
+        />
+      )}
+
       {/* ===== STATUS BAR - Improvements 294-298 ===== */}
       <footer className="status-bar" role="status" aria-live="polite">
         <div className="flex items-center gap-3">
@@ -1565,6 +1655,30 @@ User: ${currentInput}`;
             className="text-[10px] text-studio-green hover:text-green-300 transition-colors"
           >
             {"\u25B6"} Play
+          </button>
+          <span className="text-studio-border">|</span>
+          <button
+            onClick={async () => {
+              if (!godotInfo?.found || !projectPath) {
+                toast.error(godotInfo?.found ? "Open a project first" : "Godot not found");
+                return;
+              }
+              try {
+                const scenePath = scenes.length > 0 ? scenes[0] : "res://main.tscn";
+                setTerminalOutput((prev) => [...prev, `$ Starting Debug Play: ${scenePath}`]);
+                const session = await debugPlayService.startSession(projectPath, scenePath);
+                setDebugPlaySession(session);
+                setShowDebugPlayWindow(true);
+                toast.success("Debug Play session started");
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                toast.error(`Failed to start Debug Play: ${msg}`);
+                setTerminalOutput((prev) => [...prev, `[error] Debug Play failed: ${msg}`]);
+              }
+            }}
+            className="text-[10px] text-studio-cyan hover:text-cyan-300 transition-colors font-bold"
+          >
+            🐛 DP
           </button>
           <span className="text-studio-border">|</span>
           {debugOverlay && <span className="text-studio-cyan">DBG</span>}

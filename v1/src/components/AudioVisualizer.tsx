@@ -36,12 +36,17 @@ export default function AudioVisualizer() {
         document.documentElement.style.setProperty('--audio-bass', String(bass / 255));
         document.documentElement.style.setProperty('--audio-mid', String(mid / 255));
         document.documentElement.style.setProperty('--audio-treble', String(treble / 255));
+        // Skull grows with input audio (treble/voice), brightens with output audio (bass/system)
+        document.documentElement.style.setProperty('--skull-scale', String(1 + (treble / 255) * 0.8));
+        document.documentElement.style.setProperty('--skull-brightness', String(1 + (bass / 255) * 1.2));
       } else {
         // Idle animation
         time += 0.01;
         document.documentElement.style.setProperty('--audio-bass', String((Math.sin(time) + 1) * 0.1));
         document.documentElement.style.setProperty('--audio-mid', String((Math.cos(time * 1.5) + 1) * 0.1));
         document.documentElement.style.setProperty('--audio-treble', String((Math.sin(time * 2) + 1) * 0.1));
+        document.documentElement.style.setProperty('--skull-scale', String(1 + (Math.sin(time * 0.5) + 1) * 0.1));
+        document.documentElement.style.setProperty('--skull-brightness', String(1 + (Math.cos(time * 0.3) + 1) * 0.1));
       }
 
       animationId = requestAnimationFrame(renderFrame);
@@ -103,25 +108,25 @@ export default function AudioVisualizer() {
           filter: blur(calc((1 - var(--audio-bass, 1)) * 5px));
         }
 
-        /* Mid-range for more rhythmic pulse */
+        /* Mid-range for more rhythmic pulse - gets bigger with input audio */
         .logo-2 {
           transform: 
             translateZ(calc(var(--audio-mid, 0) * 100px - 300px))
             rotateX(calc(var(--audio-treble, 0) * -20deg))
             rotateY(calc(var(--audio-bass, 0) * -20deg))
-            scale(calc(1.5 + var(--audio-mid, 0) * 0.5));
-          opacity: calc(0.01 + var(--audio-mid, 0) * 0.03);
-          filter: blur(15px);
+            scale(calc(1.5 + var(--audio-mid, 0) * 0.5) * var(--skull-scale, 1));
+          opacity: calc((0.01 + var(--audio-mid, 0) * 0.03) * var(--skull-brightness, 1));
+          filter: blur(15px) brightness(var(--skull-brightness, 1));
         }
         
-        /* Treble reacts tightly to voice/crisp sounds */
+        /* Treble reacts tightly to voice/crisp sounds - gets brighter with output audio */
         .logo-3 {
           transform: 
             translateZ(calc(var(--audio-treble, 0) * 250px - 50px))
             rotateZ(calc(var(--audio-bass, 0) * 45deg))
-            scale(calc(0.7 + var(--audio-treble, 0) * 0.6));
-          opacity: calc(0.02 + var(--audio-treble, 0) * 0.08);
-          filter: drop-shadow(0 0 calc(var(--audio-treble, 0) * 30px) rgba(0,210,255,0.7));
+            scale(calc(0.7 + var(--audio-treble, 0) * 0.6) * var(--skull-scale, 1));
+          opacity: calc((0.02 + var(--audio-treble, 0) * 0.08) * var(--skull-brightness, 1));
+          filter: drop-shadow(0 0 calc(var(--audio-treble, 0) * 30px) rgba(0,210,255,0.7)) brightness(var(--skull-brightness, 1));
         }
         
         .floating-particles {
@@ -139,10 +144,6 @@ export default function AudioVisualizer() {
         <div className="logo-layer logo-2">
             {/* Improvement 503: Performance Lazy Loading */}
           <img loading="lazy" decoding="async" src="/logo.png" alt="" className="w-full max-w-[1200px] object-contain select-none" />
-        </div>
-        <div className="logo-layer logo-1">
-            {/* Improvement 504: Performance Lazy Loading */}
-          <img loading="lazy" decoding="async" src="/logo.png" alt="" className="w-full max-w-[800px] object-contain select-none" />
         </div>
         <div className="logo-layer logo-3">
             {/* Improvement 505: Performance Lazy Loading */}

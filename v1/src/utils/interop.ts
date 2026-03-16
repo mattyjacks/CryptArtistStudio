@@ -37,6 +37,7 @@ export type InteropEventType =
   | "code:file-opened"
   | "code:snippet-created"
   | "code:project-opened"
+  | "code:fix-required"
   // Game events
   | "game:asset-imported"
   | "game:script-generated"

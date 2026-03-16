@@ -15,6 +15,18 @@ import { useWorkspace, programLabel, programRoute } from "../utils/workspace";
 import { sanitizeSearchQuery } from "../utils/security"; // Vuln 47
 import AudioVisualizer from "./AudioVisualizer";
 
+// Category labels for organized program browsing
+const CATEGORY_LABELS: Record<string, string> = {
+  "all": "All Programs",
+  "creative": "Creative & Media",
+  "development": "Development & Code",
+  "automation": "Automation & AI",
+  "gaming": "Gaming & 3D",
+  "utilities": "Utilities & Tools",
+  "community": "Community & Sharing",
+  "settings": "Settings & Config",
+};
+
 const programs = [
   {
     id: "suite-launcher",
@@ -40,7 +52,7 @@ const programs = [
     accentColor: "text-red-400",
     version: "v0.1.0",
     shortcut: "1",
-    tags: ["video", "image", "ai", "media"],
+    tags: ["creative", "video", "image", "ai", "media"],
   },
   {
     id: "vibecode-worker",
@@ -53,7 +65,7 @@ const programs = [
     accentColor: "text-cyan-400",
     version: "v0.1.0",
     shortcut: "2",
-    tags: ["code", "ide", "ai", "editor"],
+    tags: ["development", "code", "ide", "ai", "editor"],
   },
   {
     id: "demo-recorder",
@@ -66,7 +78,7 @@ const programs = [
     accentColor: "text-green-400",
     version: "v0.1.0",
     shortcut: "3",
-    tags: ["record", "stream", "capture", "demo"],
+    tags: ["creative", "record", "stream", "capture", "demo"],
   },
   {
     id: "valley-net",
@@ -79,7 +91,7 @@ const programs = [
     accentColor: "text-purple-400",
     version: "v0.1.0",
     shortcut: "4",
-    tags: ["agent", "ai", "automation", "bot"],
+    tags: ["automation", "agent", "ai", "automation", "bot"],
   },
   {
     id: "game-studio",
@@ -92,7 +104,7 @@ const programs = [
     accentColor: "text-amber-400",
     version: "v0.1.0",
     shortcut: "5",
-    tags: ["game", "godot", "gamedev", "3d", "2d"],
+    tags: ["gaming", "game", "godot", "gamedev", "3d", "2d"],
   },
   {
     id: "commander",
@@ -105,7 +117,7 @@ const programs = [
     accentColor: "text-sky-400",
     version: "v0.1.0",
     shortcut: "6",
-    tags: ["api", "cli", "scripting", "automation", "command"],
+    tags: ["development", "api", "cli", "scripting", "automation", "command"],
   },
   {
     id: "donate-personal-seconds",
@@ -118,7 +130,7 @@ const programs = [
     accentColor: "text-orange-400",
     version: "v1.0.0",
     shortcut: "7",
-    tags: ["donate", "compute", "gpu", "cpu", "p2p", "encrypted", "human-tasks"],
+    tags: ["community", "donate", "compute", "gpu", "cpu", "p2p", "encrypted", "human-tasks"],
   },
   {
     id: "clone-tool",
@@ -131,7 +143,7 @@ const programs = [
     accentColor: "text-violet-400",
     version: "v0.1.0",
     shortcut: "9",
-    tags: ["build", "installer", "exe", "dmg", "deploy", "clone"],
+    tags: ["utilities", "build", "installer", "exe", "dmg", "deploy", "clone"],
   },
   {
     id: "luck-factory",
@@ -144,7 +156,7 @@ const programs = [
     accentColor: "text-emerald-400",
     version: "v1.0.0",
     shortcut: "8",
-    tags: ["luck", "ai", "rng"],
+    tags: ["utilities", "luck", "ai", "rng"],
   },
   {
     id: "dictate-pic",
@@ -157,7 +169,7 @@ const programs = [
     accentColor: "text-pink-400",
     version: "v1.0.0",
     shortcut: "P",
-    tags: ["image", "editor", "gimp", "ai", "photo", "paint"],
+    tags: ["creative", "image", "editor", "gimp", "ai", "photo", "paint"],
   },
   {
     id: "random-program",
@@ -170,7 +182,7 @@ const programs = [
     accentColor: "text-rose-400",
     version: "v1.0.0",
     shortcut: "D",
-    tags: ["random", "launcher", "rng"],
+    tags: ["utilities", "random", "launcher", "rng"],
   },
   {
     id: "settings",
@@ -183,7 +195,7 @@ const programs = [
     accentColor: "text-slate-400",
     version: "v0.1.0",
     shortcut: "0",
-    tags: ["settings", "config", "keys", "openrouter", "api"],
+    tags: ["settings", "settings", "config", "keys", "openrouter", "api"],
   },
 ];
 
@@ -401,11 +413,9 @@ export default function SuiteLauncher() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
-  // Improvement 226: Categories from tags
+  // Improvement 226: Organized categories with better structure
   const categories = useMemo(() => {
-    const tagSet = new Set<string>();
-    programs.forEach((p) => p.tags.forEach((t) => tagSet.add(t)));
-    return ["all", ...Array.from(tagSet).slice(0, 8)];
+    return Object.keys(CATEGORY_LABELS);
   }, []);
 
   const randomCarouselPrograms = useMemo(() => {
@@ -536,19 +546,19 @@ export default function SuiteLauncher() {
               </button>
             )}
           </div>
-          {/* Improvement 226: Category pills */}
+          {/* Improvement 226: Category pills with organized labels */}
           <div className="flex items-center gap-1.5 flex-wrap">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-2.5 py-0.5 rounded-full text-[9px] transition-all capitalize ${
+                className={`px-2.5 py-0.5 rounded-full text-[9px] transition-all ${
                   activeCategory === cat
                     ? "bg-studio-cyan/15 text-studio-cyan border border-studio-cyan/30"
                     : "text-studio-muted hover:text-studio-text border border-transparent"
                 }`}
               >
-                {cat}
+                {CATEGORY_LABELS[cat] || cat}
               </button>
             ))}
             <div className="flex-1" />
