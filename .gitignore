@@ -10,3 +10,4 @@ build/
 __pycache__/
 *.py[cod]
 *$py.class
+v1/tax-backend/data

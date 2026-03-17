@@ -12,6 +12,7 @@ mod debug_play;
 mod windows;
 mod system_menu;
 mod window_commands;
+mod screen_capture;
 
 use state::AppState;
 use tauri::Manager;
@@ -1523,6 +1524,14 @@ async fn get_platform_info() -> Result<serde_json::Value, String> {
     }))
 }
 
+#[tauri::command]
+fn get_home_directory() -> Result<String, String> {
+    log_cmd!("get_home_directory", "Getting home directory");
+    dirs::home_dir()
+        .and_then(|p| p.to_str().map(|s| s.to_string()))
+        .ok_or_else(|| "Could not determine home directory".to_string())
+}
+
 // ---------------------------------------------------------------------------
 // Health Check Command
 // ---------------------------------------------------------------------------
@@ -2572,6 +2581,7 @@ fn main() {
             save_givegigs_config,
             get_givegigs_config,
             get_platform_info,
+            get_home_directory,
             health_check,
             godot_detect,
             godot_verify_path,
@@ -2612,6 +2622,9 @@ fn main() {
             godot_send_input,
             godot_get_game_state,
             godot_load_game_state,
+            screen_capture::start_screen_capture,
+            screen_capture::stop_screen_capture,
+            screen_capture::is_screen_capture_available,
         ])
         .run(tauri::generate_context!())
         .expect("error while running CryptArtist Studio");

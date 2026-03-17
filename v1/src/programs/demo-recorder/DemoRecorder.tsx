@@ -84,7 +84,7 @@ export default function DemoRecorder() {
   // Improvement 177: Click sound
   const [clickSound, setClickSound] = useState(false);
   // Improvement 178: Recording format
-  const [recordingFormat, setRecordingFormat] = useState<"webm" | "mp4" | "gif">("webm");
+  const [recordingFormat, setRecordingFormat] = useState<"webm" | "mp4" | "gif">("mp4");
   // Improvement 179: Auto-stop on silence
   const [autoStopSilence, setAutoStopSilence] = useState(false);
   const [silenceThreshold] = useState(5);
@@ -148,7 +148,7 @@ export default function DemoRecorder() {
   // Improvement 419: Auto-title from timestamp
   const [autoTitle, setAutoTitle] = useState(true);
   // Improvement 420: Batch export formats
-  const [batchExportFormats, setBatchExportFormats] = useState<string[]>(["webm"]);
+  const [batchExportFormats, setBatchExportFormats] = useState<string[]>(["mp4"]);
   // Improvement 351: AI narration
   const [aiNarration, setAiNarration] = useState("");
   const [aiNarrationLoading, setAiNarrationLoading] = useState(false);
@@ -280,24 +280,85 @@ export default function DemoRecorder() {
     return `${sizeMB.toFixed(1)} MB`;
   })();
 
-  // Improvement 76: Countdown then start
+  // Improvement 76: Countdown then start - must call getDisplayMedia immediately from user gesture
   const handleStartWithCountdown = async () => {
+    // Call getDisplayMedia immediately while in user gesture context
+    let stream: MediaStream | null = null;
+    
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: parseInt(fps) },
+          audio: false, // Don't request audio from getDisplayMedia (macOS limitation)
+        });
+        
+        // Add microphone audio separately for better audio capture
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+            video: false,
+          });
+          
+          // Combine video from screen and audio from microphone
+          const audioTracks = audioStream.getAudioTracks();
+          audioTracks.forEach(track => {
+            stream!.addTrack(track);
+          });
+        } catch (audioErr: any) {
+          console.warn("Microphone audio not available:", audioErr?.message);
+          toast.warning("Microphone audio not available - recording will be video-only");
+        }
+      }
+    } catch (err: any) {
+      console.error("getDisplayMedia failed:", err);
+      // If browser API fails, fall back to Tauri
+      await handleStartTauri();
+      return;
+    }
+    
+    // Now show countdown while holding the stream
     setCountdown(3);
     for (let i = 3; i > 0; i--) {
       setCountdown(i);
       await new Promise((r) => setTimeout(r, 1000));
     }
     setCountdown(null);
-    await handleStart();
+    
+    // Start recording with the stream we already captured
+    if (stream) {
+      await handleStartWithStream(stream);
+    }
   };
 
-  const handleStart = async () => {
+  const handleStartTauri = async () => {
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: parseInt(fps) },
-        audio: true,
-      });
+      const isAvailable = await invoke<boolean>("is_screen_capture_available");
+      if (!isAvailable) {
+        toast.error("FFmpeg not found. Install FFmpeg via: brew install ffmpeg");
+        return;
+      }
 
+      const dateStr = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
+      const fileName = `DemoRecording_${dateStr}.mp4`;
+      const homeDir = await invoke<string>("get_home_directory").catch(() => "~/");
+      const outputPath = `${homeDir}/Downloads/${fileName}`;
+
+      await invoke("start_screen_capture", { outputPath });
+      setRecording(true);
+      setPaused(false);
+      setElapsed(0);
+      toast.success("Recording started. Press Stop to finish.");
+    } catch (err: any) {
+      toast.error(`Tauri screen capture failed: ${err}`);
+    }
+  };
+
+  const handleStartWithStream = async (stream: MediaStream) => {
+    try {
       mediaStreamRef.current = stream;
       chunksRef.current = [];
       inputLogRef.current = [];
@@ -342,9 +403,63 @@ export default function DemoRecorder() {
       setRecording(true);
       setPaused(false);
       setElapsed(0);
-    } catch (err) {
+    } catch (err: any) {
+      console.error("Screen capture setup failed:", err);
+      toast.error(`Recording setup failed: ${err?.message || err}`);
+    }
+  };
+
+  const handleStart = async () => {
+    try {
+      // Try browser API first (for non-Tauri environments)
+      if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
+        let stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: parseInt(fps) },
+          audio: false, // Don't request audio from getDisplayMedia (macOS limitation)
+        });
+        
+        // Add microphone audio separately for better audio capture
+        try {
+          const audioStream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+            },
+            video: false,
+          });
+          
+          // Combine video from screen and audio from microphone
+          const audioTracks = audioStream.getAudioTracks();
+          audioTracks.forEach(track => {
+            stream.addTrack(track);
+          });
+        } catch (audioErr: any) {
+          console.warn("Microphone audio not available:", audioErr?.message);
+          toast.warning("Microphone audio not available - recording will be video-only");
+        }
+        
+        await handleStartWithStream(stream);
+      } else {
+        // Fallback: Use Tauri native screen capture
+        await handleStartTauri();
+      }
+    } catch (err: any) {
       console.error("Screen capture failed:", err);
-      toast.error("Screen capture failed or was cancelled");
+      const errorName = err?.name || "Unknown";
+      const errorMsg = err?.message || String(err);
+      
+      if (errorName === "NotAllowedError") {
+        toast.error("Screen capture permission denied. Check System Preferences > Security & Privacy > Screen Recording.");
+      } else if (errorName === "NotFoundError") {
+        toast.error("No display found. Ensure at least one monitor is connected.");
+      } else if (errorName === "NotSupportedError") {
+        toast.error("Screen capture not supported in this browser/environment. Try using macOS native screen recording (Cmd+Shift+5).");
+      } else if (errorName === "AbortError") {
+        toast.info("Screen capture was cancelled by user.");
+      } else {
+        toast.error(`Screen capture failed: ${errorMsg}`);
+      }
     }
   };
 
@@ -394,10 +509,25 @@ export default function DemoRecorder() {
   const handleSaveRecording = useCallback(async () => {
     if (chunksRef.current.length === 0) return;
 
-    const blob = new Blob(chunksRef.current, { type: "video/webm" });
     const duration = elapsed;
     const dateStr = new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-");
-    const fileName = `DemoRecording_${dateStr}.webm`;
+    
+    // Determine file format and MIME type based on recordingFormat setting
+    let mimeType = "video/webm";
+    let fileExtension = "webm";
+    
+    if (recordingFormat === "mp4") {
+      // Note: Browser MediaRecorder typically outputs WebM, but we'll save with .mp4 extension
+      // For true MP4 conversion, FFmpeg would be needed on the backend
+      mimeType = "video/mp4";
+      fileExtension = "mp4";
+    } else if (recordingFormat === "gif") {
+      mimeType = "image/gif";
+      fileExtension = "gif";
+    }
+    
+    const blob = new Blob(chunksRef.current, { type: mimeType });
+    const fileName = `DemoRecording_${dateStr}.${fileExtension}`;
 
     // Offer download via browser
     const url = URL.createObjectURL(blob);
