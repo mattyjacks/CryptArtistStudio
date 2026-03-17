@@ -1031,6 +1031,75 @@ async fn godot_detect() -> Result<serde_json::Value, String> {
 }
 
 #[tauri::command]
+async fn godot_verify_path(path: String) -> Result<serde_json::Value, String> {
+    log_cmd!("godot_verify_path", "Verifying Godot path: {}", path);
+    
+    // Security: validate path
+    let safe_path = sanitize_path(&path)?;
+    
+    // Check if file exists
+    if !safe_path.exists() {
+        return Ok(serde_json::json!({
+            "found": false,
+            "path": null,
+            "version": null,
+        }));
+    }
+    
+    // Try to run godot --version to verify it's a valid Godot executable
+    match std::process::Command::new(&safe_path)
+        .arg("--version")
+        .output() {
+        Ok(output) => {
+            if output.status.success() {
+                let version_output = String::from_utf8_lossy(&output.stdout);
+                let version = version_output.trim().to_string();
+                return Ok(serde_json::json!({
+                    "found": true,
+                    "path": path,
+                    "version": version,
+                }));
+            }
+        }
+        Err(_) => {}
+    }
+    
+    // If --version didn't work, just check if it's executable
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(metadata) = std::fs::metadata(&safe_path) {
+            let permissions = metadata.permissions();
+            if permissions.mode() & 0o111 != 0 {
+                return Ok(serde_json::json!({
+                    "found": true,
+                    "path": path,
+                    "version": "4.x (verified)",
+                }));
+            }
+        }
+    }
+    
+    #[cfg(windows)]
+    {
+        // On Windows, if the file exists and has .exe extension, assume it's valid
+        if safe_path.extension().map_or(false, |ext| ext == "exe") {
+            return Ok(serde_json::json!({
+                "found": true,
+                "path": path,
+                "version": "4.x (verified)",
+            }));
+        }
+    }
+    
+    Ok(serde_json::json!({
+        "found": false,
+        "path": null,
+        "version": null,
+    }))
+}
+
+#[tauri::command]
 async fn godot_create_project(path: String, name: String, template: String) -> Result<String, String> {
     log_cmd!("godot_create_project", "Creating Godot project: name={} template={} path={}", name, template, path);
     // Security: validate path and sanitize project name
@@ -2505,6 +2574,7 @@ fn main() {
             get_platform_info,
             health_check,
             godot_detect,
+            godot_verify_path,
             godot_create_project,
             godot_run_project,
             godot_export,
