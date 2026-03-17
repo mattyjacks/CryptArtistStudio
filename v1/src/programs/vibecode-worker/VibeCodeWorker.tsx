@@ -6,7 +6,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
-import Editor from "@monaco-editor/react";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
@@ -179,6 +178,9 @@ export default function VibeCodeWorker() {
   const [aiLoading, setAiLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [vcwModel, setVcwModel] = useState("openai/gpt-5-mini");
+  const [editorReady, setEditorReady] = useState(false);
+  const [pendingChanges, setPendingChanges] = useState<Array<{ filePath: string; oldCode: string; newCode: string }>>([]);
+  const [expandedDiffIdx, setExpandedDiffIdx] = useState<number | null>(null);
   // Improvement 49-53: Editor config state
   const [editorWordWrap, setEditorWordWrap] = useState<"on" | "off">("on");
   const [editorMinimap, setEditorMinimap] = useState(true);
@@ -542,36 +544,104 @@ export default function VibeCodeWorker() {
     setAiMessages((prev) => [...prev, userMsg]);
     setAiInput("");
 
+    // Get API key
     const key = apiKeys.openaiKey || apiKeys.openrouterKey;
     if (!key) {
       setAiMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Please set your API key in the settings panel (gear icon) to enable AI responses.", timestamp: Date.now() },
+        { role: "assistant", content: "❌ No API key configured. Click the ⚙️ settings icon to check your API keys. You need either an OpenAI or OpenRouter key from CryptArtist Studio Settings.", timestamp: Date.now() },
       ]);
       return;
     }
 
     setAiLoading(true);
     try {
-      // Build context from active file
+      // Get the currently active tab - refresh from openTabs to ensure we have latest content
+      const currentTab = openTabs.find((t) => t.path === activeTabPath) || null;
+      
+      // Build context from active file and all open files
       let context = "";
-      if (activeTab) {
-        const fileContent = activeTab.content.length > 8000 ? activeTab.content.slice(0, 8000) + "\n...[truncated]" : activeTab.content;
-        context = `\n\nCurrently open file (${activeTab.name}):\n\`\`\`${activeTab.language}\n${fileContent}\n\`\`\``;
+      
+      if (currentTab && currentTab.content) {
+        const fileContent = currentTab.content.length > 8000 ? currentTab.content.slice(0, 8000) + "\n...[truncated]" : currentTab.content;
+        context = `\n\nCurrently open file: ${currentTab.name}\nLanguage: ${currentTab.language}\nPath: ${currentTab.path}\n\n\`\`\`${currentTab.language}\n${fileContent}\n\`\`\``;
+        console.log(`[AI] Using file context: ${currentTab.name} (${currentTab.content.length} chars)`);
+      } else if (openTabs.length > 0) {
+        const fileList = openTabs.map(t => `${t.name} (${t.content.length} chars)`).join(", ");
+        context = `\n\nOpen files: ${fileList}\n\nClick on a file in the sidebar to select it and provide context to the AI.`;
+        console.log(`[AI] No active tab, but ${openTabs.length} files open`);
+      } else {
+        context = "\n\nNo files currently open. Open a file from the folder explorer for better context.";
+        console.log(`[AI] No files open`);
       }
 
-      const prompt = `You are a senior software engineer AI assistant in VibeCodeWorker IDE. Help the user with their coding request. Be concise and provide code when appropriate.${context}\n\nUser: ${userMsg.content}`;
+      const prompt = `You are a senior software engineer AI assistant in VibeCodeWorker IDE. Help the user with their coding request. Be concise and provide code when appropriate.
+
+IMPORTANT: When the user asks you to modify code, format your response like this:
+<apply_changes>
+<file path="path/to/file.ext">
+<old>
+old code here - ONLY include the exact lines that need to be replaced, nothing more
+</old>
+<new>
+new code here - ONLY the replacement for those exact lines
+</new>
+</file>
+</apply_changes>
+
+CRITICAL RULES for code changes:
+- ONLY include the EXACT lines that are changing in <old> and <new>
+- Do NOT include surrounding context or unchanged lines
+- If changing one line, show only that one line in both <old> and <new>
+- If changing multiple lines, show only those specific lines
+- Be surgical and precise - minimize the scope of changes
+- Do NOT include extra whitespace or context
+
+Then explain the changes after the apply_changes block. This allows the IDE to automatically apply your changes.${context}\n\nUser: ${userMsg.content}`;
 
       const reply = await chatWithAI(prompt, { action: "coding-assistant" });
+      
+      // Parse code changes if present
+      const changesMatch = reply.match(/<apply_changes>([\s\S]*?)<\/apply_changes>/);
+      if (changesMatch) {
+        const changesXml = changesMatch[1];
+        const fileMatches = Array.from(changesXml.matchAll(/<file path="([^"]+)">([\s\S]*?)<\/file>/g));
+        
+        const changes: Array<{ filePath: string; oldCode: string; newCode: string }> = [];
+        for (const match of fileMatches) {
+          const filePath = match[1];
+          const fileContent = match[2];
+          const oldMatch = fileContent.match(/<old>([\s\S]*?)<\/old>/);
+          const newMatch = fileContent.match(/<new>([\s\S]*?)<\/new>/);
+          
+          if (oldMatch && newMatch) {
+            changes.push({
+              filePath,
+              oldCode: oldMatch[1],
+              newCode: newMatch[1],
+            });
+          }
+        }
+        
+        // Show diff preview instead of applying immediately
+        if (changes.length > 0) {
+          setPendingChanges(changes);
+        }
+      }
+      
+      // Remove the apply_changes block from the displayed message
+      const displayReply = reply.replace(/<apply_changes>[\s\S]*?<\/apply_changes>\n?/, "").trim();
+      
       setAiMessages((prev) => [
         ...prev,
-        { role: "assistant", content: reply, timestamp: Date.now() },
+        { role: "assistant", content: displayReply, timestamp: Date.now() },
       ]);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      console.error("AI error:", err);
       setAiMessages((prev) => [
         ...prev,
-        { role: "assistant", content: `Error: ${msg}`, timestamp: Date.now() },
+        { role: "assistant", content: `⚠️ Error: ${msg}\n\nTroubleshooting:\n- Check your API key in settings (⚙️)\n- Verify you have internet connection\n- Try a different model from the settings panel\n- Check CryptArtist Studio settings for valid API keys`, timestamp: Date.now() },
       ]);
     } finally {
       setAiLoading(false);
@@ -1125,11 +1195,48 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           <div className="panel-header">
             <h3>Explorer</h3>
           </div>
-          <div className="flex-1 overflow-y-auto py-1">
+          <div className="flex-1 overflow-y-auto py-1 flex flex-col">
+            {/* Open Files Section */}
+            {openTabs.length > 0 && (
+              <div className="mb-2">
+                <div className="px-2 py-1 text-[10px] font-semibold text-studio-muted uppercase tracking-wider">
+                  Open Files
+                </div>
+                <div className="space-y-0.5">
+                  {openTabs.map((tab) => (
+                    <button
+                      key={tab.path}
+                      onClick={() => setActiveTabPath(tab.path)}
+                      className={`w-full text-left px-2 py-[3px] text-[11px] flex items-center gap-1.5 hover:bg-studio-hover rounded transition-colors ${
+                        activeTabPath === tab.path ? "bg-studio-hover text-studio-text" : "text-studio-secondary"
+                      }`}
+                    >
+                      <span className="text-[10px]">{fileIcon(tab.name)}</span>
+                      <span className="truncate flex-1">{tab.name}</span>
+                      {tab.dirty && <span className="text-studio-cyan text-[8px]">●</span>}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); closeTab(tab.path); }}
+                        className="text-[8px] text-studio-muted hover:text-studio-text"
+                      >
+                        ✕
+                      </button>
+                    </button>
+                  ))}
+                </div>
+                <div className="border-t border-studio-border my-2"></div>
+              </div>
+            )}
+            
+            {/* File Tree Section */}
             {fileTree.length > 0 ? (
-              renderTree(fileTree)
+              <div className="flex-1 overflow-y-auto">
+                <div className="px-2 py-1 text-[10px] font-semibold text-studio-muted uppercase tracking-wider">
+                  Folder
+                </div>
+                {renderTree(fileTree)}
+              </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-center px-4">
+              <div className="flex flex-col items-center justify-center flex-1 text-center px-4">
                 <span className="text-2xl mb-2 opacity-40">{"\u{1F4C1}"}</span>
                 <p className="text-[10px] text-studio-muted">No folder open</p>
                 <button onClick={handleOpenFolder} className="btn text-[10px] py-1 px-3 mt-2">
@@ -1203,6 +1310,15 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           {activeTab && (
             <div className="flex items-center gap-2 h-[26px] bg-studio-panel border-b border-studio-border px-3 text-[10px]">
               <button
+                onClick={saveCurrentFile}
+                className={`px-2 py-0.5 rounded transition-colors ${activeTab.dirty ? "bg-studio-cyan/15 text-studio-cyan hover:bg-studio-cyan/25" : "text-studio-muted"}`}
+                title="Save file (Cmd+S)"
+                disabled={!activeTab.dirty}
+              >
+                💾 Save
+              </button>
+              <div className="w-px h-3 bg-studio-border" />
+              <button
                 onClick={() => setEditorWordWrap(editorWordWrap === "on" ? "off" : "on")}
                 className={`px-1.5 py-0.5 rounded transition-colors ${editorWordWrap === "on" ? "bg-studio-cyan/15 text-studio-cyan" : "text-studio-muted hover:text-studio-text"}`}
                 title="Toggle word wrap"
@@ -1238,33 +1354,29 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
             </div>
           )}
 
-          {/* Monaco Editor - Improvements 49-53, 59 applied */}
-          <div className="flex-1 min-h-0">
+          {/* Code Editor - Simple textarea-based editor */}
+          <div className="flex-1 min-h-0 flex flex-col bg-studio-surface">
             {activeTab ? (
-              <Editor
-                height="100%"
-                language={activeTab.language}
-                value={activeTab.content}
-                theme={editorTheme}
-                onChange={(value) => {
-                  setOpenTabs((prev) =>
-                    prev.map((t) => (t.path === activeTab.path ? { ...t, content: value || "", dirty: true } : t))
-                  );
-                }}
-                options={{
-                  fontSize: editorFontSize,
-                  fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-                  minimap: { enabled: editorMinimap },
-                  scrollBeyondLastLine: false,
-                  padding: { top: 8 },
-                  renderLineHighlight: "all",
-                  bracketPairColorization: { enabled: true },
-                  wordWrap: editorWordWrap,
-                  tabSize: editorTabSize,
-                  guides: { indentation: true },
-                  lineNumbers: "on",
-                }}
-              />
+              <>
+                <textarea
+                  value={activeTab.content}
+                  onChange={(e) => {
+                    setOpenTabs((prev) =>
+                      prev.map((t) => (t.path === activeTab.path ? { ...t, content: e.target.value, dirty: true } : t))
+                    );
+                  }}
+                  className="flex-1 bg-studio-surface text-studio-text font-mono p-4 outline-none resize-none"
+                  style={{
+                    fontSize: `${editorFontSize}px`,
+                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                    whiteSpace: editorWordWrap === "on" ? "pre-wrap" : "pre",
+                    overflowWrap: editorWordWrap === "on" ? "break-word" : "normal",
+                    lineHeight: "1.6",
+                    color: "inherit",
+                  }}
+                  spellCheck="false"
+                />
+              </>
             ) : (
               /* Improvement 65: Welcome tab when no files open */
               <div className="flex items-center justify-center h-full text-studio-muted text-sm animate-fade-in">
@@ -1532,7 +1644,7 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
         </div>
 
         {/* AI Chat Panel */}
-        <div className="w-[300px] min-w-[240px] bg-studio-panel border-l border-studio-border flex flex-col">
+        <div className="w-[450px] min-w-[350px] bg-studio-panel border-l border-studio-border flex flex-col">
           <div className="panel-header flex items-center justify-between px-3 py-2 border-b border-studio-border">
             <div className="flex items-center gap-2">
               <h3 className="m-0 text-[11px] font-bold">{"\u{1F916}"} AI Assistant</h3>
@@ -1607,16 +1719,21 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           {/* Input */}
           <div className="border-t border-studio-border p-2">
             <div className="flex gap-2">
-              <input
-                type="text"
+              <textarea
                 value={aiInput}
                 onChange={(e) => setAiInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAiSubmit()}
-                className="input flex-1 text-[11px] py-1.5"
-                placeholder="Ask AI about your code..."
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                    handleAiSubmit();
+                  }
+                }}
+                className="input flex-1 text-[11px] py-1.5 resize-none"
+                placeholder="Ask AI about your code... (Cmd+Enter to send)"
                 disabled={aiLoading}
+                rows={3}
+                style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}
               />
-              <button onClick={handleAiSubmit} className="btn btn-cyan text-[11px] px-3 py-1" disabled={aiLoading}>
+              <button onClick={handleAiSubmit} className="btn btn-cyan text-[11px] px-3 py-1 self-end" disabled={aiLoading}>
                 {aiLoading ? "..." : "Send"}
               </button>
             </div>
@@ -1807,6 +1924,103 @@ Check for: page load optimizations, image alt tags, semantic HTML, ARIA roles, m
           {wordCount > 0 && <><span className="text-studio-border">|</span><span>{wordCount}w</span></>}
         </div>
       </footer>
+
+      {/* Diff Preview Modal */}
+      {pendingChanges.length > 0 && (
+        <div className="modal-overlay" onClick={() => setPendingChanges([])}>
+          <div role="dialog" aria-modal="true" className="modal max-w-3xl max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header flex items-center justify-between">
+              <h2>{"\u{1F504}"} Review Changes</h2>
+              <button onClick={() => setPendingChanges([])} className="btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">✕</button>
+            </div>
+            <div className="modal-body flex-1 overflow-y-auto">
+              <div className="space-y-2">
+                {pendingChanges.map((change, idx) => {
+                  const oldLines = change.oldCode.split('\n');
+                  const newLines = change.newCode.split('\n');
+                  // Count only non-empty lines
+                  const addedCount = newLines.filter(l => l.trim()).length;
+                  const removedCount = oldLines.filter(l => l.trim()).length;
+                  const isExpanded = expandedDiffIdx === idx;
+                  
+                  return (
+                    <div key={idx} className="border border-studio-border rounded-lg overflow-hidden">
+                      {/* Collapsed Summary */}
+                      <button
+                        onClick={() => setExpandedDiffIdx(isExpanded ? null : idx)}
+                        className="w-full bg-studio-surface hover:bg-studio-hover px-3 py-2.5 border-b border-studio-border flex items-center justify-between transition-colors"
+                      >
+                        <div className="flex items-center gap-3 flex-1 text-left">
+                          <span className="text-[11px] text-studio-muted">{isExpanded ? "▼" : "▶"}</span>
+                          <span className="text-[11px] font-semibold text-studio-text truncate">
+                            {change.filePath.split('/').pop()}
+                          </span>
+                          <span className="text-[10px] text-studio-muted">
+                            {change.filePath.split('/').slice(0, -1).join('/').slice(-30)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-green-400">+{addedCount}</span>
+                          <span className="text-[10px] text-red-400">−{removedCount}</span>
+                        </div>
+                      </button>
+
+                      {/* Expanded Diff View - Show entire file */}
+                      {isExpanded && (
+                        <div className="bg-studio-panel p-3 space-y-1 text-[10px] font-mono overflow-y-auto" style={{ maxHeight: '500px' }}>
+                          {/* Deleted lines */}
+                          {oldLines.map((line, i) => (
+                            <div key={`old-${i}`} className="flex gap-2 hover:bg-red-950/20 px-1 py-0.5 rounded group">
+                              <span className="text-red-400 w-6 text-right flex-shrink-0">−</span>
+                              <span className="text-red-300 flex-1 break-all whitespace-pre-wrap">{line || ' '}</span>
+                            </div>
+                          ))}
+                          {/* Added lines */}
+                          {newLines.map((line, i) => (
+                            <div key={`new-${i}`} className="flex gap-2 hover:bg-green-950/20 px-1 py-0.5 rounded group">
+                              <span className="text-green-400 w-6 text-right flex-shrink-0">+</span>
+                              <span className="text-green-300 flex-1 break-all whitespace-pre-wrap">{line || ' '}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="modal-footer flex gap-2 justify-end">
+              <button 
+                onClick={() => setPendingChanges([])}
+                className="btn text-[11px] px-4 py-2"
+              >
+                Reject all
+              </button>
+              <button 
+                onClick={() => {
+                  // Apply all pending changes
+                  pendingChanges.forEach((change) => {
+                    setOpenTabs((prev) => 
+                      prev.map((tab) => {
+                        if (tab.path === change.filePath) {
+                          const updatedContent = tab.content.replace(change.oldCode, change.newCode);
+                          return { ...tab, content: updatedContent, dirty: true };
+                        }
+                        return tab;
+                      })
+                    );
+                  });
+                  setPendingChanges([]);
+                  toast.success(`Applied ${pendingChanges.length} change${pendingChanges.length !== 1 ? 's' : ''}`);
+                }}
+                className="btn btn-cyan text-[11px] px-4 py-2"
+              >
+                Accept all
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
