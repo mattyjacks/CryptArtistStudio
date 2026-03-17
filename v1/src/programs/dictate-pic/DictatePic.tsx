@@ -12,7 +12,6 @@ import { invoke } from "@tauri-apps/api/core";
 import { save as saveDialog, open as openDialog } from "@tauri-apps/plugin-dialog";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
-import { chatWithAI } from "../../utils/openrouter";
 import { useApiKeys } from "../../utils/apiKeys";
 import { useWorkspace } from "../../utils/workspace";
 import { createCryptArtFile, serializeCryptArt, parseCryptArt } from "../../utils/cryptart";
@@ -129,7 +128,7 @@ export default function DictatePic() {
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   // Tool state
-  const [activeTool, setActiveTool] = useState<Tool>("brush");
+  const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [brushSize, setBrushSize] = useState(12);
   const [brushOpacity, setBrushOpacity] = useState(100);
   const [brushHardness, setBrushHardness] = useState(80);
@@ -305,12 +304,23 @@ export default function DictatePic() {
     if (!aiPrompt.trim()) { toast.warning("Enter a prompt first"); return; }
     setAiLoading(true);
     try {
-      const reply = await chatWithAI(
-        `Generate a detailed image description for: ${aiPrompt}. Style: ${aiStyle}. Describe colors, composition, lighting, and details.`,
-        { action: "dictate-pic-generate" }
-      );
-      toast.success("AI description generated! In a full implementation, this would be sent to a diffusion model.");
-      addHistory(`AI Generate: ${aiPrompt.slice(0, 40)}`);
+      const fullPrompt = `${aiPrompt}. Style: ${aiStyle}`;
+      const imageUrl = await invoke<string>("ai_generate_image", { prompt: fullPrompt });
+      
+      const img = new Image();
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, canvasSize.w, canvasSize.h);
+        toast.success("AI image generated and rendered!");
+        addHistory(`AI Generate: ${aiPrompt.slice(0, 40)}`);
+      };
+      img.onerror = () => {
+        toast.error("Failed to load generated image");
+      };
+      img.src = imageUrl;
     } catch (err) {
       toast.error("AI error: " + err);
     }
@@ -464,7 +474,11 @@ export default function DictatePic() {
             <button
               key={tool.id}
               type="button"
-              onClick={() => { setActiveTool(tool.id); setShowAiPanel(true); }}
+              onClick={() => { 
+                console.log("AI button clicked:", tool.id);
+                setActiveTool(tool.id); 
+                setShowAiPanel(true); 
+              }}
               className={`w-9 h-9 flex items-center justify-center rounded-lg text-base transition-all ${
                 activeTool === tool.id
                   ? "bg-purple-500/15 text-purple-400 ring-1 ring-purple-500/30"
@@ -564,34 +578,32 @@ export default function DictatePic() {
         {/* Right panels */}
         <div className="w-[260px] bg-studio-panel border-l border-studio-border flex flex-col overflow-y-auto shrink-0">
           {/* AI Panel */}
-          {showAiPanel && (
-            <div className="border-b border-studio-border">
-              <div className="panel-header">
-                <h3>{"\u{1F916}"} AI Tools</h3>
-                <button type="button" onClick={() => setShowAiPanel(false)} className="text-studio-muted hover:text-studio-text text-xs" aria-label="Close">x</button>
-              </div>
-              <div className="p-3 space-y-2">
-                <input
-                  type="text"
-                  value={aiPrompt}
-                  onChange={e => setAiPrompt(e.target.value)}
-                  className="input w-full text-[10px] py-1.5"
-                  placeholder="Describe what you want..."
-                />
-                <select aria-label="AI Style" value={aiStyle} onChange={e => setAiStyle(e.target.value)} className="input w-full text-[10px] py-1">
-                  {["photorealistic", "oil-painting", "watercolor", "anime", "pixel-art", "sketch", "3d-render", "abstract"].map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button type="button" onClick={handleAiGenerate} disabled={aiLoading} className="btn btn-cyan text-[9px] py-1">{aiLoading ? "..." : "\u{1F916} Generate"}</button>
-                  <button type="button" onClick={handleAiInpaint} className="btn text-[9px] py-1">{"\u{1F3AD}"} Inpaint</button>
-                  <button type="button" onClick={handleAiUpscale} className="btn text-[9px] py-1">{"\u{1F52C}"} Upscale 2x</button>
-                  <button type="button" onClick={handleAiBgRemove} className="btn text-[9px] py-1">{"\u{1F5BC}\uFE0F"} Rm BG</button>
-                </div>
+          <div className={`border-b border-studio-border ${!showAiPanel ? "hidden" : ""}`}>
+            <div className="panel-header">
+              <h3>{"\u{1F916}"} AI Tools</h3>
+              <button type="button" onClick={() => setShowAiPanel(false)} className="text-studio-muted hover:text-studio-text text-xs" aria-label="Close">x</button>
+            </div>
+            <div className="p-3 space-y-2">
+              <textarea
+                value={aiPrompt}
+                onChange={e => setAiPrompt(e.target.value)}
+                className="input w-full text-[10px] py-1.5 resize-none"
+                placeholder="Describe what you want..."
+                rows={3}
+              />
+              <select aria-label="AI Style" value={aiStyle} onChange={e => setAiStyle(e.target.value)} className="input w-full text-[10px] py-1">
+                {["photorealistic", "oil-painting", "watercolor", "anime", "pixel-art", "sketch", "3d-render", "abstract"].map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button type="button" onClick={handleAiGenerate} disabled={aiLoading} className="btn btn-cyan text-[9px] py-1">{aiLoading ? "..." : "\u{1F916} Generate"}</button>
+                <button type="button" onClick={handleAiInpaint} className="btn text-[9px] py-1">{"\u{1F3AD}"} Inpaint</button>
+                <button type="button" onClick={handleAiUpscale} className="btn text-[9px] py-1">{"\u{1F52C}"} Upscale 2x</button>
+                <button type="button" onClick={handleAiBgRemove} className="btn text-[9px] py-1">{"\u{1F5BC}\uFE0F"} Rm BG</button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Layers */}
           <div className="border-b border-studio-border">
