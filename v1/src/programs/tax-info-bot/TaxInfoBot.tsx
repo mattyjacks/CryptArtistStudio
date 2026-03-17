@@ -6,6 +6,8 @@ import TaxDashboard from "./TaxDashboard";
 import TaxChat from "./TaxChat";
 import TaxVerification from "./TaxVerification";
 import { useGlobalShortcuts } from "../../utils/keyboard";
+import { useDeviceType } from "../../utils/platform";
+import { isChromeOS } from "../../utils/chromebookDetection";
 
 export type TaxTab = "upload" | "dashboard" | "verification" | "chat";
 
@@ -23,6 +25,11 @@ function getStoredBatchId(): string | null {
 export default function TaxInfoBot() {
     const navigate = useNavigate();
     useGlobalShortcuts(navigate);
+    
+    const deviceType = useDeviceType();
+    const isAndroid = deviceType === "mobile";
+    const isChromeOSPlatform = isChromeOS();
+    const isUnavailable = isAndroid || isChromeOSPlatform;
 
     const [activeTab, setActiveTab] = useState<TaxTab>("upload");
     const [batchId, setBatchIdState] = useState<string | null>(getStoredBatchId);
@@ -58,6 +65,62 @@ export default function TaxInfoBot() {
         toast.success("Batch uploaded successfully! AI is now processing documents.");
         setActiveTab("dashboard");
     }, [setBatchId]);
+
+    // Show unavailable message for Android and Chrome OS
+    if (isUnavailable) {
+        return (
+            <div className="flex flex-col h-full w-full bg-studio-bg text-studio-text">
+                {/* Header */}
+                <header className="flex items-center justify-between px-6 py-4 border-b border-studio-border bg-studio-surface/50">
+                    <div className="flex items-center gap-3">
+                        <span className="text-3xl">📊</span>
+                        <h1 className="text-xl font-bold gradient-text">Tax Copilot</h1>
+                    </div>
+                    <button
+                        onClick={() => navigate("/")}
+                        className="btn-ghost text-studio-muted hover:text-studio-text p-2"
+                        title="Return to Suite Launcher (ESC)"
+                    >
+                        ✖️
+                    </button>
+                </header>
+
+                {/* Unavailable Message */}
+                <main className="flex-1 flex items-center justify-center p-6">
+                    <div className="max-w-md w-full text-center">
+                        <div className="mb-6">
+                            <span className="text-6xl block mb-4">🔒</span>
+                            <h2 className="text-2xl font-bold mb-2">Tax Copilot Not Available</h2>
+                        </div>
+
+                        <div className="bg-studio-surface/50 border border-studio-border rounded-lg p-6 mb-6">
+                            <p className="text-studio-secondary mb-4">
+                                Due to Google Play Policies, we're not YET allowed to have Tax Info Bot available on Android or Chrome OS.
+                            </p>
+                            <p className="text-sm text-studio-muted">
+                                Please use Tax Copilot on a desktop or laptop computer to access all features.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2 text-sm text-studio-muted">
+                            <p>
+                                {isAndroid && "📱 You're on Android"}
+                                {isChromeOSPlatform && "🖥️ You're on Chrome OS"}
+                            </p>
+                            <p className="text-xs">We're working on getting approval to bring this to mobile soon!</p>
+                        </div>
+
+                        <button
+                            onClick={() => navigate("/")}
+                            className="btn btn-cyan mt-6 w-full"
+                        >
+                            ← Back to Suite
+                        </button>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full w-full bg-studio-bg text-studio-text animate-fade-in">

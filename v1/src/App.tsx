@@ -25,6 +25,8 @@ import MobileNav from "./components/MobileNav";
 import WorkspaceProvider from "./components/WorkspaceProvider";
 import WorkspaceBar from "./components/WorkspaceBar";
 import GlobalMenuBar from "./components/GlobalMenuBar";
+import { ProgramTabProvider } from "./components/ProgramTabProvider";
+import { ProgramTabBar } from "./components/ProgramTabBar";
 import { ApiKeyProvider } from "./components/ApiKeyProvider";
 import { useIsMobileViewport, useDeviceType } from "./utils/platform";
 import { logger } from "./utils/logger";
@@ -35,6 +37,7 @@ import { checkFileAssociation, listenForFileOpen } from "./utils/fileAssociation
 import { useCommandPalette, useKeyboardShortcuts, useToast, useDebugMode } from "./hooks/useImprovements";
 import { ErrorLogger, performanceMonitor } from "./utils/improvements";
 import ImprovementsProvider from "./components/ImprovementsProvider";
+import { initializeChromebookSupport, setupServiceWorkerMessaging } from "./utils/chromebookInit";
 
 // ---------------------------------------------------------------------------
 // 100 IMPROVEMENTS INTEGRATION
@@ -201,6 +204,10 @@ export default function App() {
     initializePlatform();
     initializeSecurityHardening();
     initializeSecurityHardeningV2();
+    
+    // Initialize Chromebook support
+    initializeChromebookSupport();
+    setupServiceWorkerMessaging();
 
     const toggleHandler = () => setIsCommandPaletteOpen(prev => !prev);
     window.addEventListener("toggle-command-palette", toggleHandler);
@@ -271,12 +278,14 @@ export default function App() {
     <ErrorBoundary>
       <ImprovementsProvider>
         <WorkspaceProvider>
-          <ApiKeyProvider>
-            <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
-            <div className="flex flex-col h-screen w-screen overflow-hidden">
-            <a href="#main-content" className="skip-to-content">Skip to content</a>
-            <GlobalMenuBar />
-            <WorkspaceBar />
+          <ProgramTabProvider>
+            <ApiKeyProvider>
+              <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
+              <div className="flex flex-col h-screen w-screen overflow-hidden">
+              <a href="#main-content" className="skip-to-content">Skip to content</a>
+              <GlobalMenuBar />
+              <WorkspaceBar />
+              <ProgramTabBar />
             <div id="main-content" className={`flex-1 overflow-hidden relative ${showBottomNav ? "pb-14" : ""}`}>
               <Routes>
                 <Route path="/" element={<SuiteLauncher />} />
@@ -302,8 +311,9 @@ export default function App() {
             </div>
             {showBottomNav && <MobileNav />}
           </div>
-        </ApiKeyProvider>
-      </WorkspaceProvider>
+            </ApiKeyProvider>
+          </ProgramTabProvider>
+        </WorkspaceProvider>
       </ImprovementsProvider>
     </ErrorBoundary>
   );

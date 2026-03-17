@@ -6,10 +6,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
+import Editor from "@monaco-editor/react";
 import { serializeCryptArt, parseCryptArt, createCryptArtFile } from "../../utils/cryptart";
 import { toast } from "../../utils/toast";
 import { logger } from "../../utils/logger";
 import { useDeviceType } from "../../utils/platform";
+import { VibeCodeWorkerAndroid } from "./VibeCodeWorkerAndroid";
 import { safeGetRaw, safeSetRaw, safeGetRawJSON } from "../../utils/storage";
 import { useWorkspace } from "../../utils/workspace";
 import { chatWithAI, getDefaultModel, setDefaultModel } from "../../utils/openrouter";
@@ -156,6 +158,12 @@ export default function VibeCodeWorker() {
   const deviceType = useDeviceType();
   const isMobile = deviceType === "mobile";
   const isTablet = deviceType === "tablet";
+  
+  // Use Android-optimized version on mobile devices
+  if (isMobile) {
+    return <VibeCodeWorkerAndroid />;
+  }
+  
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   useEffect(() => { logger.info("VibeCodeWorker", "Program loaded"); }, []);
   const [rootPath, setRootPath] = useState<string | null>(null);

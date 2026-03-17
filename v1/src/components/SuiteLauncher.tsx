@@ -469,12 +469,53 @@ export default function SuiteLauncher() {
   }, [searchQuery, activeCategory, sortBy, launchCounts, favorites]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-studio-bg overflow-hidden text-studio-text relative">
+    <div className="flex flex-col h-full w-full overflow-hidden text-studio-text relative">
+      {/* Creative Background with Animated Gradients */}
+      <div className="absolute inset-0 bg-studio-bg">
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+        
+        {/* Animated gradient orbs */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-cyan-500/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animation: 'float 8s ease-in-out infinite' }} />
+        <div className="absolute top-1/3 right-1/4 w-80 h-80 bg-gradient-to-br from-purple-500/15 to-transparent rounded-full blur-3xl animate-pulse" style={{ animation: 'float 10s ease-in-out infinite 2s' }} />
+        <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-gradient-to-t from-blue-500/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animation: 'float 12s ease-in-out infinite 4s' }} />
+        
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-5" style={{
+          backgroundImage: 'linear-gradient(0deg, transparent 24%, rgba(148, 163, 184, 0.05) 25%, rgba(148, 163, 184, 0.05) 26%, transparent 27%, transparent 74%, rgba(148, 163, 184, 0.05) 75%, rgba(148, 163, 184, 0.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(148, 163, 184, 0.05) 25%, rgba(148, 163, 184, 0.05) 26%, transparent 27%, transparent 74%, rgba(148, 163, 184, 0.05) 75%, rgba(148, 163, 184, 0.05) 76%, transparent 77%, transparent)',
+          backgroundSize: '50px 50px'
+        }} />
+        
+        {/* Diagonal lines pattern */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(59, 130, 246, 0.1) 35px, rgba(59, 130, 246, 0.1) 70px)'
+        }} />
+        
+        {/* Radial gradient vignette */}
+        <div className="absolute inset-0 bg-radial-gradient" style={{
+          background: 'radial-gradient(ellipse at center, transparent 0%, rgba(15, 23, 42, 0.4) 100%)'
+        }} />
+      </div>
+
       <AudioVisualizer />
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(-50%); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          25% { transform: translateY(-20px) translateX(10px); }
+          50% { transform: translateY(-40px) translateX(-10px); }
+          75% { transform: translateY(-20px) translateX(10px); }
+        }
+        @keyframes shimmer-slow {
+          0%, 100% { opacity: 0.3; }
+          50% { opacity: 0.6; }
+        }
+        @keyframes glow-pulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.1); }
+          50% { box-shadow: 0 0 40px rgba(6, 182, 212, 0.2); }
         }
         .animate-marquee {
           animation: marquee 50s linear infinite;
@@ -487,6 +528,9 @@ export default function SuiteLauncher() {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
+        }
+        .bg-radial-gradient {
+          background: radial-gradient(ellipse at center, transparent 0%, rgba(15, 23, 42, 0.4) 100%);
         }
       `}</style>
       {/* Main Content */}
