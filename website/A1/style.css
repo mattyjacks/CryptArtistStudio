@@ -536,6 +536,7 @@ code, pre {
   text-decoration: none;
   color: inherit;
   display: block;
+  backdrop-filter: blur(10px);
 }
 
 .program-card::before {
@@ -547,18 +548,36 @@ code, pre {
   height: 3px;
   background: var(--card-accent, var(--gradient-main));
   opacity: 0;
+  transition: opacity var(--transition), height var(--transition);
+}
+
+.program-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 212, 255, 0.1) 0%, transparent 50%);
+  opacity: 0;
   transition: opacity var(--transition);
+  pointer-events: none;
 }
 
 .program-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-light);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-4px);
+  box-shadow: var(--shadow-card-hover), 0 0 40px rgba(0, 212, 255, 0.1);
+  transform: translateY(-6px) scale(1.02);
   color: inherit;
 }
 
 .program-card:hover::before {
+  opacity: 1;
+  height: 4px;
+}
+
+.program-card:hover::after {
   opacity: 1;
 }
 
@@ -567,6 +586,12 @@ code, pre {
   margin-bottom: 16px;
   display: block;
   filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.3));
+  transition: transform var(--transition), filter var(--transition);
+}
+
+.program-card:hover .program-card-emoji {
+  transform: scale(1.15) rotate(5deg);
+  filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.6));
 }
 
 .program-card-header {
@@ -620,6 +645,13 @@ code, pre {
 .program-card[data-program="demo-recorder"] { --card-accent: linear-gradient(90deg, #f59e0b, #ef4444); }
 .program-card[data-program="valley-net"] { --card-accent: linear-gradient(90deg, #22c55e, #00d4ff); }
 .program-card[data-program="game-studio"] { --card-accent: linear-gradient(90deg, #ec4899, #a855f7); }
+.program-card[data-program="commander"] { --card-accent: linear-gradient(90deg, #f59e0b, #a855f7); }
+.program-card[data-program="donate-personal-seconds"] { --card-accent: linear-gradient(90deg, #00d4ff, #ec4899); }
+.program-card[data-program="clone-tool"] { --card-accent: linear-gradient(90deg, #22c55e, #f59e0b); }
+.program-card[data-program="dictate-pic"] { --card-accent: linear-gradient(90deg, #ec4899, #f59e0b); }
+.program-card[data-program="luck-factory"] { --card-accent: linear-gradient(90deg, #a855f7, #00d4ff); }
+.program-card[data-program="tax-info-bot"] { --card-accent: linear-gradient(90deg, #f59e0b, #ec4899); }
+.program-card[data-program="settings"] { --card-accent: linear-gradient(90deg, #00d4ff, #a855f7); }
 
 /* --- Stats Bar --- */
 .stats-bar {
@@ -1285,11 +1317,11 @@ code, pre {
   line-height: 1.7;
 }
 
-/* --- Scroll Animations --- */
+/* --- Scroll reveal animations --- */
 .reveal {
   opacity: 0;
   transform: translateY(30px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  animation: reveal-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .reveal.visible {
@@ -1414,19 +1446,50 @@ code, pre {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(200%); }
 }
-
 .animate-shimmer {
   animation: shimmer 2s ease-in-out infinite;
 }
 
-@keyframes fade-in-up {
+@keyframes reveal-in {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.6); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 

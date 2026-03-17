@@ -16,7 +16,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = Path(os.getenv("TAX_COPILOT_DATA_DIR", BASE_DIR / "data"))
+DATA_DIR = Path(os.getenv("TAX_INFO_BOT_DATA_DIR", BASE_DIR / "data"))
 BATCH_DIR = DATA_DIR / "batches"
 
 DATA_DIR.mkdir(parents=True, exist_ok=True)

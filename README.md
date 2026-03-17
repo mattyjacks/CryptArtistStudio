@@ -166,6 +166,28 @@ CryptArtist Studio is built on the belief that creative tools should be:
 4. **AI-Native** - AI is not bolted on; it is woven into every workflow.
 5. **User-Controlled** - Your API keys, your data, your machine. No cloud dependency.
 
+### Recent Updates (March 2026)
+
+**GameStudio Enhancements:**
+- ✅ Upgraded to **Godot 4.6.1** (latest stable release)
+- ✅ **Custom Godot Path Browser** - Users can now browse and select custom Godot executable paths
+- ✅ **Godot Path Verification** - Backend validates custom paths before use
+- ✅ **Improved Godot Not Found Dialog** - Four options: Download, Browse, Rescan, or Continue
+- ✅ **GPT-5 Mini Default** - All AI code generation now uses GPT-5 Mini for better performance
+
+**VibeCodeWorker Improvements:**
+- ✅ **Shared API Keys** - Now uses centralized API keys from CryptArtist Studio Settings
+- ✅ **Removed Duplicate Configuration** - No need to set API keys per-program
+- ✅ **Better Status Indicators** - Settings panel shows available API keys (OpenAI, OpenRouter, etc.)
+- ✅ **GPT-5 Mini Default** - AI assistant defaults to GPT-5 Mini model
+- ✅ **Cleaner UI** - Simplified settings panel with clear API key status
+
+**System-Wide Updates:**
+- ✅ **GPT-5 Mini as Default AI Model** - All programs now default to `openai/gpt-5-mini`
+- ✅ **Centralized API Key Management** - All programs share keys from Settings
+- ✅ **Production Build Ready** - Latest .exe built and tested (v1.69.420)
+- ✅ **Security Hardening** - 300+ vulnerability fixes across frontend and backend
+
 ---
 
 ## Programs in the Suite
@@ -287,7 +309,8 @@ When Media Mogul saves a `.CryptArt` file, the `data` object contains:
 
 **VibeCodeWorker** is a full-featured vibe-coding IDE built into CryptArtist Studio.
 It is modeled after VS Code and Windsurf, using the MIT-licensed Monaco Editor as its
-code editing engine. Users power the AI with their own API keys.
+code editing engine. VibeCodeWorker now uses shared API keys from CryptArtist Studio Settings,
+eliminating the need for per-program API key configuration.
 
 #### Layout
 
@@ -298,7 +321,15 @@ The VibeCodeWorker window is divided into four main areas:
 | **File Explorer** | Left sidebar (200px) | Tree view of the project directory |
 | **Editor** | Center | Monaco Editor with syntax highlighting, minimap, bracket colorization |
 | **Bottom Panel** | Below editor (200px) | Tabbed panel with 5 sub-panels |
-| **AI Chat** | Right sidebar (300px) | AI assistant with context-aware code help |
+| **AI Chat** | Right sidebar (300px) | AI assistant with context-aware code help (uses GPT-5 Mini by default) |
+
+#### API Key Management
+
+- **Shared API Keys** - VibeCodeWorker uses the same API keys configured in CryptArtist Studio Settings
+- **Supported Providers** - OpenAI, Anthropic, Google, OpenRouter
+- **Default Model** - GPT-5 Mini (openai/gpt-5-mini)
+- **Status Indicators** - Settings panel shows which API keys are available
+- **No Duplication** - Configure once in Settings, use everywhere in the suite
 
 #### Bottom Panel Tabs
 
@@ -379,13 +410,13 @@ The AI chat panel supports multiple providers:
 
 | Provider | Models |
 |---|---|
-| **OpenAI** | gpt-4o, gpt-4-turbo, gpt-3.5-turbo, etc. |
+| **OpenAI** | GPT-5 Mini (default), gpt-4o, gpt-4-turbo, gpt-3.5-turbo, etc. |
 | **Anthropic** | Claude models |
 | **Google** | Gemini models |
 | **Custom** | Any OpenAI-compatible endpoint |
 
 The AI assistant automatically includes the currently open file as context (up to 8,000
-characters) when answering questions.
+characters) when answering questions. All AI features use the shared API keys from Settings.
 
 #### .CryptArt Data Payload (VibeCodeWorker)
 
@@ -396,8 +427,7 @@ characters) when answering questions.
     { "path": "/path/to/file.ts", "name": "file.ts" }
   ],
   "activeFile": "/path/to/file.ts",
-  "aiProvider": "openai",
-  "model": "gpt-4o"
+  "model": "openai/gpt-5-mini"
 }
 ```
 
@@ -497,17 +527,23 @@ this concept directly into CryptArtist Studio.
 ### GameStudio - GSt
 
 **GameStudio** is the newest program in the suite. It combines the capabilities of
-Media Mogul and VibeCodeWorker with Godot Engine integration to enable AI-powered
-game development.
+Media Mogul and VibeCodeWorker with Godot 4.6.1 Engine integration to enable AI-powered
+game development. It features a custom Godot installation finder with file browser support.
 
 #### Features
 
 - **Three-Panel Layout** - Asset editor (Media Mogul), code editor (VibeCodeWorker),
   and Godot Engine side by side in a configurable layout.
-- **Godot Integration** - Automatically detects or downloads the Godot engine.
-  Launch, manage, and interact with Godot projects from within CryptArtist Studio.
+- **Godot 4.6.1 Integration** - Automatically detects Godot 4.6.1 or allows custom path
+  selection via file browser. Launch, manage, and interact with Godot projects from
+  within CryptArtist Studio.
+- **Custom Godot Path Browser** - If Godot is not found on the system, users can:
+  - Download Godot 4.6.1 from the official website
+  - Browse for a custom Godot executable path
+  - Rescan the system for automatic detection
+  - Continue working without Godot (code editing only)
 - **AI Game Generation** - Describe a game concept in natural language and the AI
-  will generate GDScript code, scene files, and asset suggestions.
+  will generate GDScript code, scene files, and asset suggestions using GPT-5 Mini.
 - **Project Templates** - Start from pre-built templates for 2D platformers,
   top-down RPGs, puzzle games, and more.
 - **Asset Pipeline** - Use Media Mogul's AI image generation to create sprites,
@@ -593,11 +629,35 @@ copyrighted or patented content.
 | **Media Focus** | Full-width media editor with code sidebar |
 | **Godot Focus** | Full-width Godot viewport with toolbars |
 
+#### Godot Installation Detection & Management
+
+GameStudio includes a robust Godot installation detection system:
+
+**Automatic Detection:**
+- Scans system PATH for Godot executable
+- Checks common installation directories (Windows, macOS, Linux)
+- Detects Godot version via `--version` command
+- Displays status in terminal and status bar
+
+**Custom Path Selection:**
+- File browser dialog to select custom Godot executable
+- Path validation via `godot_verify_path` backend command
+- Supports .exe, .bin, and .app executables
+- Fallback verification checks file permissions and extension
+
+**Godot Not Found Dialog:**
+When Godot is not detected, users can:
+1. **📥 Download Godot 4.6.1** - Opens official Godot download page
+2. **📁 Browse for Godot .exe** - Opens file browser for custom path selection
+3. **🔄 Rescan System** - Re-runs automatic detection
+4. **Continue Without Godot** - Closes dialog and allows code editing only
+
 #### .CryptArt Data Payload (GameStudio)
 
 ```json
 {
   "godotProjectPath": "/path/to/project.godot",
+  "godotCustomPath": "/custom/path/to/godot.exe",
   "layout": "split",
   "mediaState": { ... },
   "codeState": { ... },

@@ -15,7 +15,7 @@ import DPSLeaderboard from "./programs/donate-personal-seconds/DPSLeaderboard";
 import CloneTool from "./programs/clone-tool/CloneTool";
 import LuckFactory from "./programs/luck-factory/LuckFactory";
 import DictatePic from "./programs/dictate-pic/DictatePic";
-import TaxCopilot from "./programs/tax-copilot/TaxCopilot";
+import TaxInfoBot from "./programs/tax-info-bot/TaxInfoBot";
 import CommandPalette from "./components/CommandPalette";
 import CryptManager from "./components/CryptManager";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -155,7 +155,7 @@ const routeTitles: Record<string, string> = {
   "/clone-tool": "Clone Tool - CryptArtist Studio",
   "/luck-factory": "Luck Factory - CryptArtist Studio",
   "/dictate-pic": "DictatePic - CryptArtist Studio",
-  "/tax-copilot": "Tax Copilot - CryptArtist Studio",
+  "/tax-info-bot": "Tax Info Bot - CryptArtist Studio",
   "/crypt-manager": "Crypt Manager - CryptArtist Studio",
   "/privacy": "Privacy Policy - CryptArtist Studio",
   "/terms": "Terms of Use - CryptArtist Studio",
@@ -293,7 +293,7 @@ export default function App() {
                 <Route path="/clone-tool" element={<CloneTool />} />
                 <Route path="/luck-factory" element={<LuckFactory />} />
                 <Route path="/dictate-pic" element={<DictatePic />} />
-                <Route path="/tax-copilot" element={<TaxCopilot />} />
+                <Route path="/tax-info-bot" element={<TaxInfoBot />} />
                 <Route path="/crypt-manager" element={<CryptManager />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<TermsOfUse />} />

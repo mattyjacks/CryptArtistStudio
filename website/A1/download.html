@@ -14,24 +14,8 @@
 
   <div class="bg-grid" aria-hidden="true"></div>
 
-  <!-- Navigation -->
-  <nav class="nav" role="navigation" aria-label="Main navigation">
-    <div class="nav-inner">
-      <a href="index.html" class="nav-logo" aria-label="CryptArtist Studio Home" style="display: flex; align-items: center; gap: 10px;">
-        <img src="logo_square.png" alt="CryptArtist Logo" style="width: 40px; height: 40px; border-radius: 8px;">
-        <span class="nav-logo-text">CryptArtist</span>
-      </a>
-      <div class="nav-links">
-        <a href="index.html" class="nav-link">Home</a>
-        <a href="programs.html" class="nav-link">Programs</a>
-        <a href="donate-computer.html" class="nav-link">Donate Computer</a>
-        <a href="docs.html" class="nav-link">Docs</a>
-        <a href="contact.html" class="nav-link">Contact</a>
-        <a href="download.html" class="nav-cta">Download Free</a>
-      </div>
-      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">&#9776;</button>
-    </div>
-  </nav>
+  <!-- Header Placeholder - Loaded via JavaScript -->
+  <div id="header-placeholder"></div>
 
   <!-- Page Header -->
   <header class="page-header">
@@ -54,7 +38,7 @@
             Windows 10 or later (64-bit).<br>
             Installer (.msi) or portable (.exe).
           </div>
-          <a href="https://github.com/mattyjacks/CryptArtistStudio/releases" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer" style="width: 100%;">
+          <a href="https://github.com/mattyjacks/CryptArtistStudio/tree/main/download" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer" style="width: 100%;">
             &#x2B07; Download for Windows
           </a>
         </div>
@@ -67,7 +51,7 @@
             macOS 11 (Big Sur) or later.<br>
             Universal binary (Intel + Apple Silicon).
           </div>
-          <a href="https://github.com/mattyjacks/CryptArtistStudio/releases" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer" style="width: 100%;">
+          <a href="https://github.com/mattyjacks/CryptArtistStudio/tree/main/download" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer" style="width: 100%;">
             &#x2B07; Download for macOS
           </a>
         </div>
@@ -80,7 +64,7 @@
             Ubuntu 20.04+, Fedora 36+, Arch.<br>
             AppImage, .deb, or .rpm packages.
           </div>
-          <a href="https://github.com/mattyjacks/CryptArtistStudio/releases" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer" style="width: 100%;">
+          <a href="https://github.com/mattyjacks/CryptArtistStudio/tree/main/download" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer" style="width: 100%;">
             &#x2B07; Download for Linux
           </a>
         </div>
@@ -89,7 +73,7 @@
       <!-- Source Code -->
       <div class="reveal" style="margin-top: 32px; text-align: center;">
         <p class="text-muted" style="margin-bottom: 16px;">
-          Or build from source:
+          Latest builds are always available in the GitHub download folder. For the absolute latest version, build from source:
         </p>
         <a href="https://github.com/mattyjacks/CryptArtistStudio" class="btn btn-secondary" target="_blank" rel="noopener noreferrer">
           &#x2B50; View Source on GitHub
@@ -175,18 +159,37 @@
 $ git clone https://github.com/mattyjacks/CryptArtistStudio.git
 $ cd CryptArtistStudio/v1
 
-<span class="comment"># Install dependencies</span>
+<span class="comment"># Install Node dependencies</span>
 $ npm install
 
-<span class="comment"># Run in development mode</span>
+<span class="comment"># Option 1: Run in development mode (for testing)</span>
 $ npm run tauri dev
 
-<span class="comment"># Build for production</span>
-$ npm run tauri build</pre>
+<span class="comment"># Option 2: Build for production (creates installer)</span>
+$ npm run tauri build
+
+<span class="comment"># The build output will be in:</span>
+<span class="comment"># src-tauri/target/release/bundle/</span></pre>
         </div>
 
         <p class="content-text" style="margin-top: 20px;">
-          The production build creates platform-specific installers in <code>src-tauri/target/release/bundle/</code>.
+          The production build creates platform-specific installers:
+        </p>
+        <ul style="margin-top: 12px; margin-left: 20px; line-height: 1.8;">
+          <li><strong>Windows:</strong> <code>.msi</code> installer in <code>bundle/msi/</code></li>
+          <li><strong>macOS:</strong> <code>.dmg</code> disk image in <code>bundle/macos/</code></li>
+          <li><strong>Linux:</strong> <code>.AppImage</code>, <code>.deb</code>, and <code>.rpm</code> in <code>bundle/appimage/</code>, <code>bundle/deb/</code>, and <code>bundle/rpm/</code></li>
+        </ul>
+
+        <h3 style="font-size: 1.1rem; margin-top: 28px; margin-bottom: 12px;">Platform-Specific Notes</h3>
+        <p class="content-text">
+          <strong>Windows:</strong> Requires Visual Studio Build Tools or Visual Studio Community with C++ workload installed.
+        </p>
+        <p class="content-text">
+          <strong>macOS:</strong> Requires Xcode Command Line Tools. Run <code>xcode-select --install</code> if not already installed.
+        </p>
+        <p class="content-text">
+          <strong>Linux:</strong> Install development headers for your distribution. On Ubuntu/Debian: <code>sudo apt-get install libssl-dev libgtk-3-dev</code>
         </p>
       </div>
     </div>
@@ -283,6 +286,10 @@ $ npm run tauri build</pre>
     </div>
   </footer>
 
+  <!-- Footer Placeholder - Loaded via JavaScript -->
+  <div id="footer-placeholder"></div>
+
+  <script src="components/loader.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

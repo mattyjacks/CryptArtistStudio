@@ -9,7 +9,7 @@ import { useGlobalShortcuts } from "../../utils/keyboard";
 
 export type TaxTab = "upload" | "dashboard" | "verification" | "chat";
 
-const BATCH_ID_STORAGE_KEY = "tax_copilot_batch_id";
+const BATCH_ID_STORAGE_KEY = "tax_info_bot_batch_id";
 
 function getStoredBatchId(): string | null {
     try {
@@ -20,7 +20,7 @@ function getStoredBatchId(): string | null {
     }
 }
 
-export default function TaxCopilot() {
+export default function TaxInfoBot() {
     const navigate = useNavigate();
     useGlobalShortcuts(navigate);
 

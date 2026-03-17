@@ -10,7 +10,7 @@ const INITIAL_ASSISTANT_MESSAGE: { role: 'assistant'; content: string } = {
 
 function loadStoredMessages(batchId: string | null): { role: 'user' | 'assistant'; content: string }[] {
     try {
-        const key = `tax_copilot_chat_${batchId ?? "no_batch"}`;
+        const key = `tax_info_bot_chat_${batchId ?? "no_batch"}`;
         const raw = window.localStorage.getItem(key);
         if (raw) {
             const parsed = JSON.parse(raw) as { role: 'user' | 'assistant'; content: string }[];
@@ -42,7 +42,7 @@ export default function TaxChat({ batchId }: { batchId: string | null }) {
     // Persist whenever messages change (initial state is already from storage, so we don't overwrite on mount)
     useEffect(() => {
         try {
-            const key = `tax_copilot_chat_${batchId ?? "no_batch"}`;
+            const key = `tax_info_bot_chat_${batchId ?? "no_batch"}`;
             window.localStorage.setItem(key, JSON.stringify(messages));
         } catch {
             // ignore
@@ -219,7 +219,7 @@ export default function TaxChat({ batchId }: { batchId: string | null }) {
                     onClick={() => {
                         setMessages([INITIAL_ASSISTANT_MESSAGE]);
                         try {
-                            const key = `tax_copilot_chat_${batchId || "no_batch"}`;
+                            const key = `tax_info_bot_chat_${batchId || "no_batch"}`;
                             window.localStorage.removeItem(key);
                         } catch {
                             // ignore

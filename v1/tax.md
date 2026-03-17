@@ -24,25 +24,25 @@ We will register the new tool in the existing CryptArtist Studio launcher.
 - This will make it appear on the main dashboard alongside Media Mogul and VibeCodeWorker.
 
 #### [MODIFY] src/App.tsx
-- import `TaxCopilot` and add the `<Route path="/tax-copilot" element={<TaxCopilot />} />`.
-- Update the `routeTitles` mapping to handle `/tax-copilot`.
+- import `TaxInfoBot` and add the `<Route path="/tax-info-bot" element={<TaxInfoBot />} />`.
+- Update the `routeTitles` mapping to handle `/tax-info-bot`.
 
 ---
 
 ### 2. Frontend: UI Components
 
-We will create a new directory for the tool: `src/programs/tax-copilot/`.
+We will create a new directory for the tool: `src/programs/tax-info-bot/`.
 
-#### [NEW] src/programs/tax-copilot/TaxCopilot.tsx
+#### [NEW] src/programs/tax-info-bot/TaxInfoBot.tsx
 - The main wrapper layout with sidebar navigation (Tabs: Upload, Dashboard, Verification, Chat).
 
-#### [NEW] src/programs/tax-copilot/TaxBatchUpload.tsx
+#### [NEW] src/programs/tax-info-bot/TaxBatchUpload.tsx
 - A drag-and-drop zone using standard HTML5 file APIs to accept 50+ PDFs/Images and send them to the Python backend in chunks.
 
-#### [NEW] src/programs/tax-copilot/TaxDashboard.tsx
+#### [NEW] src/programs/tax-info-bot/TaxDashboard.tsx
 - A data table view showing extracted transactions, categorized by tax rules (NH/Cavite), and entity type.
 
-#### [NEW] src/programs/tax-copilot/TaxChat.tsx
+#### [NEW] src/programs/tax-info-bot/TaxChat.tsx
 - A conversational interface utilizing the backend's RAG (Retrieval-Augmented Generation) system to chat with uploaded documents.
 
 ---
