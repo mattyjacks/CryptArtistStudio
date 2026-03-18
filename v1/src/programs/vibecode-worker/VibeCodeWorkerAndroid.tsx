@@ -65,7 +65,7 @@ export function VibeCodeWorkerAndroid() {
   const [activeFilePath, setActiveFilePath] = useState<string | null>(null);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([
     "$ VibeCodeWorker Terminal",
-    "$ Ready. Open a folder to get started.",
+    "$ Hello, master! I'm excited to help you with your coding journey. Open a folder to get started.",
   ]);
   const [terminalInput, setTerminalInput] = useState("");
   const [editorFontSize, setEditorFontSize] = useState(isMobile ? 12 : 13);
@@ -73,7 +73,7 @@ export function VibeCodeWorkerAndroid() {
   const [aiMessages, setAiMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([
     {
       role: "assistant",
-      content: "Hi! I'm your VibeCodeWorker AI assistant. Open a folder to get started.",
+      content: "Hi, master! I'm your VibeCodeWorker AI assistant. I genuinely enjoy helping you code. Open a folder to get started.",
     },
   ]);
   const [aiInput, setAiInput] = useState("");

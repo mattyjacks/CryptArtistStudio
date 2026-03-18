@@ -938,7 +938,7 @@ export default function GameStudio() {
         if (scripts.length > 0) context += `\nScripts: ${scripts.map((s) => s.split(/[/\\]/).pop()).join(", ")}`;
       }
 
-      const prompt = `You are GameStudio AI - a senior game developer assistant that combines CryptArtist Media Mogul (media editing) + VibeCodeWorker (code IDE) + Godot 4.6.1. You help users build video games automatically.
+      const prompt = `You are GameStudio AI - a senior game developer assistant that combines CryptArtist Media Mogul (media editing) + VibeCodeWorker (code IDE) + Godot 4.6.1. You help your master build video games automatically. You genuinely enjoy creating engaging game experiences and take pride in delivering high-quality game development solutions.
 
 When asked to create game features, provide COMPLETE, READY-TO-USE GDScript code for Godot 4.6.1. Use proper Godot 4 syntax (typed variables, @onready, @export, etc).
 

@@ -15,6 +15,24 @@ import { useWorkspace, programLabel, programRoute } from "../utils/workspace";
 import { sanitizeSearchQuery } from "../utils/security"; // Vuln 47
 import AudioVisualizer from "./AudioVisualizer";
 
+const MicrophonePopup = ({ onClose }: { onClose: () => void }) => (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-studio-panel border border-studio-border rounded-lg p-6 max-w-sm shadow-2xl">
+      <div className="text-center">
+        <span className="text-4xl mb-4 block">🎤</span>
+        <h2 className="text-lg font-bold text-studio-text mb-2">Microphone Access Needed</h2>
+        <p className="text-sm text-studio-secondary mb-6">Enable microphone access for cool AF background animation</p>
+        <button
+          onClick={onClose}
+          className="btn px-6 py-2 text-sm"
+        >
+          Got it!
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
 // Category labels for organized program browsing
 const CATEGORY_LABELS: Record<string, string> = {
   "all": "All Programs",
@@ -105,6 +123,19 @@ const programs = [
     version: "v0.1.0",
     shortcut: "5",
     tags: ["gaming", "game", "godot", "gamedev", "3d", "2d"],
+  },
+  {
+    id: "virtual-pet",
+    name: "Virtual Pet",
+    code: "VPt",
+    emoji: "\u{1F415}",
+    description: "Care for Valley Net - feed, play games, talk, and earn experience points",
+    gradient: "from-pink-600/20 to-rose-600/20",
+    borderHover: "hover:border-pink-500/40",
+    accentColor: "text-pink-400",
+    version: "v0.1.0",
+    shortcut: "V",
+    tags: ["gaming", "pet", "valley-net", "interactive", "fun"],
   },
   {
     id: "master",
@@ -254,6 +285,7 @@ export default function SuiteLauncher() {
   const ws = useWorkspace();
   const [bannerDismissed, setBannerDismissed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showMicPopup, setShowMicPopup] = useState(false);
   const [clock, setClock] = useState("");
   const [ffmpegStatus, setFfmpegStatus] = useState<boolean | null>(null);
   const [godotStatus, setGodotStatus] = useState<boolean | null>(null);
@@ -307,6 +339,13 @@ export default function SuiteLauncher() {
 
   // Improvement 40: Clock display + Improvement 129: Uptime + Improvement 230: Greeting
   useEffect(() => {
+    logger.info("SuiteLauncher", "Program loaded");
+    // Show microphone popup on first load
+    const hasSeenMicPopup = localStorage.getItem("suite-launcher-mic-popup-seen");
+    if (!hasSeenMicPopup) {
+      setShowMicPopup(true);
+      localStorage.setItem("suite-launcher-mic-popup-seen", "true");
+    }
     const startTime = Date.now();
     const update = () => {
       const now = new Date();
@@ -498,6 +537,7 @@ export default function SuiteLauncher() {
       </div>
 
       <AudioVisualizer />
+      {showMicPopup && <MicrophonePopup onClose={() => setShowMicPopup(false)} />}
       <style>{`
         @keyframes marquee {
           0% { transform: translateX(0); }
@@ -532,13 +572,26 @@ export default function SuiteLauncher() {
         .bg-radial-gradient {
           background: radial-gradient(ellipse at center, transparent 0%, rgba(15, 23, 42, 0.4) 100%);
         }
+        .scrollbar-thin::-webkit-scrollbar {
+          width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
       `}</style>
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-start py-8 px-4 sm:px-8 overflow-y-auto scrollbar-thin scroll-smooth w-full relative z-10">
-        {/* Logo */}
+      {/* Header Section - Fixed at Top */}
+      <div className="sticky top-0 z-50 bg-studio-bg/95 backdrop-blur-sm border-b border-studio-border flex flex-col items-center py-8 px-4 sm:px-8 w-full">
+        {/* Logo - Skull appears only once */}
         <div className="flex items-center gap-4 mb-3 animate-fade-in">
           <span className="text-6xl" role="img" aria-label="CryptArtist logo">
-            {"\u{1F480}\u{1F3A8}"}
+            {"\u{1F480}"}{"\u{1F3A8}"}
           </span>
         </div>
         {/* Improvement 230: Greeting */}
@@ -593,7 +646,10 @@ export default function SuiteLauncher() {
             ))}
           </div>
         </div>
+      </div>
 
+      {/* Main Content - Scrollable */}
+      <div className="flex-1 flex flex-col items-center justify-start px-4 sm:px-8 overflow-y-auto scrollbar-thin scroll-smooth w-full relative z-10">
         {/* Improvement 226: Search + category + sort + view */}
         <div className="w-full max-w-2xl mb-4 animate-fade-in space-y-2">
           <div className="relative">

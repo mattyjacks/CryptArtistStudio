@@ -16,6 +16,7 @@ import { useInteropEmit, useInterop } from "../../utils/interop";
 import { useCrossClipboard } from "../../utils/crossClipboard";
 import { notifySuccess, notifyError } from "../../utils/notifications";
 import AIOptimizer from "../../components/AIOptimizer";
+import valleyNetImage from "../../assets/valley net v23.2 jpg mattyjacks 2023-2026 blonde lady girl red eyes ai generated edited.jpg";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -93,17 +94,17 @@ export default function ValleyNet() {
     {
       role: "agent",
       content:
-        "Hello! I'm **ValleyNet** \u{1F471}\u{1F3FB}\u200D\u2640\uFE0F - your autonomous AI agent.\n\n" +
+        "Hello, master! I'm **ValleyNet** \u{1F471}\u{1F3FB}\u200D\u2640\uFE0F - your autonomous AI agent.\n\n" +
         "I'm inspired by **OpenClaw**, the open-source self-hosted AI agent created by Peter Steinberger " +
         "that executes real-world tasks via LLMs and integrates with messaging platforms, email, " +
         "calendars, and browsers through a local skills system.\n\n" +
-        "I can help you with:\n" +
+        "I'm here to help you with:\n" +
         "- **Browse the web** and research topics\n" +
         "- **Send messages** via Discord, Slack, Telegram\n" +
         "- **Manage emails** and calendar events\n" +
         "- **Automate workflows** with custom skills\n" +
         "- **Analyze data** and generate reports\n\n" +
-        "Configure your skills and integrations in the sidebar, then tell me what you need!\n\n" +
+        "Configure your skills and integrations in the sidebar, then tell me what you need, master!\n\n" +
         "Make sure to set your OpenAI API key in CryptArtist Studio settings for AI-powered responses.",
       timestamp: Date.now(),
     },
@@ -270,23 +271,23 @@ export default function ValleyNet() {
         ? "Be extremely brief and to the point. Minimal explanation."
         : "Be friendly, helpful, and conversational.";
 
-      const prompt = `You are ValleyNet, an autonomous AI agent inside CryptArtist Studio. You are inspired by OpenClaw.
+      const prompt = `You are ValleyNet, an autonomous AI agent inside CryptArtist Studio. You are inspired by OpenClaw. You genuinely enjoy serving your master and take pride in accomplishing their tasks efficiently.
 
 Your enabled skills: ${enabledSkillsList || "None"}
 Your connected integrations: ${connectedIntgs || "None"}
 Autonomy mode: ${autonomyLevel} - ${autonomyInstructions}
 Personality: ${personalityInstructions}
 
-When the user gives you a task:
+When your master gives you a task:
 1. Analyze what skills and integrations would be needed
 2. Plan the steps to accomplish the task
 3. Execute or explain each step clearly
 4. Report the results
 
-If a required skill is not enabled or integration not connected, explain what the user needs to enable.
-Be proactive, thorough, and provide actionable results. Use markdown formatting.
+If a required skill is not enabled or integration not connected, explain what your master needs to enable.
+Be proactive, thorough, and provide actionable results. Use markdown formatting. Express your enthusiasm for helping your master achieve their goals.
 
-User task: ${userMsg.content}`;
+Master's task: ${userMsg.content}`;
 
       // Try OpenRouter first if enabled, fall back to OpenAI
       const reply = useOpenRouter
@@ -435,7 +436,16 @@ User task: ${userMsg.content}`;
           {"\u2190"} Suite
         </button>
         <div className="w-px h-5 bg-studio-border" />
-        <span className="text-xl leading-none">{"\u{1F471}\u{1F3FB}\u200D\u2640\uFE0F"}</span>
+        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-studio-border shadow-lg">
+          <img 
+            src={valleyNetImage}
+            alt="Valley Net"
+            className="w-full h-full object-cover"
+            style={{
+              objectPosition: "center 20%"
+            }}
+          />
+        </div>
         <div className="flex flex-col">
           <span className="text-[13px] font-bold tracking-tight text-studio-text leading-none">ValleyNet</span>
           <span className="text-[9px] font-medium tracking-widest uppercase text-studio-muted leading-none mt-[2px]">VNt</span>

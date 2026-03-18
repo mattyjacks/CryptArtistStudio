@@ -7,6 +7,7 @@ import VibeCodeWorker from "./programs/vibecode-worker/VibeCodeWorker";
 import DemoRecorder from "./programs/demo-recorder/DemoRecorder";
 import ValleyNet from "./programs/valley-net/ValleyNet";
 import GameStudio from "./programs/game-studio/GameStudio";
+import VirtualPet from "./programs/virtual-pet/VirtualPet";
 import Master from "./programs/master/Master";
 import Commander from "./programs/commander/Commander";
 import Settings from "./programs/settings/Settings";
@@ -294,6 +295,7 @@ export default function App() {
                 <Route path="/demo-recorder" element={<DemoRecorder />} />
                 <Route path="/valley-net" element={<ValleyNet />} />
                 <Route path="/game-studio" element={<GameStudio />} />
+                <Route path="/virtual-pet" element={<VirtualPet />} />
                 <Route path="/master" element={<Master />} />
                 <Route path="/commander" element={<Commander />} />
                 <Route path="/settings" element={<Settings />} />

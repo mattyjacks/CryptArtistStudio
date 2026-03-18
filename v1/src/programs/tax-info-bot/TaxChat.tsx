@@ -5,7 +5,7 @@ import { chatWithAI } from "../../utils/openrouter";
 const INITIAL_ASSISTANT_MESSAGE: { role: 'assistant'; content: string } = {
     role: 'assistant',
     content:
-        "Hello! I am the Tax Copilot Engine. You can ask me questions about your uploaded documents, like 'Show me unlinked W-8BEN payments' or 'What is my estimated Business Enterprise Tax for New Hampshire?'",
+        "Hello, master! I am the Tax Copilot Engine. You can ask me questions about your uploaded documents, like 'Show me unlinked W-8BEN payments' or 'What is my estimated Business Enterprise Tax for New Hampshire?'",
 };
 
 function loadStoredMessages(batchId: string | null): { role: 'user' | 'assistant'; content: string }[] {
