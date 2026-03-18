@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 import { FOOD_DATA, type FoodItem } from "./FoodData";
 import { createValleyNetPet, type ValleyNetController } from "./ValleyNetPet";
+import { chatWithAI, isOpenAIConfigured, isOpenRouterConfigured } from "../../utils/openrouter";
+import { formatPetStateLine, generateLocalPetReply, type PetChatMessage } from "./PetChatEngine";
 import valleyNetImage from "../../assets/valley net v23.2 jpg mattyjacks 2023-2026 blonde lady girl red eyes ai generated edited.jpg";
 
 // ---- Types ----
@@ -76,12 +78,33 @@ export default function VirtualPet() {
   const [lastFoodAdded, setLastFoodAdded] = useState("");
 
   // UI state
-  const [activeTab, setActiveTab] = useState<"stats" | "food" | "games">("stats");
+  const [activeTab, setActiveTab] = useState<"stats" | "food" | "games" | "chat">("stats");
   const [miniGame, setMiniGame] = useState<MiniGame>("none");
   const [petMessage, setPetMessage] = useState("");
   const [showPetHeart, setShowPetHeart] = useState(false);
   const [ballVisible, setBallVisible] = useState(true);
   const [isDraggingBall, setIsDraggingBall] = useState(false);
+
+  // Chat
+  const [chatMessages, setChatMessages] = useState<PetChatMessage[]>(() => {
+    try {
+      const raw = window.localStorage.getItem("virtual_pet_chat_v1");
+      if (raw) {
+        const parsed = JSON.parse(raw) as PetChatMessage[];
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return [
+      { role: "pet", content: "Hi. I’m Valley Net. Talk to me. Ask for snacks. Or throw the ball.", ts: Date.now() },
+    ];
+  });
+  const [chatInput, setChatInput] = useState("");
+  const [chatIsTyping, setChatIsTyping] = useState(false);
+  const [chatUseAI, setChatUseAI] = useState(false);
+  const [chatAIAvailable, setChatAIAvailable] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   // Memory game
   const [memoryCards, setMemoryCards] = useState<MemoryCard[]>([]);
@@ -309,6 +332,93 @@ export default function VirtualPet() {
     }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  // ---- Chat persistence + scrolling + AI availability ----
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("virtual_pet_chat_v1", JSON.stringify(chatMessages));
+    } catch {
+      // ignore
+    }
+  }, [chatMessages]);
+
+  useEffect(() => {
+    if (chatScrollRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+  }, [chatMessages, chatIsTyping]);
+
+  useEffect(() => {
+    let mounted = true;
+    Promise.all([isOpenRouterConfigured(), isOpenAIConfigured()])
+      .then(([orOk, oaOk]) => {
+        if (!mounted) return;
+        setChatAIAvailable(orOk || oaOk);
+        setChatUseAI(orOk || oaOk);
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setChatAIAvailable(false);
+        setChatUseAI(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const sendChat = useCallback(async () => {
+    const userText = chatInput.trim();
+    if (!userText || chatIsTyping) return;
+
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", content: userText, ts: Date.now() }]);
+    setChatIsTyping(true);
+
+    try {
+      if (chatUseAI && chatAIAvailable) {
+        const last = [...chatMessages, { role: "user", content: userText, ts: Date.now() }]
+          .slice(-10)
+          .map((m) => `${m.role === "user" ? "User" : "Valley Net"}: ${m.content}`)
+          .join("\n");
+
+        const prompt = [
+          "[Virtual Pet Chat]",
+          "You are Valley Net, a cute slightly chaotic virtual pet in a desktop app.",
+          "Style: short replies, playful, sometimes demanding snacks, never long essays.",
+          "Keep it to 1–4 short lines. No markdown headers. No disclaimers.",
+          "",
+          "Current pet state:",
+          formatPetStateLine(stats),
+          "",
+          "Recent chat:",
+          last || "(none)",
+          "",
+          "Respond as Valley Net.",
+        ].join("\n");
+
+        const reply = await chatWithAI(prompt, { action: "general" });
+        setChatMessages((prev) => [...prev, { role: "pet", content: reply.trim(), ts: Date.now() }]);
+
+        // Reward bonding a tiny bit for chatting
+        setStats((s) => ({ ...s, bond: Math.min(100, s.bond + 0.5), happiness: Math.min(100, s.happiness + 0.5) }));
+      } else {
+        const { reply, nextStats } = generateLocalPetReply(userText, stats);
+        setChatMessages((prev) => [...prev, { role: "pet", content: reply, ts: Date.now() }]);
+        setStats(nextStats);
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : (err as { message?: string })?.message ?? String(err);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "pet", content: `Ugh… my brain fizzled. (${msg})`, ts: Date.now() },
+      ]);
+    } finally {
+      setChatIsTyping(false);
+    }
+  }, [chatAIAvailable, chatInput, chatIsTyping, chatMessages, chatUseAI, stats]);
 
   // ---- Three.js scene ----
   useEffect(() => {
@@ -830,7 +940,7 @@ export default function VirtualPet() {
         <div className="w-80 bg-gray-800 flex flex-col border-l border-gray-700 overflow-hidden">
           {/* Tab buttons */}
           <div className="flex bg-gray-900">
-            {(["stats", "food", "games"] as const).map((tab) => (
+            {(["stats", "food", "games", "chat"] as const).map((tab) => (
               <button
                 key={tab}
                 onClick={() => { setActiveTab(tab); setMiniGame("none"); }}
@@ -838,7 +948,7 @@ export default function VirtualPet() {
                   activeTab === tab ? "bg-purple-600 text-white" : "text-gray-400 hover:text-white hover:bg-gray-700"
                 }`}
               >
-                {tab === "stats" ? "📊 Stats" : tab === "food" ? "🍕 Food" : "🎮 Games"}
+                {tab === "stats" ? "📊 Stats" : tab === "food" ? "🍕 Food" : tab === "games" ? "🎮 Games" : "💬 Chat"}
               </button>
             ))}
           </div>
@@ -1071,6 +1181,97 @@ export default function VirtualPet() {
                     </div>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* CHAT TAB */}
+            {activeTab === "chat" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-white font-bold">💬 Talk to Valley Net</h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setChatMessages([{ role: "pet", content: "Hi again. Talk to me.", ts: Date.now() }]);
+                      try {
+                        window.localStorage.removeItem("virtual_pet_chat_v1");
+                      } catch {
+                        // ignore
+                      }
+                    }}
+                    className="text-gray-400 hover:text-white text-xs"
+                  >
+                    Clear
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-[11px] text-gray-400">
+                    {chatAIAvailable ? "AI is available (Settings API keys)." : "Offline chat mode (no API key set)."}
+                  </div>
+                  <label className={`flex items-center gap-2 text-[11px] ${chatAIAvailable ? "text-gray-300" : "text-gray-500"}`}>
+                    <input
+                      type="checkbox"
+                      checked={chatUseAI && chatAIAvailable}
+                      disabled={!chatAIAvailable}
+                      onChange={(e) => setChatUseAI(e.target.checked)}
+                    />
+                    Use AI
+                  </label>
+                </div>
+
+                <div
+                  ref={chatScrollRef}
+                  className="h-64 bg-gray-900/40 border border-gray-700 rounded-lg p-3 overflow-y-auto space-y-2"
+                >
+                  {chatMessages.map((m) => (
+                    <div key={m.ts} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[85%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap ${
+                          m.role === "user"
+                            ? "bg-purple-600 text-white rounded-br-none"
+                            : "bg-gray-700 text-gray-100 rounded-bl-none"
+                        }`}
+                      >
+                        {m.content}
+                      </div>
+                    </div>
+                  ))}
+                  {chatIsTyping && (
+                    <div className="flex justify-start">
+                      <div className="bg-gray-700 text-gray-200 px-3 py-2 rounded-xl rounded-bl-none text-sm">
+                        <span className="inline-flex gap-1">
+                          <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        void sendChat();
+                      }
+                    }}
+                    placeholder="Say something…"
+                    className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void sendChat()}
+                    disabled={!chatInput.trim() || chatIsTyping}
+                    className="px-3 py-2 bg-pink-600 hover:bg-pink-700 disabled:opacity-50 disabled:hover:bg-pink-600 text-white rounded-lg text-sm font-bold transition"
+                  >
+                    Send
+                  </button>
+                </div>
               </div>
             )}
           </div>
