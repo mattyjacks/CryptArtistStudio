@@ -690,6 +690,53 @@ async fn elevenlabs_speech_to_text(
 }
 
 #[tauri::command]
+async fn elevenlabs_speech_to_text_base64(
+    audio_base64: String,
+    file_ext: Option<String>,
+    model_id: Option<String>,
+    language_code: Option<String>,
+    state: tauri::State<'_, AppState>,
+) -> Result<String, String> {
+    // Decode base64 audio, write to temp file, then reuse the existing STT path.
+    if audio_base64.len() > (MAX_FILE_READ_SIZE as usize) * 2 {
+        return Err("Audio payload too large".to_string());
+    }
+
+    let bytes = base64::engine::general_purpose::STANDARD
+        .decode(audio_base64.trim())
+        .map_err(|e| format!("Invalid base64 audio: {}", e))?;
+
+    if bytes.len() as u64 > MAX_FILE_READ_SIZE {
+        return Err(format!("Audio file too large: {} bytes", bytes.len()));
+    }
+
+    let ext_raw = file_ext.unwrap_or_else(|| "webm".to_string());
+    let ext = ext_raw
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .collect::<String>()
+        .to_lowercase();
+    let safe_ext = if ext.is_empty() { "webm".to_string() } else { ext };
+
+    let tmp = std::env::temp_dir();
+    let id = uuid::Uuid::new_v4().to_string();
+    let path = tmp.join(format!("cryptartist_vp_voice_{}.{}", id, safe_ext));
+    std::fs::write(&path, bytes).map_err(|e| e.to_string())?;
+
+    let out = elevenlabs_speech_to_text(
+        path.to_string_lossy().into_owned(),
+        model_id,
+        language_code,
+        state,
+    )
+    .await;
+
+    // Best-effort cleanup.
+    let _ = std::fs::remove_file(&path);
+    out
+}
+
+#[tauri::command]
 async fn openrouter_chat(
     prompt: String,
     model: String,
@@ -2605,6 +2652,7 @@ fn main() {
             elevenlabs_text_to_speech,
             elevenlabs_generate_sound_effect,
             elevenlabs_speech_to_text,
+            elevenlabs_speech_to_text_base64,
             export_all_api_keys,
             import_all_api_keys,
             get_file_to_open,

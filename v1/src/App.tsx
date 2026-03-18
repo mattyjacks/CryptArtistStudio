@@ -177,6 +177,7 @@ function useDocumentTitle() {
 // ---------------------------------------------------------------------------
 
 const TERMS_ACCEPTED_KEY = "cryptartist_terms_accepted";
+const MIC_PERMISSION_PROMPTED_KEY = "cryptartist_mic_permission_prompted_v1";
 
 export default function App() {
   const [termsAccepted, setTermsAccepted] = useState<boolean | null>(null);
@@ -260,6 +261,46 @@ export default function App() {
     const cleanup = listenForFileOpen(navigate);
     return () => { cleanup.then((fn) => fn()); };
   }, [termsAccepted, navigate]);
+
+  // Ask for microphone permission on startup (once).
+  useEffect(() => {
+    if (!termsAccepted) return;
+    try {
+      if (localStorage.getItem(MIC_PERMISSION_PROMPTED_KEY) === "true") return;
+      localStorage.setItem(MIC_PERMISSION_PROMPTED_KEY, "true");
+    } catch {
+      // If storage is blocked, still attempt once per session.
+    }
+
+    let cancelled = false;
+    const requestMic = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) return;
+      try {
+        const stream = await Promise.race([
+          navigator.mediaDevices.getUserMedia({ audio: true }),
+          new Promise<MediaStream>((_, reject) =>
+            setTimeout(() => reject(new Error("Microphone permission request timed out.")), 8000)
+          ),
+        ]);
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        // Immediately release the mic; we only want the OS prompt at startup.
+        stream.getTracks().forEach((t) => t.stop());
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error ? err.message : typeof err === "string" ? err : String(err);
+        // Keep it low-noise; user can retry via Virtual Pet mic button.
+        logger.warn("App", `Microphone permission not granted: ${msg}`);
+      }
+    };
+
+    void requestMic();
+    return () => {
+      cancelled = true;
+    };
+  }, [termsAccepted]);
 
   const handleAcceptTerms = () => {
     localStorage.setItem(TERMS_ACCEPTED_KEY, "true");

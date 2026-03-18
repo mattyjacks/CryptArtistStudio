@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
+import { invoke } from "@tauri-apps/api/core";
 import { FOOD_DATA, type FoodItem } from "./FoodData";
 import { createValleyNetPet, type ValleyNetController } from "./ValleyNetPet";
 import { chatWithAI, isOpenAIConfigured, isOpenRouterConfigured } from "../../utils/openrouter";
@@ -105,6 +106,20 @@ export default function VirtualPet() {
   const [chatUseAI, setChatUseAI] = useState(false);
   const [chatAIAvailable, setChatAIAvailable] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const [chatIsListening, setChatIsListening] = useState(false);
+  const [chatAutoSendVoice, setChatAutoSendVoice] = useState(true);
+  const speechRecRef = useRef<SpeechRecognition | null>(null);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [speechLastError, setSpeechLastError] = useState<string>("");
+  const sendChatRef = useRef<(() => void) | null>(null);
+  const chatAutoSendVoiceRef = useRef(true);
+  const [voiceMode, setVoiceMode] = useState<"stt" | "speech">(() => {
+    const wAny = window as unknown as { __TAURI__?: unknown };
+    return wAny.__TAURI__ ? "stt" : "speech";
+  });
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recorderChunksRef = useRef<Blob[]>([]);
 
   // Memory game
   const [memoryCards, setMemoryCards] = useState<MemoryCard[]>([]);
@@ -335,6 +350,78 @@ export default function VirtualPet() {
 
   // ---- Chat persistence + scrolling + AI availability ----
   useEffect(() => {
+    chatAutoSendVoiceRef.current = chatAutoSendVoice;
+  }, [chatAutoSendVoice]);
+
+  useEffect(() => {
+    // Web Speech API support varies by engine (Safari/Chromium). Tauri uses a WebView.
+    const w = window as unknown as {
+      SpeechRecognition?: typeof SpeechRecognition;
+      webkitSpeechRecognition?: typeof SpeechRecognition;
+    };
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
+    setSpeechSupported(!!SR);
+    if (!SR) return () => {};
+
+    const rec = new SR();
+    rec.continuous = false;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+
+    rec.onresult = (event: SpeechRecognitionEvent) => {
+      let finalText = "";
+      let interimText = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const res = event.results[i];
+        const txt = (res[0]?.transcript || "").trim();
+        if (!txt) continue;
+        if (res.isFinal) finalText += (finalText ? " " : "") + txt;
+        else interimText += (interimText ? " " : "") + txt;
+      }
+      const combined = `${finalText}${finalText && interimText ? " " : ""}${interimText}`.trim();
+      if (combined) setChatInput(combined);
+    };
+
+    rec.onend = () => {
+      setChatIsListening(false);
+      if (chatAutoSendVoiceRef.current) {
+        // Send whatever is currently in the input (final or interim).
+        setTimeout(() => sendChatRef.current?.(), 0);
+      }
+    };
+
+    rec.onerror = (e: SpeechRecognitionErrorEvent) => {
+      setChatIsListening(false);
+      const errText = (e?.error || e?.message || "speech_error").toString();
+      setSpeechLastError(errText);
+      if (errText === "service-not-allowed") {
+        setVoiceMode("stt");
+      }
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: "pet",
+          content: `Mic failed: ${errText}. If you allowed mic already, try Settings → Privacy & Permissions → Request/Test Mic, then relaunch.`,
+          ts: Date.now(),
+        },
+      ]);
+    };
+
+    speechRecRef.current = rec;
+    return () => {
+      try {
+        rec.onresult = null;
+        rec.onend = null;
+        rec.onerror = null;
+        rec.stop();
+      } catch {
+        // ignore
+      }
+      speechRecRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
     try {
       window.localStorage.setItem("virtual_pet_chat_v1", JSON.stringify(chatMessages));
     } catch {
@@ -363,6 +450,190 @@ export default function VirtualPet() {
       mounted = false;
     };
   }, []);
+
+  const sendChatWithText = useCallback(async (text: string) => {
+    const userText = text.trim();
+    if (!userText || chatIsTyping) return;
+
+    setChatMessages((prev) => [...prev, { role: "user", content: userText, ts: Date.now() }]);
+    setChatIsTyping(true);
+
+    try {
+      if (chatUseAI && chatAIAvailable) {
+        const last = [...chatMessages, { role: "user", content: userText, ts: Date.now() }]
+          .slice(-10)
+          .map((m) => `${m.role === "user" ? "User" : "Valley Net"}: ${m.content}`)
+          .join("\n");
+
+        const prompt = [
+          "[Virtual Pet Chat]",
+          "You are Valley Net, a cute slightly chaotic virtual pet in a desktop app.",
+          "Style: short replies, playful, sometimes demanding snacks, never long essays.",
+          "Keep it to 1–4 short lines. No markdown headers. No disclaimers.",
+          "",
+          "Current pet state:",
+          formatPetStateLine(stats),
+          "",
+          "Recent chat:",
+          last || "(none)",
+          "",
+          "Respond as Valley Net.",
+        ].join("\n");
+
+        const reply = await chatWithAI(prompt, { action: "general" });
+        setChatMessages((prev) => [...prev, { role: "pet", content: reply.trim(), ts: Date.now() }]);
+        setStats((s) => ({ ...s, bond: Math.min(100, s.bond + 0.5), happiness: Math.min(100, s.happiness + 0.5) }));
+      } else {
+        const { reply, nextStats } = generateLocalPetReply(userText, stats);
+        setChatMessages((prev) => [...prev, { role: "pet", content: reply, ts: Date.now() }]);
+        setStats(nextStats);
+      }
+    } catch (err: unknown) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === "string"
+            ? err
+            : (err as { message?: string })?.message ?? String(err);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "pet", content: `Ugh… my brain fizzled. (${msg})`, ts: Date.now() },
+      ]);
+    } finally {
+      setChatIsTyping(false);
+    }
+  }, [chatAIAvailable, chatIsTyping, chatMessages, chatUseAI, stats]);
+
+  const toggleVoice = useCallback(() => {
+    const runSpeechRecognition = async () => {
+      const rec = speechRecRef.current;
+      if (!rec || !speechSupported) {
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            role: "pet",
+            content: "Speech recognition isn’t available here. I can still do voice via STT if you configure ElevenLabs in Settings.",
+            ts: Date.now(),
+          },
+        ]);
+        setVoiceMode("stt");
+        return;
+      }
+
+      if (chatIsListening) {
+        try {
+          rec.stop();
+        } catch {
+          // ignore
+        }
+        setChatIsListening(false);
+        return;
+      }
+
+      try {
+        setSpeechLastError("");
+        setChatInput("");
+        if (navigator.mediaDevices?.getUserMedia) {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach((t) => t.stop());
+        }
+        setChatIsListening(true);
+        rec.start();
+      } catch (err: unknown) {
+        setChatIsListening(false);
+        const msg = err instanceof Error ? err.message : typeof err === "string" ? err : String(err);
+        setSpeechLastError(msg);
+        setChatMessages((prev) => [...prev, { role: "pet", content: `Mic failed to start: ${msg}`, ts: Date.now() }]);
+      }
+    };
+
+    const runSttRecording = async () => {
+      if (chatIsListening) {
+        try {
+          recorderRef.current?.stop();
+        } catch {
+          // ignore
+        }
+        return;
+      }
+
+      try {
+        setSpeechLastError("");
+        recorderChunksRef.current = [];
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        micStreamRef.current = stream;
+
+        const preferredTypes = ["audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus", "audio/ogg"];
+        const mimeType = preferredTypes.find((t) => MediaRecorder.isTypeSupported(t)) || "";
+        const rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        recorderRef.current = rec;
+
+        rec.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) recorderChunksRef.current.push(e.data);
+        };
+
+        rec.onstop = async () => {
+          setChatIsListening(false);
+          try {
+            micStreamRef.current?.getTracks().forEach((t) => t.stop());
+          } catch {
+            // ignore
+          }
+          micStreamRef.current = null;
+
+          const blob = new Blob(recorderChunksRef.current, { type: mimeType || "audio/webm" });
+          recorderChunksRef.current = [];
+
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error("Failed to read audio"));
+            reader.onload = () => {
+              const result = String(reader.result || "");
+              const idx = result.indexOf("base64,");
+              resolve(idx >= 0 ? result.slice(idx + "base64,".length) : result);
+            };
+            reader.readAsDataURL(blob);
+          });
+
+          const ext = mimeType.includes("ogg") ? "ogg" : "webm";
+          const text = await invoke<string>("elevenlabs_speech_to_text_base64", {
+            audioBase64: base64,
+            fileExt: ext,
+            modelId: "scribe_v1",
+            languageCode: null,
+          });
+
+          if (chatAutoSendVoiceRef.current) {
+            await sendChatWithText(text);
+            setChatInput("");
+          } else {
+            setChatInput(text);
+          }
+        };
+
+        setChatIsListening(true);
+        rec.start();
+      } catch (err: unknown) {
+        setChatIsListening(false);
+        try {
+          micStreamRef.current?.getTracks().forEach((t) => t.stop());
+        } catch {
+          // ignore
+        }
+        micStreamRef.current = null;
+        const msg = err instanceof Error ? err.message : typeof err === "string" ? err : String(err);
+        setSpeechLastError(msg);
+        setChatMessages((prev) => [
+          ...prev,
+          { role: "pet", content: `Voice STT failed: ${msg}`, ts: Date.now() },
+          { role: "pet", content: "If this says no ElevenLabs key, set it in Settings → API Keys (ElevenLabs).", ts: Date.now() + 1 },
+        ]);
+      }
+    };
+
+    if (voiceMode === "stt") void runSttRecording();
+    else void runSpeechRecognition();
+  }, [chatIsListening, sendChatWithText, speechSupported, voiceMode]);
 
   const sendChat = useCallback(async () => {
     const userText = chatInput.trim();
@@ -419,6 +690,11 @@ export default function VirtualPet() {
       setChatIsTyping(false);
     }
   }, [chatAIAvailable, chatInput, chatIsTyping, chatMessages, chatUseAI, stats]);
+
+  useEffect(() => {
+    // Keep a stable ref for speech callbacks.
+    sendChatRef.current = () => void sendChat();
+  }, [sendChat]);
 
   // ---- Three.js scene ----
   useEffect(() => {
@@ -867,9 +1143,9 @@ export default function VirtualPet() {
   const xpNeeded = stats.level * 50;
 
   return (
-    <div className="w-full h-screen bg-gray-900 flex flex-col overflow-hidden">
+    <div className="w-full h-full bg-gray-900 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-900 via-pink-900 to-red-900 text-white px-4 py-3 flex justify-between items-center shadow-lg z-20">
+      <div className="sticky top-0 left-0 right-0 bg-gradient-to-r from-purple-900 via-pink-900 to-red-900 text-white px-4 py-3 flex justify-between items-center shadow-lg z-30">
         <div className="flex items-center gap-3">
           <img src={valleyNetImage} alt="Valley Net" className="w-10 h-10 rounded-full border-2 border-pink-400 object-cover" />
           <div>
@@ -890,9 +1166,9 @@ export default function VirtualPet() {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden min-h-0">
         {/* 3D View */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-w-0">
           <canvas ref={canvasRef} className="w-full h-full block" />
 
           {/* Pet heart animation */}
@@ -937,7 +1213,7 @@ export default function VirtualPet() {
         </div>
 
         {/* Side panel */}
-        <div className="w-80 bg-gray-800 flex flex-col border-l border-gray-700 overflow-hidden">
+        <div className="w-80 bg-gray-800 flex flex-col border-l border-gray-700 overflow-hidden shrink-0">
           {/* Tab buttons */}
           <div className="flex bg-gray-900">
             {(["stats", "food", "games", "chat"] as const).map((tab) => (
@@ -1220,6 +1496,30 @@ export default function VirtualPet() {
                   </label>
                 </div>
 
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-[11px] text-gray-400">
+                    {voiceMode === "stt"
+                      ? "Voice mode: STT (record + transcribe)."
+                      : speechSupported
+                        ? "Voice mode: Live speech recognition."
+                        : "Voice input not supported in this WebView."}
+                  </div>
+                  <label className={`flex items-center gap-2 text-[11px] ${speechSupported ? "text-gray-300" : "text-gray-500"}`}>
+                    <input
+                      type="checkbox"
+                      checked={chatAutoSendVoice}
+                      disabled={false}
+                      onChange={(e) => setChatAutoSendVoice(e.target.checked)}
+                    />
+                    Auto-send
+                  </label>
+                </div>
+                {!!speechLastError && (
+                  <div className="text-[11px] text-red-300 bg-red-900/30 border border-red-700 rounded-lg p-2">
+                    Last voice error: <span className="font-semibold">{speechLastError}</span>
+                  </div>
+                )}
+
                 <div
                   ref={chatScrollRef}
                   className="h-64 bg-gray-900/40 border border-gray-700 rounded-lg p-3 overflow-y-auto space-y-2"
@@ -1263,6 +1563,21 @@ export default function VirtualPet() {
                     placeholder="Say something…"
                     className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+                  <button
+                    type="button"
+                    onClick={toggleVoice}
+                    disabled={!speechSupported}
+                    className={`px-3 py-2 rounded-lg text-sm font-bold transition border ${
+                      !speechSupported
+                        ? "bg-gray-700 text-gray-400 border-gray-600 opacity-50 cursor-not-allowed"
+                        : chatIsListening
+                          ? "bg-red-600 hover:bg-red-700 text-white border-red-400 animate-pulse"
+                          : "bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                    }`}
+                    title={speechSupported ? (chatIsListening ? "Stop listening" : "Start voice input") : "Speech recognition not available"}
+                  >
+                    {chatIsListening ? "🎙️…" : "🎙️"}
+                  </button>
                   <button
                     type="button"
                     onClick={() => void sendChat()}

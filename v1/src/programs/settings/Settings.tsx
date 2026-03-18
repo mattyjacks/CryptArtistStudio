@@ -143,7 +143,7 @@ const OPENROUTER_MODELS = [
 // Settings Sections
 // ---------------------------------------------------------------------------
 
-type SettingsSection = "api-keys" | "openrouter" | "appearance" | "themes" | "plugins" | "mods" | "shortcuts" | "data" | "about";
+type SettingsSection = "api-keys" | "openrouter" | "appearance" | "themes" | "plugins" | "mods" | "shortcuts" | "privacy" | "data" | "about";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -189,6 +189,11 @@ export default function Settings() {
   const [accentColor, setAccentColor] = useState(() => safeGetRaw("cryptartist_accent", "cyan"));
   const [fontFamily, setFontFamily] = useState(() => safeGetRaw("cryptartist_font_family", "JetBrains Mono"));
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => safeGetRaw("cryptartist_notifications") !== "false");
+
+  // Privacy / Permissions (Mic)
+  const [micStatus, setMicStatus] = useState<"unknown" | "granted" | "denied" | "prompt" | "unsupported" | "error">("unknown");
+  const [micDetails, setMicDetails] = useState<string>("");
+  const [micTesting, setMicTesting] = useState(false);
 
   // Improvement 305: Data management
   const [storageUsage, setStorageUsage] = useState(0);
@@ -316,6 +321,7 @@ export default function Settings() {
     { id: "plugins", label: "Plugins", icon: "\u{1F9E9}" },
     { id: "mods", label: "Mods", icon: "\u{1F680}" },
     { id: "shortcuts", label: "Shortcuts", icon: "\u2328\uFE0F" },
+    { id: "privacy", label: "Privacy & Permissions", icon: "\u{1F512}" },
     { id: "data", label: "Data & Storage", icon: "\u{1F4BE}" },
     { id: "about", label: "About", icon: "\u{2139}\uFE0F" },
   ];
@@ -615,6 +621,122 @@ export default function Settings() {
                       <span className="text-[8px] text-studio-muted">{opt.label}</span>
                     </button>
                   ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy & Permissions */}
+          {activeSection === "privacy" && (
+            <div className="max-w-2xl">
+              <h2 className="text-lg font-bold mb-1">{"\u{1F512}"} Privacy & Permissions</h2>
+              <p className="text-[11px] text-studio-muted mb-6">
+                Manage device permissions used by CryptArtist Studio programs (Virtual Pet voice chat, DemoRecorder, media capture).
+              </p>
+
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[12px] font-semibold text-studio-text mb-1">{"\u{1F3A4}"} Microphone</div>
+                    <div className="text-[10px] text-studio-muted">
+                      Used for voice input and audio tools. Click the button to trigger the OS permission prompt and run a quick test.
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-cyan text-[10px] px-4 py-1.5"
+                    disabled={micTesting}
+                    onClick={async () => {
+                      setMicTesting(true);
+                      setMicDetails("");
+                      try {
+                        if (!navigator.mediaDevices?.getUserMedia) {
+                          setMicStatus("unsupported");
+                          setMicDetails("This environment does not support microphone access (no getUserMedia).");
+                          return;
+                        }
+
+                        // Best-effort preflight: permissions API may not exist in WebView.
+                        try {
+                          const navAny = navigator as unknown as { permissions?: { query?: (desc: { name: string }) => Promise<{ state?: string }> } };
+                          const perm = await navAny.permissions?.query?.({ name: "microphone" });
+                          const state = perm?.state as string | undefined;
+                          if (state === "granted") setMicStatus("granted");
+                          else if (state === "denied") setMicStatus("denied");
+                          else if (state === "prompt") setMicStatus("prompt");
+                        } catch {
+                          // ignore
+                        }
+
+                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        stream.getTracks().forEach((t) => t.stop());
+
+                        setMicStatus("granted");
+
+                        // Enumerate devices to confirm audio input visibility (labels appear after permission).
+                        try {
+                          const devices = await navigator.mediaDevices.enumerateDevices();
+                          const mics = devices.filter((d) => d.kind === "audioinput");
+                          setMicDetails(
+                            mics.length
+                              ? `Detected ${mics.length} microphone device(s): ${mics.map((m) => m.label || "(unnamed)").slice(0, 4).join(", ")}`
+                              : "No audio input devices detected."
+                          );
+                        } catch {
+                          setMicDetails("Microphone access granted.");
+                        }
+
+                        toast.success("Microphone access granted!");
+                      } catch (err) {
+                        const msg = err instanceof Error ? err.message : String(err);
+                        const lowered = msg.toLowerCase();
+                        if (lowered.includes("denied") || lowered.includes("permission")) setMicStatus("denied");
+                        else setMicStatus("error");
+                        setMicDetails(msg);
+                        toast.error(`Microphone test failed: ${msg}`);
+                      } finally {
+                        setMicTesting(false);
+                      }
+                    }}
+                  >
+                    {micTesting ? "Testing..." : "\u{1F50A} Request / Test Mic"}
+                  </button>
+                </div>
+
+                <div className="mt-3 text-[10px]">
+                  <div className="text-studio-muted">
+                    Status:{" "}
+                    <span className="text-studio-text font-semibold">
+                      {micStatus === "unknown"
+                        ? "Unknown"
+                        : micStatus === "granted"
+                          ? "Granted"
+                          : micStatus === "denied"
+                            ? "Denied"
+                            : micStatus === "prompt"
+                              ? "Prompt"
+                              : micStatus === "unsupported"
+                                ? "Unsupported"
+                                : "Error"}
+                    </span>
+                  </div>
+                  {micDetails && (
+                    <div className="mt-1 p-2 rounded bg-studio-bg border border-studio-border text-studio-text break-words">
+                      {micDetails}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-3 text-[10px] text-studio-muted">
+                  If voice chat still doesn’t work after granting mic access:
+                  <ul className="list-disc list-outside ml-4 mt-1 space-y-1">
+                    <li>
+                      macOS: System Settings → Privacy & Security → Microphone → enable “CryptArtist Studio”.
+                    </li>
+                    <li>
+                      Quit and relaunch the app after changing the permission.
+                    </li>
+                  </ul>
                 </div>
               </div>
             </div>
