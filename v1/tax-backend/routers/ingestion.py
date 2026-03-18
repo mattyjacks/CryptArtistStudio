@@ -137,6 +137,7 @@ async def get_dashboard(batch_id: Optional[str] = Query(None)):
                 analysis_path = BATCH_DIR / index["batch_id"] / f"{name}.analysis.json"
                 vendor_label = name
                 entity = "Individual"
+                amount = 0.0
                 method = "Unknown"
                 rules_label = "Pending extraction"
                 linked = "Pending"
@@ -151,6 +152,15 @@ async def get_dashboard(batch_id: Optional[str] = Query(None)):
                             vendor_label = f"W‑8BEN — {holder}"
                             rules_label = "Form W‑8BEN parsed"
                             linked = "Self"
+                        elif meta.get("doc_type") == "bank_statement":
+                            stmt = meta.get("statement") or {}
+                            holder = stmt.get("account_holder") or name
+                            vendor_label = f"Statement — {holder}"
+                            rules_label = "Statement parsed"
+                            linked = "N/A"
+                            method = "Bank Statement"
+                            if isinstance(stmt.get("deposits_total"), (int, float)):
+                                amount = float(stmt.get("deposits_total"))
                     except Exception:
                         pass
 
@@ -160,7 +170,7 @@ async def get_dashboard(batch_id: Optional[str] = Query(None)):
                         "date": date,
                         "vendor": vendor_label,
                         "entity": entity,
-                        "amount": 0.0,
+                        "amount": amount,
                         "method": method,
                         "linkedW8": linked,
                         "rules": rules_label,
@@ -220,6 +230,61 @@ async def delete_batch_file(batch_id: str, filename: str):
         json.dump(index, f, indent=2)
 
     return {"message": f"Deleted {filename}", "batch_id": batch_id, "files_remaining": len(new_files)}
+
+
+@router.get("/batch/{batch_id}/files/{filename}/analysis")
+async def get_file_analysis(batch_id: str, filename: str):
+    if not _safe_filename(filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    batch_path = BATCH_DIR / batch_id
+    index_path = batch_path / "index.json"
+    if not batch_path.exists() or not index_path.exists():
+        raise HTTPException(status_code=404, detail="Batch not found")
+    analysis_path = batch_path / f"{filename}.analysis.json"
+    if not analysis_path.exists():
+        raise HTTPException(status_code=404, detail="Analysis not found")
+    try:
+        with analysis_path.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read analysis: {e}")
+
+
+@router.post("/batch/{batch_id}/files/{filename}/reprocess")
+async def reprocess_file(batch_id: str, filename: str, background_tasks: BackgroundTasks):
+    if not _safe_filename(filename):
+        raise HTTPException(status_code=400, detail="Invalid filename")
+    batch_path = BATCH_DIR / batch_id
+    index_path = batch_path / "index.json"
+    if not batch_path.exists() or not index_path.exists():
+        raise HTTPException(status_code=404, detail="Batch not found")
+    file_path = batch_path / filename
+    if not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found in batch")
+
+    try:
+        with index_path.open("r", encoding="utf-8") as f:
+            index = json.load(f)
+        files = index.get("files", [])
+        found = False
+        for rec in files:
+            if rec.get("filename") == filename:
+                rec["status"] = "processing"
+                found = True
+                break
+        if not found:
+            raise HTTPException(status_code=404, detail="File not found in batch index")
+        index["files"] = files
+        with index_path.open("w", encoding="utf-8") as f:
+            json.dump(index, f, indent=2)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update batch index: {e}")
+
+    background_tasks.add_task(process_document_task, batch_id, filename)
+    return {"message": f"Reprocessing {filename}", "batch_id": batch_id, "filename": filename}
 
 
 class TaxRulesRequest(BaseModel):
