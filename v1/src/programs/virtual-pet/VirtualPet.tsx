@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 import { FOOD_DATA, type FoodItem } from "./FoodData";
+import { createValleyNetPet, type ValleyNetController } from "./ValleyNetPet";
 import valleyNetImage from "../../assets/valley net v23.2 jpg mattyjacks 2023-2026 blonde lady girl red eyes ai generated edited.jpg";
 
 // ---- Types ----
@@ -43,9 +44,10 @@ const ROOM_W = 16;
 const ROOM_D = 12;
 const ROOM_H = 6;
 const WANDER_SPEED = 0.02;
-const BALL_FRICTION = 0.97;
+const BALL_FRICTION = 0.93;
 const BALL_RADIUS = 0.25;
 const PET_RADIUS = 0.6;
+const GRAVITY = 0.025;
 
 const QUIZ_QUESTIONS: QuizQuestion[] = [
   { question: "What is Valley Net's favorite color?", answers: ["Red", "Blue", "Pink", "Green"], correct: 0 },
@@ -79,6 +81,7 @@ export default function VirtualPet() {
   const [petMessage, setPetMessage] = useState("");
   const [showPetHeart, setShowPetHeart] = useState(false);
   const [ballVisible, setBallVisible] = useState(true);
+  const [isDraggingBall, setIsDraggingBall] = useState(false);
 
   // Memory game
   const [memoryCards, setMemoryCards] = useState<MemoryCard[]>([]);
@@ -98,8 +101,10 @@ export default function VirtualPet() {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const petMeshRef = useRef<THREE.Group | null>(null);
+  const petControllerRef = useRef<ValleyNetController | null>(null);
   const ballMeshRef = useRef<THREE.Mesh | null>(null);
   const animIdRef = useRef<number>(0);
+  const tailDraggingRef = useRef(false);
 
   // Pet movement state (refs so animation loop reads latest)
   const petPosRef = useRef(new THREE.Vector3(0, 0, 0));
@@ -112,10 +117,15 @@ export default function VirtualPet() {
   const ballThrownRef = useRef(false);
   const petChasingBallRef = useRef(false);
   const petHasBallRef = useRef(false);
+  const ballDraggingRef = useRef(false);
+  const ballDragStartRef = useRef(new THREE.Vector3());
+  const ballDragLastRef = useRef(new THREE.Vector3());
 
   // Raycaster for clicking
   const raycasterRef = useRef(new THREE.Raycaster());
   const mouseRef = useRef(new THREE.Vector2());
+  const mouseWorldRef = useRef(new THREE.Vector3());
+  const dragPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), BALL_RADIUS));
 
   // ---- Helpers ----
   const getFoodData = (foodId: string): FoodItem | undefined => FOOD_DATA.find((f) => f.id === foodId);
@@ -409,47 +419,16 @@ export default function VirtualPet() {
     lampLight.position.set(5.5, 2.5, 4);
     scene.add(lampLight);
 
-    // Pet
-    const petGroup = new THREE.Group();
-    petMeshRef.current = petGroup;
-    scene.add(petGroup);
+    // Collect collision bodies (walls, furniture) for pet collision detection
+    const collisionBodies: THREE.Mesh[] = [backWall, leftWall, rightWall];
 
-    // Pet body (sphere)
-    const bodyGeo = new THREE.SphereGeometry(PET_RADIUS, 32, 32);
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0xffa500, roughness: 0.5 });
-    const body = new THREE.Mesh(bodyGeo, bodyMat);
-    body.castShadow = true;
-    body.position.y = PET_RADIUS;
-    petGroup.add(body);
-
-    // Pet face plane with Valley Net image
-    const loader = new THREE.TextureLoader();
-    loader.load(valleyNetImage, (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      const faceGeo = new THREE.PlaneGeometry(0.8, 0.8);
-      const faceMat = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
-      const face = new THREE.Mesh(faceGeo, faceMat);
-      face.position.set(0, PET_RADIUS + 0.1, PET_RADIUS * 0.6);
-      petGroup.add(face);
-    });
-
-    // Pet ears
-    const earGeo = new THREE.ConeGeometry(0.15, 0.3, 8);
-    const earMat = new THREE.MeshStandardMaterial({ color: 0xff8800 });
-    const leftEar = new THREE.Mesh(earGeo, earMat);
-    leftEar.position.set(-0.3, PET_RADIUS * 2 + 0.1, 0);
-    petGroup.add(leftEar);
-    const rightEar = new THREE.Mesh(earGeo, earMat);
-    rightEar.position.set(0.3, PET_RADIUS * 2 + 0.1, 0);
-    petGroup.add(rightEar);
-
-    // Pet shadow
-    const shadowGeo = new THREE.CircleGeometry(0.5, 32);
-    const shadowMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25 });
-    const shadow = new THREE.Mesh(shadowGeo, shadowMat);
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.01;
-    petGroup.add(shadow);
+    // Pet - created by separate ValleyNetPet module
+    const petController = createValleyNetPet(scene, valleyNetImage);
+    petControllerRef.current = petController;
+    petMeshRef.current = petController.group;
+    
+    // Set collision bodies for tail and body collision
+    petController.setCollisionBodies(collisionBodies);
 
     // Ball
     const ballGeo = new THREE.SphereGeometry(BALL_RADIUS, 16, 16);
@@ -460,49 +439,134 @@ export default function VirtualPet() {
     ballMeshRef.current = ball;
     scene.add(ball);
 
-    // Pet name label
-    const labelCanvas = document.createElement("canvas");
-    labelCanvas.width = 256;
-    labelCanvas.height = 64;
-    const ctx = labelCanvas.getContext("2d")!;
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.roundRect(0, 0, 256, 64, 12);
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 28px Arial";
-    ctx.textAlign = "center";
-    ctx.fillText("Valley Net", 128, 42);
-    const labelTex = new THREE.CanvasTexture(labelCanvas);
-    const labelGeo = new THREE.PlaneGeometry(1.5, 0.4);
-    const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
-    const label = new THREE.Mesh(labelGeo, labelMat);
-    label.position.y = PET_RADIUS * 2 + 0.6;
-    petGroup.add(label);
+    // Helper: get mouse world position on drag plane
+    const getMouseWorld = (e: MouseEvent): THREE.Vector3 | null => {
+      if (!canvasRef.current || !cameraRef.current) return null;
+      const rect = canvasRef.current.getBoundingClientRect();
+      mouseRef.current.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouseRef.current.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycasterRef.current.setFromCamera(mouseRef.current, cameraRef.current);
+      const hit = new THREE.Vector3();
+      raycasterRef.current.ray.intersectPlane(dragPlaneRef.current, hit);
+      return hit;
+    };
 
-    // Click handler
-    const onClick = (e: MouseEvent) => {
-      if (!canvasRef.current || !cameraRef.current || !petMeshRef.current) return;
+    // Mouse down handler - start ball drag or tail drag
+    const onMouseDown = (e: MouseEvent) => {
+      if (!canvasRef.current || !cameraRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
       mouseRef.current.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouseRef.current.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycasterRef.current.setFromCamera(mouseRef.current, cameraRef.current);
 
-      // Check pet click
-      const petIntersects = raycasterRef.current.intersectObjects(petMeshRef.current.children, true);
-      if (petIntersects.length > 0) {
-        petThePet();
-        return;
+      // Check tail click first (tail meshes + tip are in scene, not in group)
+      if (petControllerRef.current) {
+        const tailObjects = [...petControllerRef.current.tailMeshes, petControllerRef.current.tailTipMesh];
+        const tailIntersects = raycasterRef.current.intersectObjects(tailObjects);
+        if (tailIntersects.length > 0) {
+          tailDraggingRef.current = true;
+          petControllerRef.current.setRagdoll(true);
+          e.preventDefault();
+          return;
+        }
       }
 
-      // Check ball click - throw it
+      // Check ball click
       if (ballMeshRef.current && ballMeshRef.current.visible) {
         const ballIntersects = raycasterRef.current.intersectObject(ballMeshRef.current);
         if (ballIntersects.length > 0) {
-          throwBall();
+          ballDraggingRef.current = true;
+          ballDragStartRef.current.copy(ballPosRef.current);
+          ballDragLastRef.current.copy(ballPosRef.current);
+          ballThrownRef.current = false;
+          petChasingBallRef.current = false;
+          setIsDraggingBall(true);
+          e.preventDefault();
+          return;
+        }
+      }
+
+      // Check pet body click for petting
+      if (petMeshRef.current) {
+        const petIntersects = raycasterRef.current.intersectObjects(petMeshRef.current.children, true);
+        if (petIntersects.length > 0) {
+          petThePet();
         }
       }
     };
-    canvas.addEventListener("click", onClick);
+
+    // Mouse move handler - drag ball or drag tail
+    const onMouseMove = (e: MouseEvent) => {
+      if (!canvasRef.current || !cameraRef.current) return;
+
+      // Tail dragging - pull tail tip toward mouse
+      if (tailDraggingRef.current && petControllerRef.current) {
+        const worldPos = getMouseWorld(e);
+        if (worldPos) {
+          // Move tail tip toward mouse
+          const lastIdx = petControllerRef.current.tailPositions.length - 1;
+          const tailTip = petControllerRef.current.tailPositions[lastIdx];
+          const toMouse = new THREE.Vector3().subVectors(worldPos, tailTip);
+          toMouse.multiplyScalar(0.3);
+          petControllerRef.current.tailVelocities[lastIdx].add(toMouse);
+
+          // Pull body toward tail via ragdoll
+          petControllerRef.current.applyRagdollForce(worldPos);
+
+          // Decrease bond while dragging
+          setStats((s) => ({ ...s, bond: Math.max(0, s.bond - 0.15) }));
+        }
+        return;
+      }
+
+      // Ball dragging
+      if (ballDraggingRef.current) {
+        const worldPos = getMouseWorld(e);
+        if (worldPos) {
+          worldPos.x = Math.max(-ROOM_W / 2 + BALL_RADIUS, Math.min(ROOM_W / 2 - BALL_RADIUS, worldPos.x));
+          worldPos.z = Math.max(-ROOM_D / 2 + BALL_RADIUS, Math.min(ROOM_D / 2 - BALL_RADIUS, worldPos.z));
+          worldPos.y = BALL_RADIUS;
+          ballPosRef.current.copy(worldPos);
+          ballVelRef.current.set(0, 0, 0);
+          ballDragLastRef.current.copy(ballPosRef.current);
+        }
+      }
+    };
+
+    // Mouse up handler - throw ball or release tail
+    const onMouseUp = (_e: MouseEvent) => {
+      // Release tail drag
+      if (tailDraggingRef.current) {
+        tailDraggingRef.current = false;
+        if (petControllerRef.current) {
+          petControllerRef.current.setRagdoll(false);
+        }
+        showMessage("Valley Net doesn't like that! -Bond");
+        return;
+      }
+
+      // Release ball drag
+      if (ballDraggingRef.current) {
+        ballDraggingRef.current = false;
+        setIsDraggingBall(false);
+        
+        // Calculate throw velocity from drag distance
+        const throwVel = new THREE.Vector3().subVectors(ballPosRef.current, ballDragStartRef.current);
+        const dragDistance = throwVel.length();
+        throwVel.multiplyScalar(0.15);
+        
+        // Add upward velocity for flicks
+        throwVel.y = Math.max(0.15, dragDistance * 0.12);
+        
+        ballVelRef.current.copy(throwVel);
+        ballThrownRef.current = true;
+        showMessage("Ball thrown! Valley Net is excited!");
+      }
+    };
+
+    canvas.addEventListener("mousedown", onMouseDown);
+    canvas.addEventListener("mousemove", onMouseMove);
+    canvas.addEventListener("mouseup", onMouseUp);
 
     // Animation loop
     const clock = new THREE.Clock();
@@ -511,57 +575,103 @@ export default function VirtualPet() {
       const dt = clock.getDelta();
       const time = clock.getElapsedTime();
 
-      // Pet wandering
-      petWanderTimer.current -= dt;
-      if (petWanderTimer.current <= 0 && !petChasingBallRef.current && !petHasBallRef.current) {
-        petTargetRef.current.set(
-          (Math.random() - 0.5) * (ROOM_W - 3),
-          0,
-          (Math.random() - 0.5) * (ROOM_D - 3)
-        );
-        petWanderTimer.current = 3 + Math.random() * 4;
-      }
+      // Pet wandering (skip if ragdoll)
+      const isRagdoll = petControllerRef.current?.isRagdoll ?? false;
+      if (!isRagdoll) {
+        petWanderTimer.current -= dt;
+        if (petWanderTimer.current <= 0 && !petChasingBallRef.current && !petHasBallRef.current) {
+          petTargetRef.current.set(
+            (Math.random() - 0.5) * (ROOM_W - 3),
+            0,
+            (Math.random() - 0.5) * (ROOM_D - 3)
+          );
+          petWanderTimer.current = 3 + Math.random() * 4;
+        }
 
-      const target = petChasingBallRef.current ? ballPosRef.current : petTargetRef.current;
-      const dir = new THREE.Vector3().subVectors(target, petPosRef.current);
-      dir.y = 0;
-      const dist = dir.length();
-      
-      const moveSpeed = petChasingBallRef.current ? 0.06 : WANDER_SPEED;
-      if (dist > 0.3) {
-        dir.normalize().multiplyScalar(moveSpeed);
-        petPosRef.current.add(dir);
-        // Face direction
+        const target = petChasingBallRef.current ? ballPosRef.current : petTargetRef.current;
+        const dir = new THREE.Vector3().subVectors(target, petPosRef.current);
+        dir.y = 0;
+        const dist = dir.length();
+        
+        const moveSpeed = petChasingBallRef.current ? 0.06 : WANDER_SPEED;
+        if (dist > 0.3) {
+          dir.normalize().multiplyScalar(moveSpeed);
+          petPosRef.current.add(dir);
+          if (petMeshRef.current) {
+            petMeshRef.current.rotation.y = Math.atan2(dir.x, dir.z);
+          }
+        }
+
+        // Apply position
         if (petMeshRef.current) {
-          petMeshRef.current.rotation.y = Math.atan2(dir.x, dir.z);
+          petMeshRef.current.position.copy(petPosRef.current);
+          const bounce = Math.abs(Math.sin(time * 3)) * 0.06;
+          petMeshRef.current.position.y = bounce;
+        }
+      } else {
+        // During ragdoll, sync petPosRef back from group
+        if (petMeshRef.current) {
+          petPosRef.current.copy(petMeshRef.current.position);
         }
       }
 
-      // Pet bounce
-      if (petMeshRef.current) {
-        petMeshRef.current.position.copy(petPosRef.current);
-        const bounce = Math.abs(Math.sin(time * 3)) * 0.1;
-        petMeshRef.current.position.y = bounce;
+      // Update Valley Net pet controller (animations, tail physics)
+      if (petControllerRef.current) {
+        petControllerRef.current.update(dt, time);
       }
 
-      // Ball physics
-      if (ballThrownRef.current) {
+      // Ball physics with gravity
+      if (ballThrownRef.current || (ballVelRef.current.length() > 0.001)) {
+        // Apply gravity
+        ballVelRef.current.y -= GRAVITY;
+        
+        // Update position
         ballPosRef.current.add(ballVelRef.current);
-        ballVelRef.current.multiplyScalar(BALL_FRICTION);
-
-        // Bounce off walls
-        if (ballPosRef.current.x > ROOM_W / 2 - 0.5 || ballPosRef.current.x < -ROOM_W / 2 + 0.5) {
-          ballVelRef.current.x *= -0.7;
-          ballPosRef.current.x = Math.max(-ROOM_W / 2 + 0.5, Math.min(ROOM_W / 2 - 0.5, ballPosRef.current.x));
+        
+        // Apply friction (less friction in air, more on ground)
+        const isInAir = ballPosRef.current.y > BALL_RADIUS + 0.05;
+        const frictionMultiplier = isInAir ? 0.98 : BALL_FRICTION;
+        ballVelRef.current.x *= frictionMultiplier;
+        ballVelRef.current.z *= frictionMultiplier;
+        
+        // Floor bounce - satisfying bounce with good energy retention
+        if (ballPosRef.current.y < BALL_RADIUS) {
+          ballPosRef.current.y = BALL_RADIUS;
+          const bounceEnergy = Math.abs(ballVelRef.current.y);
+          ballVelRef.current.y *= -0.82; // Good bounce coefficient for satisfying bounces
+          
+          // Add small horizontal boost on bounce for rolling effect
+          if (bounceEnergy > 0.05) {
+            ballVelRef.current.x *= 1.05;
+            ballVelRef.current.z *= 1.05;
+          }
+          
+          // Stop bouncing if very small
+          if (Math.abs(ballVelRef.current.y) < 0.008) ballVelRef.current.y = 0;
         }
-        if (ballPosRef.current.z > ROOM_D / 2 - 0.5 || ballPosRef.current.z < -ROOM_D / 2 + 0.5) {
-          ballVelRef.current.z *= -0.7;
-          ballPosRef.current.z = Math.max(-ROOM_D / 2 + 0.5, Math.min(ROOM_D / 2 - 0.5, ballPosRef.current.z));
+
+        // Bounce off walls with good energy retention
+        if (ballPosRef.current.x > ROOM_W / 2 - BALL_RADIUS) {
+          ballVelRef.current.x *= -0.85;
+          ballPosRef.current.x = ROOM_W / 2 - BALL_RADIUS;
+        }
+        if (ballPosRef.current.x < -ROOM_W / 2 + BALL_RADIUS) {
+          ballVelRef.current.x *= -0.85;
+          ballPosRef.current.x = -ROOM_W / 2 + BALL_RADIUS;
+        }
+        if (ballPosRef.current.z > ROOM_D / 2 - BALL_RADIUS) {
+          ballVelRef.current.z *= -0.85;
+          ballPosRef.current.z = ROOM_D / 2 - BALL_RADIUS;
+        }
+        if (ballPosRef.current.z < -ROOM_D / 2 + BALL_RADIUS) {
+          ballVelRef.current.z *= -0.85;
+          ballPosRef.current.z = -ROOM_D / 2 + BALL_RADIUS;
         }
 
         // Ball stopped - pet chases
-        if (ballVelRef.current.length() < 0.005 && !petChasingBallRef.current) {
+        if (ballVelRef.current.length() < 0.008 && ballPosRef.current.y <= BALL_RADIUS + 0.02 && !petChasingBallRef.current && ballThrownRef.current) {
           ballVelRef.current.set(0, 0, 0);
+          ballThrownRef.current = false;
           petChasingBallRef.current = true;
         }
       }
@@ -621,11 +731,13 @@ export default function VirtualPet() {
 
     return () => {
       cancelAnimationFrame(animIdRef.current);
-      canvas.removeEventListener("click", onClick);
+      canvas.removeEventListener("mousedown", onMouseDown);
+      canvas.removeEventListener("mousemove", onMouseMove);
+      canvas.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("resize", onResize);
       renderer.dispose();
     };
-  }, [petThePet, throwBall]);
+  }, [petThePet, showMessage]);
 
   // ---- Stat bar component ----
   const StatBar = ({ label, value, color, icon }: { label: string; value: number; color: string; icon: string }) => (
