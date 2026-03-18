@@ -208,6 +208,83 @@ document.addEventListener('DOMContentLoaded', () => {
     el.style.animationDelay = `${delay}ms`;
   });
 
+  // --- GiveGigs control-plane status panel ---
+  const controlPanel = document.getElementById('givegigs-control-plane');
+  if (controlPanel) {
+    const connectedEl = controlPanel.querySelector('[data-gg-connected]');
+    const accessEl = controlPanel.querySelector('[data-gg-access]');
+    const authorityEl = controlPanel.querySelector('[data-gg-authority]');
+    const modeEl = controlPanel.querySelector('[data-gg-mode]');
+    const appCountEl = controlPanel.querySelector('[data-gg-app-count]');
+    const messageEl = controlPanel.querySelector('[data-gg-message]');
+    const adminLinkEl = controlPanel.querySelector('[data-gg-admin-link]');
+
+    const setBadge = (el, text, tone) => {
+      if (!el) return;
+      el.textContent = text;
+      el.classList.remove('control-badge-neutral', 'control-badge-success', 'control-badge-warning', 'control-badge-danger');
+      if (tone === 'success') el.classList.add('control-badge-success');
+      else if (tone === 'warning') el.classList.add('control-badge-warning');
+      else if (tone === 'danger') el.classList.add('control-badge-danger');
+      else el.classList.add('control-badge-neutral');
+    };
+
+    const trimTrailingSlash = (value) => value.replace(/\/+$/, '');
+
+    const appId = (controlPanel.getAttribute('data-givegigs-app') || 'cryptartist-website').trim();
+    const configuredBase = typeof window !== 'undefined' && typeof window.GIVEGIGS_CONTROL_PLANE_URL === 'string'
+      ? window.GIVEGIGS_CONTROL_PLANE_URL.trim()
+      : '';
+    const localOverride = (() => {
+      try {
+        const raw = localStorage.getItem('givegigs_control_plane_url_override') || '';
+        return raw.trim();
+      } catch {
+        return '';
+      }
+    })();
+
+    const baseUrl = trimTrailingSlash(localOverride || configuredBase || 'https://givegigs.com');
+    const endpoint = `${baseUrl}/api/ecosystem/control-plane?app=${encodeURIComponent(appId)}`;
+
+    fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+      cache: 'no-store',
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((payload) => {
+        const connected = !!payload?.controlPlane?.appId;
+        const canControl = !!payload?.user?.canControlEcosystem;
+
+        setBadge(connectedEl, connected ? 'Connected' : 'Offline', connected ? 'success' : 'danger');
+        setBadge(accessEl, canControl ? 'Access: admin' : 'Access: standard', canControl ? 'success' : 'warning');
+
+        if (authorityEl) authorityEl.textContent = payload?.database?.authorityAppId || 'givegigs';
+        if (modeEl) modeEl.textContent = payload?.user?.accessMode || 'unknown';
+        if (appCountEl) appCountEl.textContent = String(Array.isArray(payload?.apps) ? payload.apps.length : 0);
+        if (messageEl) messageEl.textContent = connected
+          ? `Control plane online (${payload?.controlPlane?.version || 'version unknown'})`
+          : 'Control plane unreachable';
+
+        if (adminLinkEl && payload?.admin?.url) {
+          adminLinkEl.setAttribute('href', payload.admin.url);
+        }
+      })
+      .catch((err) => {
+        setBadge(connectedEl, 'Offline', 'danger');
+        setBadge(accessEl, 'Access: unknown', 'neutral');
+        if (messageEl) messageEl.textContent = `Control plane request failed: ${err?.message || 'unknown error'}`;
+      });
+  }
+
   // --- Year in footer ---
   document.querySelectorAll('.current-year').forEach(el => {
     el.textContent = new Date().getFullYear();

@@ -927,6 +927,110 @@ async fn get_givegigs_config(
     Ok((state.get_givegigs_url(), state.get_givegigs_key()))
 }
 
+#[tauri::command]
+async fn givegigs_control_plane_status(
+    state: tauri::State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    let mut base_url = state.get_givegigs_url().trim().to_string();
+    let integration_key = state.get_givegigs_key().trim().to_string();
+
+    if base_url.is_empty() {
+        return Ok(serde_json::json!({
+            "connected": false,
+            "status": 0,
+            "message": "GiveGigs URL is not configured",
+            "access_mode": "unconfigured",
+            "can_control_ecosystem": false,
+            "apps_count": 0,
+            "admin_url": "",
+            "authority_app_id": "givegigs",
+            "checked_at": chrono_timestamp(),
+        }));
+    }
+
+    while base_url.ends_with('/') {
+        base_url.pop();
+    }
+
+    let endpoint = format!(
+        "{}/api/ecosystem/control-plane?app=cryptartist-studio",
+        base_url
+    );
+
+    let mut request = http_client_with_timeout()
+        .get(&endpoint)
+        .header("Accept", "application/json");
+
+    if !integration_key.is_empty() {
+        request = request.header("X-GiveGigs-Integration-Key", integration_key);
+    }
+
+    let response = request
+        .send()
+        .await
+        .map_err(|e| format!("Control-plane request failed: {}", e))?;
+
+    let status = response.status().as_u16();
+    let ok = response.status().is_success();
+    let body = response
+        .text()
+        .await
+        .map_err(|e| format!("Failed to read control-plane response: {}", e))?;
+
+    if !ok {
+        return Ok(serde_json::json!({
+            "connected": false,
+            "status": status,
+            "message": "GiveGigs control plane returned an error",
+            "endpoint": endpoint,
+            "access_mode": "error",
+            "can_control_ecosystem": false,
+            "apps_count": 0,
+            "admin_url": "",
+            "authority_app_id": "givegigs",
+            "checked_at": chrono_timestamp(),
+            "response_excerpt": body.chars().take(200).collect::<String>(),
+        }));
+    }
+
+    let parsed: serde_json::Value = serde_json::from_str(&body).map_err(|e| {
+        format!("Control-plane response was not valid JSON: {}", e)
+    })?;
+
+    let access_mode = parsed["user"]["accessMode"]
+        .as_str()
+        .unwrap_or("unknown")
+        .to_string();
+    let can_control_ecosystem = parsed["user"]["canControlEcosystem"]
+        .as_bool()
+        .unwrap_or(false);
+    let admin_url = parsed["admin"]["url"]
+        .as_str()
+        .unwrap_or("")
+        .to_string();
+    let authority_app_id = parsed["database"]["authorityAppId"]
+        .as_str()
+        .unwrap_or("givegigs")
+        .to_string();
+    let apps_count = parsed["apps"]
+        .as_array()
+        .map(|apps| apps.len())
+        .unwrap_or(0);
+
+    Ok(serde_json::json!({
+        "connected": true,
+        "status": status,
+        "message": "GiveGigs control plane reachable",
+        "endpoint": endpoint,
+        "access_mode": access_mode,
+        "can_control_ecosystem": can_control_ecosystem,
+        "apps_count": apps_count,
+        "admin_url": admin_url,
+        "authority_app_id": authority_app_id,
+        "checked_at": chrono_timestamp(),
+    }))
+}
+
 // ---------------------------------------------------------------------------
 // Pexels Commands
 // ---------------------------------------------------------------------------
@@ -2580,6 +2684,7 @@ fn main() {
             write_text_file,
             save_givegigs_config,
             get_givegigs_config,
+            givegigs_control_plane_status,
             get_platform_info,
             get_home_directory,
             health_check,

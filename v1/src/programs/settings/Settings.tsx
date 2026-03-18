@@ -1,7 +1,7 @@
 /* Wave3-sep */
 /* Wave2: select-aria */
 /* Wave2: type=button applied */
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "../../utils/toast";
@@ -37,6 +37,20 @@ interface ApiKeyEntry {
   getCmd: string;
   setCmd: string;
   setParam: string;
+}
+
+interface GiveGigsControlStatus {
+  connected: boolean;
+  status: number;
+  message: string;
+  endpoint?: string;
+  access_mode: string;
+  can_control_ecosystem: boolean;
+  apps_count: number;
+  admin_url: string;
+  authority_app_id: string;
+  checked_at: string;
+  response_excerpt?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,6 +173,8 @@ export default function Settings() {
   const [keyValues, setKeyValues] = useState<Record<string, string>>({});
   const [keyVisibility, setKeyVisibility] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState<string | null>(null);
+  const [giveGigsStatus, setGiveGigsStatus] = useState<GiveGigsControlStatus | null>(null);
+  const [checkingGiveGigsStatus, setCheckingGiveGigsStatus] = useState(false);
 
   // OpenRouter
   const [orDefaultModel, setOrDefaultModel] = useState(() => getDefaultModel());
@@ -219,6 +235,35 @@ export default function Settings() {
     invoke<[string, string]>("get_givegigs_config")
       .then(([url, key]) => setKeyValues((prev) => ({ ...prev, givegigs_url: url, givegigs_key: key })))
       .catch(() => {});
+  }, []);
+
+  const checkGiveGigsControlPlane = async (notify = false) => {
+    setCheckingGiveGigsStatus(true);
+    try {
+      const status = await invoke<GiveGigsControlStatus>("givegigs_control_plane_status");
+      setGiveGigsStatus(status);
+      logger.action("Settings", `GiveGigs control plane check: connected=${status.connected} status=${status.status}`);
+      if (notify) {
+        if (status.connected) {
+          toast.success(`GiveGigs control plane online (${status.status})`);
+        } else {
+          toast.error(status.message || "GiveGigs control plane unavailable");
+        }
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setGiveGigsStatus(null);
+      logger.error("Settings", `GiveGigs control plane check failed: ${msg}`);
+      if (notify) {
+        toast.error(`Control plane check failed: ${msg}`);
+      }
+    } finally {
+      setCheckingGiveGigsStatus(false);
+    }
+  };
+
+  useEffect(() => {
+    void checkGiveGigsControlPlane(false);
   }, []);
 
   // Save a single key
@@ -419,12 +464,14 @@ export default function Settings() {
                     <span className="text-lg">{"\u{1F49C}"}</span>
                     <span className="text-[13px] font-semibold text-studio-text">GiveGigs Integration</span>
                   </div>
-                  <p className="text-[10px] text-studio-muted mb-3">Connect to GiveGigs.com for donation and community features.</p>
+                  <p className="text-[10px] text-studio-muted mb-3">
+                    Connect to GiveGigs.com for donation and community features.
+                  </p>
                   <div className="flex flex-col gap-2">
                     <input
                       type="text"
                       value={keyValues.givegigs_url || ""}
-                      onChange={(e) => setKeyValues((prev) => ({ ...prev, givegigs_url: e.target.value }))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyValues((prev: Record<string, string>) => ({ ...prev, givegigs_url: e.target.value }))}
                       className="input text-[11px] py-1.5 font-mono"
                       placeholder="GiveGigs URL..."
                     />
@@ -432,19 +479,88 @@ export default function Settings() {
                       <input
                         type="password"
                         value={keyValues.givegigs_key || ""}
-                        onChange={(e) => setKeyValues((prev) => ({ ...prev, givegigs_key: e.target.value }))}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyValues((prev: Record<string, string>) => ({ ...prev, givegigs_key: e.target.value }))}
                         className="input text-[11px] flex-1 py-1.5 font-mono"
                         placeholder="GiveGigs API key..."
                       />
-                      <button type="button"
+                      <button
+                        type="button"
                         onClick={async () => {
                           try {
-                            await invoke("save_givegigs_config", { url: keyValues.givegigs_url || "", key: keyValues.givegigs_key || "" });
+                            await invoke("save_givegigs_config", {
+                              url: keyValues.givegigs_url || "",
+                              key: keyValues.givegigs_key || "",
+                            });
                             toast.success("GiveGigs config saved!");
-                          } catch (err) { toast.error(`Failed: ${err}`); }
+                            void checkGiveGigsControlPlane(false);
+                          } catch (err) {
+                            toast.error(`Failed: ${err}`);
+                          }
                         }}
                         className="btn btn-cyan text-[10px] px-3 py-1"
-                      >Save</button>
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void checkGiveGigsControlPlane(true)}
+                        className="btn text-[10px] px-3 py-1"
+                        disabled={checkingGiveGigsStatus}
+                      >
+                        {checkingGiveGigsStatus ? "Checking..." : "Check Control Plane"}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 p-3 rounded-lg bg-studio-bg border border-studio-border text-[10px] text-studio-muted">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold text-studio-text">GiveGigs Control Plane</span>
+                      {giveGigsStatus ? (
+                        giveGigsStatus.connected ? (
+                          <span className="text-studio-green font-semibold">Online ({giveGigsStatus.status})</span>
+                        ) : (
+                          <span className="text-red-400 font-semibold">Offline ({giveGigsStatus.status})</span>
+                        )
+                      ) : (
+                        <span className="text-studio-muted">Not checked</span>
+                      )}
+                    </div>
+
+                    <div className="mt-2 space-y-1">
+                      <p>
+                        Mode: <span className="text-studio-text">{giveGigsStatus?.access_mode || "unknown"}</span>
+                      </p>
+                      <p>
+                        Admin Access: <span className={giveGigsStatus?.can_control_ecosystem ? "text-studio-green" : "text-studio-yellow"}>
+                          {giveGigsStatus?.can_control_ecosystem ? "granted" : "not granted"}
+                        </span>
+                      </p>
+                      <p>
+                        Authority: <span className="text-studio-text">{giveGigsStatus?.authority_app_id || "givegigs"}</span>
+                      </p>
+                      <p>
+                        Ecosystem Apps: <span className="text-studio-text">{giveGigsStatus?.apps_count ?? 0}</span>
+                      </p>
+                      {giveGigsStatus?.endpoint ? (
+                        <p className="truncate">
+                          Endpoint: <span className="text-studio-text">{giveGigsStatus.endpoint}</span>
+                        </p>
+                      ) : null}
+                      {giveGigsStatus?.admin_url ? (
+                        <p>
+                          <a
+                            href={giveGigsStatus.admin_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-studio-cyan hover:underline"
+                          >
+                            Open GiveGigs Admin
+                          </a>
+                        </p>
+                      ) : null}
+                      {giveGigsStatus?.message ? (
+                        <p>{giveGigsStatus.message}</p>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -478,7 +594,7 @@ export default function Settings() {
                 <div className="text-[12px] font-semibold text-studio-text mb-2">Default Model</div>
                 <select aria-label="Select option"
                   value={orDefaultModel}
-                  onChange={(e) => setOrDefaultModel(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setOrDefaultModel(e.target.value)}
                   className="input text-[11px] py-1.5 w-full"
                 >
                   {OPENROUTER_MODELS.map((m) => (
@@ -494,7 +610,7 @@ export default function Settings() {
                 <div className="text-[12px] font-semibold text-studio-text mb-2">Default AI Mode</div>
                 <select aria-label="Select option"
                   value={orDefaultMode}
-                  onChange={(e) => setOrDefaultMode(e.target.value as "cheap" | "fast" | "good" | "smart" | "lucky")}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setOrDefaultMode(e.target.value as "cheap" | "fast" | "good" | "smart" | "lucky")}
                   className="input text-[11px] py-1.5 w-full"
                 >
                   {AI_MODES.map((m) => (
@@ -518,9 +634,9 @@ export default function Settings() {
                       <div className="grid grid-cols-2 gap-2">
                         <select aria-label="Select option"
                           value={actionModels[action.id]}
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                             const model = e.target.value;
-                            setActionModels((prev) => ({ ...prev, [action.id]: model }));
+                            setActionModels((prev: Record<AIActionKey, string>) => ({ ...prev, [action.id]: model }));
                             setActionModel(action.id, model);
                           }}
                           className="input text-[10px] py-1"
@@ -531,9 +647,9 @@ export default function Settings() {
                         </select>
                         <select
                           value={actionModes[action.id]}
-                          onChange={(e) => {
+                          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
                             const mode = e.target.value as "cheap" | "fast" | "good" | "smart" | "lucky";
-                            setActionModes((prev) => ({ ...prev, [action.id]: mode }));
+                            setActionModes((prev: Record<AIActionKey, "cheap" | "fast" | "good" | "smart" | "lucky">) => ({ ...prev, [action.id]: mode }));
                             setActionMode(action.id, mode);
                           }}
                           className="input text-[10px] py-1"
@@ -700,7 +816,7 @@ export default function Settings() {
                 <div className="text-[12px] font-semibold text-studio-text mb-2">Editor Font Family</div>
                 <select
                   value={fontFamily}
-                  onChange={(e) => { setFontFamily(e.target.value); safeSetRaw("cryptartist_font_family", e.target.value); }}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => { setFontFamily(e.target.value); safeSetRaw("cryptartist_font_family", e.target.value); }}
                   className="input text-[11px] py-1.5 w-full"
                 >
                   {["JetBrains Mono", "Fira Code", "Source Code Pro", "Cascadia Code", "Consolas", "Monaco", "Menlo", "monospace"].map((f) => (
@@ -720,7 +836,7 @@ export default function Settings() {
                   <input
                     type="text"
                     value={profileName}
-                    onChange={(e) => setProfileName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setProfileName(e.target.value)}
                     className="input text-[10px] py-1 flex-1"
                     placeholder="Profile name..."
                   />
@@ -735,7 +851,7 @@ export default function Settings() {
                         }
                       } catch { /* ignore iteration errors */ }
                       safeSetRaw(`cryptartist_profile_${profileName.trim()}`, JSON.stringify(profile));
-                      const list = [...savedProfiles.filter(p => p !== profileName.trim()), profileName.trim()];
+                      const list = [...savedProfiles.filter((p: string) => p !== profileName.trim()), profileName.trim()];
                       setSavedProfiles(list);
                       safeSetRaw("cryptartist_settings_profiles_list", JSON.stringify(list));
                       setProfileName("");
@@ -746,7 +862,7 @@ export default function Settings() {
                 </div>
                 {savedProfiles.length > 0 && (
                   <div className="flex flex-col gap-1.5">
-                    {savedProfiles.map((p) => (
+                    {savedProfiles.map((p: string) => (
                       <div key={p} className="flex items-center gap-2 p-2 rounded bg-studio-bg border border-studio-border">
                         <span className="text-[10px] text-studio-text flex-1">{p}</span>
                         <button
@@ -762,7 +878,7 @@ export default function Settings() {
                         <button
                           onClick={() => {
                             try { localStorage.removeItem(`cryptartist_profile_${p}`); } catch { /* ignore */ }
-                            const list = savedProfiles.filter(x => x !== p);
+                            const list = savedProfiles.filter((x: string) => x !== p);
                             setSavedProfiles(list);
                             safeSetRaw("cryptartist_settings_profiles_list", JSON.stringify(list));
                             toast.success(`Profile "${p}" deleted`);
