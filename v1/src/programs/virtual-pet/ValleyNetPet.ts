@@ -54,34 +54,40 @@ export function createValleyNetPet(
   body.userData = { isPet: true };
   group.add(body);
 
-  // Whiskers (3 per side) ----
-  const whiskerGeo = new THREE.BufferGeometry();
+  // Whiskers (3 per side) - emanate from front face near nose, fan outward ----
   const whiskerMat = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 2 });
+  const noseZ = BODY_SIZE / 2 + 0.03;
+  const noseY = BODY_SIZE * 0.55;
+  const whiskerLength = 0.4;
+  const whiskerAngles = [-0.2, 0, 0.2]; // vertical spread (radians)
+  const whiskerMeshes: THREE.Line[] = [];
   
   // Left whiskers
   for (let i = 0; i < 3; i++) {
-    const yOffset = (i - 1) * 0.15;
+    const angle = whiskerAngles[i];
     const points = [
-      new THREE.Vector3(-BODY_SIZE / 2 - 0.01, BODY_SIZE / 2 + yOffset, 0),
-      new THREE.Vector3(-BODY_SIZE / 2 - 0.35, BODY_SIZE / 2 + yOffset, 0),
+      new THREE.Vector3(-0.08, noseY, noseZ),
+      new THREE.Vector3(-whiskerLength, noseY + Math.sin(angle) * whiskerLength, noseZ + Math.cos(angle) * 0.15),
     ];
     const geo = new THREE.BufferGeometry().setFromPoints(points);
     const whisker = new THREE.Line(geo, whiskerMat);
-    whisker.userData = { isPet: true };
+    whisker.userData = { isPet: true, side: "left", index: i };
     group.add(whisker);
+    whiskerMeshes.push(whisker);
   }
   
   // Right whiskers
   for (let i = 0; i < 3; i++) {
-    const yOffset = (i - 1) * 0.15;
+    const angle = whiskerAngles[i];
     const points = [
-      new THREE.Vector3(BODY_SIZE / 2 + 0.01, BODY_SIZE / 2 + yOffset, 0),
-      new THREE.Vector3(BODY_SIZE / 2 + 0.35, BODY_SIZE / 2 + yOffset, 0),
+      new THREE.Vector3(0.08, noseY, noseZ),
+      new THREE.Vector3(whiskerLength, noseY + Math.sin(angle) * whiskerLength, noseZ + Math.cos(angle) * 0.15),
     ];
     const geo = new THREE.BufferGeometry().setFromPoints(points);
     const whisker = new THREE.Line(geo, whiskerMat);
-    whisker.userData = { isPet: true };
+    whisker.userData = { isPet: true, side: "right", index: i };
     group.add(whisker);
+    whiskerMeshes.push(whisker);
   }
 
 
@@ -117,9 +123,9 @@ export function createValleyNetPet(
   rightInner.userData = { isPet: true };
   group.add(rightInner);
 
-  // ---- Eyes (cute dot eyes) ----
-  const eyeGeo = new THREE.SphereGeometry(0.06, 12, 12);
-  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.1 });
+  // ---- Eyes (cute dot eyes with shine highlights) ----
+  const eyeGeo = new THREE.SphereGeometry(0.07, 16, 16);
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.05, metalness: 0.3 });
   const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
   leftEye.position.set(-0.15, BODY_SIZE * 0.7, BODY_SIZE / 2 + 0.02);
   leftEye.userData = { isPet: true };
@@ -128,6 +134,51 @@ export function createValleyNetPet(
   rightEye.position.set(0.15, BODY_SIZE * 0.7, BODY_SIZE / 2 + 0.02);
   rightEye.userData = { isPet: true };
   group.add(rightEye);
+
+  // Eye shine highlights (small white spheres)
+  const shineGeo = new THREE.SphereGeometry(0.025, 8, 8);
+  const shineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const leftShine = new THREE.Mesh(shineGeo, shineMat);
+  leftShine.position.set(-0.12, BODY_SIZE * 0.73, BODY_SIZE / 2 + 0.06);
+  leftShine.userData = { isPet: true };
+  group.add(leftShine);
+  const rightShine = new THREE.Mesh(shineGeo, shineMat);
+  rightShine.position.set(0.18, BODY_SIZE * 0.73, BODY_SIZE / 2 + 0.06);
+  rightShine.userData = { isPet: true };
+  group.add(rightShine);
+
+  // Blink eyelids (flat planes that scale Y to cover eyes)
+  const lidGeo = new THREE.PlaneGeometry(0.18, 0.18);
+  const lidMat = new THREE.MeshStandardMaterial({ color: BODY_COLOR, roughness: 0.35, side: THREE.DoubleSide });
+  const leftLid = new THREE.Mesh(lidGeo, lidMat);
+  leftLid.position.set(-0.15, BODY_SIZE * 0.7, BODY_SIZE / 2 + 0.07);
+  leftLid.scale.y = 0; // hidden by default
+  leftLid.userData = { isPet: true };
+  group.add(leftLid);
+  const rightLid = new THREE.Mesh(lidGeo, lidMat);
+  rightLid.position.set(0.15, BODY_SIZE * 0.7, BODY_SIZE / 2 + 0.07);
+  rightLid.scale.y = 0;
+  rightLid.userData = { isPet: true };
+  group.add(rightLid);
+
+  // ---- Cute W-shaped mouth (two small arcs) ----
+  const mouthCurve1 = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(-0.08, BODY_SIZE * 0.44, BODY_SIZE / 2 + 0.04),
+    new THREE.Vector3(-0.04, BODY_SIZE * 0.40, BODY_SIZE / 2 + 0.04),
+    new THREE.Vector3(0.0, BODY_SIZE * 0.44, BODY_SIZE / 2 + 0.04),
+  );
+  const mouthCurve2 = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0.0, BODY_SIZE * 0.44, BODY_SIZE / 2 + 0.04),
+    new THREE.Vector3(0.04, BODY_SIZE * 0.40, BODY_SIZE / 2 + 0.04),
+    new THREE.Vector3(0.08, BODY_SIZE * 0.44, BODY_SIZE / 2 + 0.04),
+  );
+  const mouthMat = new THREE.LineBasicMaterial({ color: 0x884466, linewidth: 2 });
+  const mouth1 = new THREE.Line(new THREE.BufferGeometry().setFromPoints(mouthCurve1.getPoints(8)), mouthMat);
+  const mouth2 = new THREE.Line(new THREE.BufferGeometry().setFromPoints(mouthCurve2.getPoints(8)), mouthMat);
+  mouth1.userData = { isPet: true };
+  mouth2.userData = { isPet: true };
+  group.add(mouth1);
+  group.add(mouth2);
 
   // ---- Small nose ----
   const noseGeo = new THREE.SphereGeometry(0.04, 8, 8);
@@ -138,6 +189,47 @@ export function createValleyNetPet(
   nose.userData = { isPet: true };
   group.add(nose);
 
+  // ---- Eyebrows (tiny expressive lines above eyes) ----
+  const browMat = new THREE.LineBasicMaterial({ color: 0x884466, linewidth: 2 });
+  const leftBrowPts = [
+    new THREE.Vector3(-0.22, BODY_SIZE * 0.82, BODY_SIZE / 2 + 0.05),
+    new THREE.Vector3(-0.08, BODY_SIZE * 0.85, BODY_SIZE / 2 + 0.05),
+  ];
+  const rightBrowPts = [
+    new THREE.Vector3(0.08, BODY_SIZE * 0.85, BODY_SIZE / 2 + 0.05),
+    new THREE.Vector3(0.22, BODY_SIZE * 0.82, BODY_SIZE / 2 + 0.05),
+  ];
+  const leftBrow = new THREE.Line(new THREE.BufferGeometry().setFromPoints(leftBrowPts), browMat);
+  const rightBrow = new THREE.Line(new THREE.BufferGeometry().setFromPoints(rightBrowPts), browMat);
+  leftBrow.userData = { isPet: true };
+  rightBrow.userData = { isPet: true };
+  group.add(leftBrow);
+  group.add(rightBrow);
+
+  // ---- Tongue (small pink sphere that peeks out occasionally) ----
+  const tongueGeo = new THREE.SphereGeometry(0.035, 8, 8);
+  const tongueMat = new THREE.MeshStandardMaterial({ color: 0xff4477, roughness: 0.3 });
+  const tongue = new THREE.Mesh(tongueGeo, tongueMat);
+  tongue.position.set(0.02, BODY_SIZE * 0.38, BODY_SIZE / 2 + 0.04);
+  tongue.scale.set(1.2, 0.6, 0.5);
+  tongue.visible = false; // hidden by default, shows occasionally
+  tongue.userData = { isPet: true };
+  group.add(tongue);
+
+  // ---- Cheek blush (translucent pink circles) ----
+  const blushGeo = new THREE.SphereGeometry(0.08, 16, 16);
+  const blushMat = new THREE.MeshBasicMaterial({ color: 0xff8faa, transparent: true, opacity: 0.25 });
+  const leftBlush = new THREE.Mesh(blushGeo, blushMat);
+  leftBlush.position.set(-0.24, BODY_SIZE * 0.52, BODY_SIZE / 2 + 0.01);
+  leftBlush.scale.set(1, 0.7, 0.3);
+  leftBlush.userData = { isPet: true };
+  group.add(leftBlush);
+  const rightBlush = new THREE.Mesh(blushGeo, blushMat);
+  rightBlush.position.set(0.24, BODY_SIZE * 0.52, BODY_SIZE / 2 + 0.01);
+  rightBlush.scale.set(1, 0.7, 0.3);
+  rightBlush.userData = { isPet: true };
+  group.add(rightBlush);
+
   // ---- Feet (small cubes at bottom) ----
   const footGeo = new THREE.BoxGeometry(0.2, 0.1, 0.25);
   const footMat = new THREE.MeshStandardMaterial({ color: EAR_COLOR, roughness: 0.4 });
@@ -147,12 +239,46 @@ export function createValleyNetPet(
     [-0.22, 0.05, -0.2],
     [0.22, 0.05, -0.2],
   ];
+  const feetMeshes: THREE.Mesh[] = [];
   for (const [fx, fy, fz] of footPositions) {
     const foot = new THREE.Mesh(footGeo, footMat);
     foot.position.set(fx, fy, fz);
     foot.castShadow = true;
-    foot.userData = { isPet: true };
+    foot.userData = { isPet: true, origY: fy, origX: fx };
     group.add(foot);
+    feetMeshes.push(foot);
+
+    // Paw pads on front feet only (positive Z = front)
+    if (fz > 0) {
+      const padGeo = new THREE.CircleGeometry(0.04, 8);
+      const padMat = new THREE.MeshStandardMaterial({ color: 0xff6b8a, roughness: 0.2, side: THREE.DoubleSide });
+      const pad = new THREE.Mesh(padGeo, padMat);
+      pad.position.set(fx, 0.001, fz + 0.12);
+      pad.rotation.x = -Math.PI / 2;
+      pad.userData = { isPet: true };
+      group.add(pad);
+      // Two small toe pads
+      for (const tx of [-0.04, 0.04]) {
+        const toePad = new THREE.Mesh(new THREE.CircleGeometry(0.02, 6), padMat);
+        toePad.position.set(fx + tx, 0.001, fz + 0.14);
+        toePad.rotation.x = -Math.PI / 2;
+        toePad.userData = { isPet: true };
+        group.add(toePad);
+      }
+    }
+  }
+
+  // ---- Sparkle particles near tail tip ----
+  const sparkleCount = 5;
+  const sparkleMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+  const sparkleGeo = new THREE.SphereGeometry(0.02, 6, 6);
+  const sparkles: THREE.Mesh[] = [];
+  for (let si = 0; si < sparkleCount; si++) {
+    const sparkle = new THREE.Mesh(sparkleGeo, sparkleMat.clone());
+    sparkle.userData = { isPet: true, sparklePhase: si * (Math.PI * 2 / sparkleCount) };
+    sparkle.visible = false;
+    scene.add(sparkle);
+    sparkles.push(sparkle);
   }
 
   // ---- Shadow ----
@@ -167,18 +293,35 @@ export function createValleyNetPet(
   shadow.position.y = 0.01;
   group.add(shadow);
 
-  // ---- Name label ----
+  // ---- Name label (gradient pill with heart) ----
   const labelCanvas = document.createElement("canvas");
-  labelCanvas.width = 256;
-  labelCanvas.height = 64;
+  labelCanvas.width = 320;
+  labelCanvas.height = 80;
   const ctx = labelCanvas.getContext("2d")!;
-  ctx.fillStyle = "rgba(0,0,0,0.55)";
-  ctx.roundRect(0, 0, 256, 64, 12);
+  // Gradient background pill
+  const grad = ctx.createLinearGradient(0, 0, 320, 0);
+  grad.addColorStop(0, "rgba(255,182,193,0.75)");
+  grad.addColorStop(1, "rgba(255,107,138,0.75)");
+  ctx.fillStyle = grad;
+  ctx.roundRect(8, 8, 304, 64, 32);
   ctx.fill();
+  // Subtle border
+  ctx.strokeStyle = "rgba(255,255,255,0.4)";
+  ctx.lineWidth = 2;
+  ctx.roundRect(8, 8, 304, 64, 32);
+  ctx.stroke();
+  // Text with shadow
+  ctx.shadowColor = "rgba(0,0,0,0.3)";
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetY = 2;
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 26px Arial";
+  ctx.font = "bold 28px Arial";
   ctx.textAlign = "center";
-  ctx.fillText("Valley Net", 128, 42);
+  ctx.fillText("Valley Net", 148, 50);
+  // Heart emoji
+  ctx.shadowBlur = 0;
+  ctx.font = "22px Arial";
+  ctx.fillText("\u2764", 256, 48);
   const labelTex = new THREE.CanvasTexture(labelCanvas);
   const labelGeo = new THREE.PlaneGeometry(1.4, 0.35);
   const labelMat = new THREE.MeshBasicMaterial({ map: labelTex, transparent: true });
@@ -211,9 +354,9 @@ export function createValleyNetPet(
     tailMeshes.push(seg);
   }
 
-  // Tail tip (bigger cube at end for easier grabbing)
+  // Tail tip (bigger cube at end for easier grabbing, with glow)
   const tipGeo = new THREE.BoxGeometry(TAIL_WIDTH * 1.2, TAIL_HEIGHT * 1.2, TAIL_SEG_LEN * 1.1);
-  const tipMat = new THREE.MeshStandardMaterial({ color: EAR_INNER_COLOR, roughness: 0.3 });
+  const tipMat = new THREE.MeshStandardMaterial({ color: EAR_INNER_COLOR, roughness: 0.2, emissive: EAR_INNER_COLOR, emissiveIntensity: 0.15 });
   const tailTipMesh = new THREE.Mesh(tipGeo, tipMat);
   tailTipMesh.castShadow = true;
   tailTipMesh.userData = { isTail: true, isTailTip: true, tailIndex: TAIL_SEGMENTS - 1 };
@@ -232,20 +375,150 @@ export function createValleyNetPet(
     collisionBodies: [],
 
     update(dt: number, time: number) {
-      // ---- Idle animation: gentle bob + ear twitch ----
+      // ---- Idle animation: gentle bob + ear twitch + blink + breathing + nose wiggle ----
       if (!this.isRagdoll) {
         const bob = Math.sin(time * 2.5) * 0.04;
         body.position.y = BODY_SIZE / 2 + bob;
 
-        // Ear twitch
-        const earTwitch = Math.sin(time * 4) * 0.08;
-        leftEar.rotation.z = 0.15 + earTwitch;
-        leftInner.rotation.z = 0.15 + earTwitch;
-        rightEar.rotation.z = -0.15 - earTwitch;
-        rightInner.rotation.z = -0.15 - earTwitch;
+        // Breathing / purr animation (subtle scale pulse on body)
+        const breathe = 1 + Math.sin(time * 1.8) * 0.015;
+        body.scale.set(breathe, 1 + Math.sin(time * 1.8 + 0.3) * 0.01, breathe);
 
-        // Gentle body sway
+        // Ear twitch (asymmetric for charm) + ear perk on cycle
+        const earPerkCycle = time % 12.0;
+        const earPerk = (earPerkCycle > 9.0 && earPerkCycle < 10.5) ? Math.sin((earPerkCycle - 9.0) / 1.5 * Math.PI) * 0.15 : 0;
+        const earTwitchL = Math.sin(time * 3.8) * 0.08 + Math.sin(time * 7.3) * 0.02;
+        const earTwitchR = Math.sin(time * 4.2 + 0.5) * 0.08 + Math.sin(time * 6.8) * 0.02;
+        leftEar.rotation.z = 0.15 + earTwitchL - earPerk;
+        leftInner.rotation.z = 0.15 + earTwitchL - earPerk;
+        rightEar.rotation.z = -0.15 - earTwitchR + earPerk;
+        rightInner.rotation.z = -0.15 - earTwitchR + earPerk;
+        // Ear scale pop during perk
+        const earScaleBoost = 1 + earPerk * 0.3;
+        leftEar.scale.setScalar(earScaleBoost);
+        leftInner.scale.setScalar(earScaleBoost);
+        rightEar.scale.setScalar(earScaleBoost);
+        rightInner.scale.setScalar(earScaleBoost);
+
+        // Gentle body sway + head tilt
         body.rotation.z = Math.sin(time * 1.5) * 0.03;
+        body.rotation.x = Math.sin(time * 0.8) * 0.015; // subtle forward/back head tilt
+
+        // Nose wiggle (tiny side-to-side + forward pulse)
+        nose.position.x = Math.sin(time * 5.5) * 0.008;
+        nose.position.z = BODY_SIZE / 2 + 0.03 + Math.sin(time * 3.2) * 0.005;
+
+        // Eyebrow micro-expressions (subtle raise/lower)
+        const browRaise = Math.sin(time * 2.1) * 0.01;
+        leftBrow.position.y = BODY_SIZE * 0.82 + browRaise;
+        rightBrow.position.y = BODY_SIZE * 0.82 + browRaise * 0.7; // asymmetric for charm
+
+        // Tongue peek (shows briefly every ~8 seconds)
+        const tongueCycle = time % 8.0;
+        tongue.visible = tongueCycle > 5.5 && tongueCycle < 6.2;
+        if (tongue.visible) {
+          const tongueT = (tongueCycle - 5.5) / 0.7;
+          tongue.position.y = BODY_SIZE * 0.38 - Math.sin(tongueT * Math.PI) * 0.02;
+        }
+
+        // Whisker twitch (subtle rotation oscillation)
+        for (let wi = 0; wi < whiskerMeshes.length; wi++) {
+          const w = whiskerMeshes[wi];
+          const isLeft = wi < 3;
+          const freq = 4.0 + wi * 0.7;
+          const twitchAmt = Math.sin(time * freq) * 0.04 + Math.sin(time * freq * 2.3) * 0.015;
+          w.rotation.z = isLeft ? -twitchAmt : twitchAmt;
+          w.rotation.y = Math.sin(time * (freq * 0.5)) * 0.02;
+        }
+
+        // Foot tap (front-right foot taps occasionally)
+        const tapCycle = time % 6.0;
+        if (tapCycle > 4.0 && tapCycle < 5.0 && feetMeshes.length > 1) {
+          const tapT = (tapCycle - 4.0) / 1.0;
+          const tapY = Math.abs(Math.sin(tapT * Math.PI * 3)) * 0.03;
+          feetMeshes[1].position.y = 0.05 + tapY;
+        } else if (feetMeshes.length > 1) {
+          feetMeshes[1].position.y = 0.05;
+        }
+
+        // Cheek blush pulse with intensity cycle (warmth builds up then fades)
+        const blushWave = 0.5 + 0.5 * Math.sin(time * 0.3); // slow warmth cycle ~20s
+        const blushPulse = (0.15 + Math.sin(time * 1.2) * 0.06) * (0.6 + blushWave * 0.4);
+        (leftBlush.material as THREE.MeshBasicMaterial).opacity = blushPulse;
+        (rightBlush.material as THREE.MeshBasicMaterial).opacity = blushPulse;
+
+        // Mouth smile animation (W-shape widens/narrows subtly)
+        const smileAmt = 1.0 + Math.sin(time * 1.5) * 0.08;
+        mouth1.scale.set(smileAmt, 1, 1);
+        mouth2.scale.set(smileAmt, 1, 1);
+        // Mouth lifts slightly when "happy" (correlated with blush warmth)
+        const mouthLift = blushWave * 0.008;
+        mouth1.position.y = mouthLift;
+        mouth2.position.y = mouthLift;
+
+        // Body color warmth shift (slight hue toward pink when blush is high)
+        const warmth = blushWave * 0.15;
+        const bodyMat = body.material as THREE.MeshStandardMaterial;
+        bodyMat.color.setRGB(
+          0.95 + warmth * 0.05,
+          0.85 - warmth * 0.02,
+          0.78 - warmth * 0.03
+        );
+
+        // Blink every ~3-5 seconds (quick close-open)
+        const blinkCycle = time % 4.0; // blink period
+        let blinkScale = 0;
+        if (blinkCycle < 0.12) {
+          blinkScale = Math.sin((blinkCycle / 0.12) * Math.PI); // smooth blink
+        }
+        leftLid.scale.y = blinkScale;
+        rightLid.scale.y = blinkScale;
+        leftShine.visible = blinkScale < 0.5;
+        rightShine.visible = blinkScale < 0.5;
+
+        // Eye shine subtle bounce
+        const shineBounce = Math.sin(time * 3) * 0.005;
+        leftShine.position.y = BODY_SIZE * 0.73 + shineBounce;
+        rightShine.position.y = BODY_SIZE * 0.73 + shineBounce;
+
+        // Dynamic shadow (pulses with bob, slightly larger when higher)
+        const shadowScale = 1 + bob * 0.5;
+        shadow.scale.set(shadowScale, shadowScale, 1);
+        (shadow.material as THREE.MeshBasicMaterial).opacity = 0.18 - bob * 0.3;
+
+        // Tail tip emissive pulse (warm glow)
+        (tailTipMesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0.1 + Math.sin(time * 2.0) * 0.08;
+
+        // Sparkle particles orbit near tail tip (twinkle effect)
+        const tailTipWorld = new THREE.Vector3();
+        tailTipMesh.getWorldPosition(tailTipWorld);
+        const sparkleActive = Math.sin(time * 0.5) > 0.3; // intermittent sparkle bursts
+        for (let si = 0; si < sparkles.length; si++) {
+          const sp = sparkles[si];
+          const phase = sp.userData.sparklePhase + time * 3.0;
+          sp.visible = sparkleActive;
+          if (sparkleActive) {
+            const radius = 0.12 + Math.sin(phase * 0.7) * 0.04;
+            sp.position.set(
+              tailTipWorld.x + Math.cos(phase) * radius,
+              tailTipWorld.y + Math.sin(phase * 1.3) * 0.08,
+              tailTipWorld.z + Math.sin(phase) * radius
+            );
+            const sparkleOpacity = Math.max(0, Math.sin(phase * 2) * 0.8);
+            (sp.material as THREE.MeshBasicMaterial).opacity = sparkleOpacity;
+            const sparkleScale = 0.5 + sparkleOpacity * 0.7;
+            sp.scale.setScalar(sparkleScale);
+          }
+        }
+
+        // Eye sparkle twinkle (subtle shine pulse)
+        const twinkle = 0.8 + Math.sin(time * 4.5) * 0.2;
+        leftShine.scale.setScalar(twinkle);
+        rightShine.scale.setScalar(twinkle);
+
+        // Purr vibration micro-shake (very subtle high-freq body oscillation)
+        const purr = Math.sin(time * 25) * 0.003;
+        body.position.x = purr;
       }
 
       // ---- Tail physics (verlet-style spring chain) ----

@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../GiveGigs"
+		},
+		{
+			"path": "../../website-dev"
+		},
+		{
+			"path": "../../VCA"
+		},
+		{
+			"path": "../../websiteBlog"
+		},
+		{
+			"path": "../../GraveGain"
+		}
+	],
+	"settings": {}
+}

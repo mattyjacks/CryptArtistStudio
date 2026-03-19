@@ -229,6 +229,19 @@ const programs = [
     tags: ["utilities", "random", "launcher", "rng"],
   },
   {
+    id: "alive-speech",
+    name: "Alive Speech",
+    code: "ASp",
+    emoji: "\uD83D\uDE4A",
+    description: "Talk to your virtual pet! AI-powered speech with ElevenLabs v3 expressive voice and real-time interruption. Your pet talks back!",
+    gradient: "from-fuchsia-600/20 to-pink-600/20",
+    borderHover: "hover:border-fuchsia-500/40",
+    accentColor: "text-fuchsia-400",
+    version: "v1.0.0",
+    shortcut: "A",
+    tags: ["gaming", "pet", "speech", "ai", "voice", "tts", "elevenlabs", "talk"],
+  },
+  {
     id: "tax-info-bot",
     name: "Tax Info Bot",
     code: "TIB",
@@ -278,6 +291,17 @@ const tips = [
   "Install plugins, mods, and themes from ZIP files in Settings",
   "Try Lucky AI mode for serendipitous AI responses",
   "Press Ctrl + K to instantly search projects by name or ID",
+  // Imp 46: New tips for Alive Speech and Virtual Pet
+  "Alive Speech lets you talk to Valley Net with ElevenLabs v3 voice!",
+  "Virtual Pet stats persist between sessions - Valley Net remembers you!",
+  "Claim your daily bonus in Virtual Pet for +20 XP every day",
+  "Try dragging Valley Net's tail - but she won't like it!",
+  "Virtual Pet has a new Info tab with play stats and high scores",
+  "Sort your pet food inventory by rarity, name, or newest",
+  "Valley Net's mood changes based on her stats - keep her happy!",
+  "Press ? on the launcher to see all keyboard shortcuts",
+  "Press R on the launcher to view recent projects",
+  "The pet quiz now has 20 questions - try to get a perfect score!",
 ];
 
 export default function SuiteLauncher() {
@@ -465,8 +489,12 @@ export default function SuiteLauncher() {
   // Improvement 27: Keyboard number shortcuts to launch programs + Improvement 133: ? for shortcuts
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.target instanceof HTMLInputElement) return;
+    // Imp 47: Escape key closes all modals
+    if (e.key === "Escape") { setShowShortcuts(false); setShowRecents(false); setShowWhatsNew(false); setShowSystemInfo(false); setShowQuickActions(false); return; }
     if (e.key === "?") { setShowShortcuts((s) => !s); return; }
     if (e.key === "r" || e.key === "R") { setShowRecents((s) => !s); return; }
+    // Imp 48: / key focuses search
+    if (e.key === "/") { const el = document.querySelector<HTMLInputElement>('input[enterkeyhint="search"]'); if (el) { e.preventDefault(); el.focus(); } return; }
     const num = parseInt(e.key);
     if (num >= 1 && num <= programs.length) {
       launchProgram(programs[num - 1]);
@@ -865,6 +893,14 @@ export default function SuiteLauncher() {
             <div className="col-span-full text-center py-12">
               <span className="text-4xl opacity-30 block mb-2">{"\u{1F50D}"}</span>
               <p className="text-studio-secondary text-sm">No programs match "{searchQuery}"</p>
+              {/* Imp 50: Clear search button in empty state */}
+              <button onClick={() => { setSearchQuery(""); setActiveCategory("all"); }} className="mt-3 text-xs text-studio-cyan hover:underline">Clear filters</button>
+            </div>
+          )}
+          {/* Imp 51: Search result count */}
+          {searchQuery.trim() && filteredPrograms.length > 0 && (
+            <div className="col-span-full text-center py-1">
+              <p className="text-studio-muted text-[10px]">{filteredPrograms.length} result{filteredPrograms.length !== 1 ? "s" : ""} for "{searchQuery}"</p>
             </div>
           )}
         </div>
@@ -930,12 +966,23 @@ export default function SuiteLauncher() {
         <div className="modal-overlay" onClick={() => setShowWhatsNew(false)}>
           <div role="dialog" aria-modal="true" className="modal max-w-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{"\u2728"} What's New in v0.1.0</h2>
+              <h2>{"\u2728"} What's New in CryptArtist Studio</h2>
             {/* Improvement 519: A11y & Microinteraction */}
               <button title="Close" onClick={() => setShowWhatsNew(false)} className="transition-transform active:scale-95 btn-ghost text-studio-muted hover:text-studio-text" aria-label="Close">x</button>
             </div>
             <div className="modal-body space-y-3">
               {[
+                // Imp 49: Updated What's New with Alive Speech and Virtual Pet improvements
+                { ver: "v0.2.0", items: [
+                  "NEW: Alive Speech - Talk to Valley Net with ElevenLabs v3 expressive voice!",
+                  "NEW: Virtual Pet - Stats persistence, moods, daily bonus, info tab",
+                  "Virtual Pet now has 20 quiz questions (doubled!)",
+                  "Virtual Pet inventory sorting, size limits, and touch support",
+                  "Level-up celebration animations and stat warnings",
+                  "Quick link to Alive Speech from Virtual Pet header",
+                  "ARIA accessibility improvements across the app",
+                  "100+ improvements and security fixes across the stack",
+                ]},
                 { ver: "v0.1.0", items: [
                   "350+ UI/UX improvements across all programs",
                   "NEW: CryptArt Commander - CLI & scripting (press 6)",
@@ -1022,9 +1069,12 @@ export default function SuiteLauncher() {
                 ["Ctrl+1-9", "Launch program by number"],
                 ["?", "Toggle this shortcuts panel"],
                 ["R", "Toggle recent projects"],
+                ["/", "Focus search bar"],
+                ["Escape", "Close all modals and overlays"],
                 ["Ctrl+S", "Save project (in programs)"],
                 ["Ctrl+O", "Open project (in programs)"],
-                ["Esc", "Close overlays"],
+                ["V", "Launch Virtual Pet"],
+                ["A", "Launch Alive Speech"],
               ].map(([key, desc]) => (
                 <div key={key} className="flex items-center justify-between py-1">
                   <span className="text-[11px] text-studio-secondary">{desc}</span>

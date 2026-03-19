@@ -10,11 +10,39 @@ import { invoke } from "@tauri-apps/api/core";
 
 type LogLevel = "debug" | "info" | "warn" | "error" | "frontend";
 
+// Imp 69: Log level filtering
+const LOG_LEVEL_PRIORITY: Record<LogLevel, number> = { debug: 0, info: 1, frontend: 1, warn: 2, error: 3 };
+let minLogLevel: LogLevel = "debug";
+
+// Imp 70: Log count tracking
+let logCounts: Record<LogLevel, number> = { debug: 0, info: 0, warn: 0, error: 0, frontend: 0 };
+
+// Imp 71: Breadcrumb trail (last N actions for debugging)
+const MAX_BREADCRUMBS = 50;
+let breadcrumbs: { time: number; source: string; message: string }[] = [];
+
+// Imp 72: Performance timing map
+const perfTimers: Map<string, number> = new Map();
+
 // Buffer for logs that happen before Tauri is ready
 let pendingLogs: { level: LogLevel; source: string; message: string }[] = [];
 let tauriReady = false;
 
+// Imp 73: Safe stringify for log arguments
+function safeStringify(val: unknown): string {
+  if (typeof val === "string") return val;
+  try { return JSON.stringify(val).slice(0, 2000); } catch { return String(val); }
+}
+
 function sendLog(level: LogLevel, source: string, message: string) {
+  // Imp 69: Filter by min log level
+  if (LOG_LEVEL_PRIORITY[level] < LOG_LEVEL_PRIORITY[minLogLevel]) return;
+  // Imp 70: Track counts
+  logCounts[level] = (logCounts[level] || 0) + 1;
+  // Imp 71: Add breadcrumb
+  breadcrumbs.push({ time: Date.now(), source, message: message.slice(0, 200) });
+  if (breadcrumbs.length > MAX_BREADCRUMBS) breadcrumbs.shift();
+
   if (!tauriReady) {
     pendingLogs.push({ level, source, message });
     return;
@@ -117,6 +145,53 @@ export const logger = {
     sendLog("info", program, `AI response (${responseLength} chars)`);
   },
 
+  // Imp 74: Pet-specific logging
+  petAction(action: string, details?: string) {
+    sendLog("info", "virtual-pet", `[PET] ${action}${details ? " - " + details : ""}`);
+  },
+
+  // Imp 75: Security event logging
+  securityEvent(event: string, details?: string) {
+    sendLog("warn", "security", `[SECURITY] ${event}${details ? " - " + details : ""}`);
+  },
+
+  // Imp 76: Performance timing - start
+  timeStart(label: string) {
+    perfTimers.set(label, performance.now());
+  },
+
+  // Imp 77: Performance timing - end and log
+  timeEnd(label: string) {
+    const start = perfTimers.get(label);
+    if (start !== undefined) {
+      const elapsed = performance.now() - start;
+      perfTimers.delete(label);
+      sendLog("debug", "perf", `[TIMING] ${label}: ${elapsed.toFixed(2)}ms`);
+      return elapsed;
+    }
+    return 0;
+  },
+
+  // Imp 78: Get breadcrumb trail for debugging
+  getBreadcrumbs() {
+    return [...breadcrumbs];
+  },
+
+  // Imp 79: Get log counts
+  getLogCounts() {
+    return { ...logCounts };
+  },
+
+  // Imp 80: Set minimum log level
+  setMinLevel(level: LogLevel) {
+    minLogLevel = level;
+  },
+
+  // Imp 81: Log with structured metadata
+  meta(source: string, message: string, metadata: Record<string, unknown>) {
+    sendLog("info", source, `${message} | ${safeStringify(metadata)}`);
+  },
+
   /** Read session logs (last 100 since run) */
   async getSessionLogs(): Promise<string[]> {
     try {
@@ -146,5 +221,18 @@ export const logger = {
     } catch {
       return null;
     }
+  },
+
+  // Imp 82: Log a group of related messages
+  group(source: string, label: string, messages: string[]) {
+    sendLog("info", source, `[GROUP:${label}] ${messages.length} entries`);
+    for (const msg of messages.slice(0, 20)) {
+      sendLog("debug", source, `  ${msg}`);
+    }
+  },
+
+  // Imp 83: Clear breadcrumbs
+  clearBreadcrumbs() {
+    breadcrumbs = [];
   },
 };

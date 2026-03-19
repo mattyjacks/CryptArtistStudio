@@ -146,8 +146,11 @@ and deep AI integration powered by the user's own API keys.
 - **The .CryptArt File Format** - A permanently future-proof JSON project file that
   will never need a format upgrade. Any `.CryptArt` file ever created will always be
   readable by any version of the app.
-- **Cross-Platform** - Runs on Windows, macOS, and Linux via Tauri. Mobile support
-  (Android/iOS) is in progress.
+- **Cross-Platform** - Runs on Windows, macOS, and Linux via Tauri. Planned launches
+  on 100+ platforms including Steam (PC/Mac/Linux/Deck), iOS, Android, Xbox, PS5,
+  Nintendo Switch 1 & 2, Smart TVs, Chromebook, Raspberry Pi, Arduino, calculators,
+  smart watches, VR headsets, web browsers, Docker, and more. See
+  [Platform Launch Plans](#platform-launch-plans---every-platform-possible) for the full list.
 - **Full CLI and REST API** - Every feature is accessible from the command line or via
   HTTP API, enabling integration with other AI tools and automation pipelines.
 - **Comprehensive Logging** - Three rolling log files track everything: a session log,
@@ -215,7 +218,7 @@ an AI readiness indicator.
 | 10 | **Luck Factory** | Clover | Lck | `-` | AI luck seed generator with guided meditation and affirmations |
 | 11 | **Settings** | Gear | Set | `0` | API key management, OpenRouter, appearance, and data |
 
-The Suite Launcher [SLr] also displays a donation banner encouraging users to support
+The Suite Launcher [🗺️SLr] also displays a donation banner encouraging users to support
 development at [mattyjacks.com](https://mattyjacks.com) and
 [givegigs.com](https://givegigs.com).
 
@@ -4051,7 +4054,7 @@ CryptArtist philosophy: free, open, permanent, and user-controlled.
 
 See the **[Detailed CꜴS Plan](#detailed-cꜴs-plan)** section below.
 
-#### [SLM] Small Language Model (Slalom)
+#### [🎿SLM] Small Language Model (Slalom)
 
 **Slalom** is a planned lightweight, locally-runnable language model with a
 skiing-inspired interface. It is designed to provide fast, private AI
@@ -4093,7 +4096,7 @@ Cloud and local sync for `.CryptArt` projects across devices. Supports:
 
 A visual machine learning training interface for fine-tuning small models
 on local hardware. Supports LoRA adapters, dataset management, training
-progress visualization, and model export. Integrates with Slalom [SLM]
+progress visualization, and model export. Integrates with Slalom [🎿SLM]
 for local inference after training.
 
 #### [ARK] Archive
@@ -4207,6 +4210,212 @@ direct messaging. All communication is encrypted and can be self-hosted.
 - [ ] Drag-and-drop file opening
 - [ ] Multi-monitor workspace layout presets
 
+### Platform Launch Plans - Every Platform Possible
+
+CryptArtist Studio aims to launch on **every single platform possible**, making the
+full creative suite accessible to every human on the planet regardless of what device
+they own. Users will be able to pay for API credits using the ecosystem's default
+payment system integrated directly into each platform build.
+
+#### Desktop Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Windows 10** | `.exe` installer | Direct download, Microsoft Store | Priority |
+| **Windows 10** | `.msi` installer | Direct download, enterprise deployment | Priority |
+| **Windows 11** | `.exe` installer | Direct download, Microsoft Store | Priority |
+| **Windows 11** | `.msi` installer | Direct download, enterprise deployment | Priority |
+| **Windows 11** | `.msix` package | Microsoft Store, Windows Package Manager | Planned |
+| **macOS 12+ (Intel)** | `.dmg` disk image | Direct download, Mac App Store | Priority |
+| **macOS 12+ (Apple Silicon)** | `.dmg` disk image | Direct download, Mac App Store | Priority |
+| **macOS Universal** | `.dmg` universal binary | Direct download | Priority |
+| **Linux (Ubuntu 22+)** | `.deb` package | Direct download, apt repository | Priority |
+| **Linux (Ubuntu 22+)** | `.AppImage` | Direct download, AppImageHub | Priority |
+| **Linux (Fedora/RHEL)** | `.rpm` package | Direct download, dnf/yum repository | Planned |
+| **Linux (Any)** | `.tar.gz` portable | Direct download | Planned |
+| **Linux (Any)** | Flatpak | Flathub | Planned |
+| **Linux (Any)** | Snap | Snapcraft | Planned |
+| **Linux (Arch)** | AUR package | Arch User Repository | Planned |
+| **Linux (NixOS)** | Nix package | nixpkgs | Planned |
+| **ChromeOS / Chromebook** | Progressive Web App | Chrome Web Store | Planned |
+| **ChromeOS / Chromebook** | Linux (Crostini) `.deb` | Direct download | Planned |
+| **FreeBSD** | `.pkg` package | Direct download | Experimental |
+
+#### Mobile Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **iOS (iPhone)** | `.ipa` | Apple App Store | Planned |
+| **iOS (iPad)** | `.ipa` (iPad optimized) | Apple App Store | Planned |
+| **iPadOS** | `.ipa` (Stage Manager support) | Apple App Store | Planned |
+| **Android Phones** | `.apk` / `.aab` | Google Play Store, F-Droid, direct APK | Planned |
+| **Android Tablets** | `.apk` / `.aab` (tablet UI) | Google Play Store | Planned |
+| **Android TV** | `.apk` (leanback UI) | Google Play Store | Experimental |
+| **Android Auto / Carplay** | Companion app | Google Play / App Store | Experimental |
+| **Samsung DeX** | Android `.apk` (desktop mode) | Galaxy Store, Google Play | Planned |
+| **Huawei HarmonyOS** | `.hap` package | Huawei AppGallery | Experimental |
+
+#### Gaming Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Steam (Windows)** | Steam build | Steam Store | Priority |
+| **Steam (macOS)** | Steam build | Steam Store | Priority |
+| **Steam (Linux)** | Steam build (native + Proton) | Steam Store | Priority |
+| **Steam Deck** | Steam build (Deck verified) | Steam Store | Priority |
+| **Nintendo Switch** | `.nsp` / eShop build | Nintendo eShop | Experimental |
+| **Nintendo Switch 2** | eShop build | Nintendo eShop | Experimental |
+| **Nintendo DS / 3DS** | Homebrew `.nds` / `.3dsx` | Homebrew channel | Experimental |
+| **Xbox Series X/S** | UWP / GDK build | Microsoft Store (Xbox) | Experimental |
+| **Xbox One** | UWP build | Microsoft Store (Xbox) | Experimental |
+| **PlayStation 5** | PS5 SDK build | PlayStation Store | Experimental |
+| **PlayStation 4** | PS4 SDK build | PlayStation Store | Experimental |
+| **PlayStation Vita** | Homebrew build | HENkaku | Experimental |
+| **Meta Quest 2/3/Pro** | `.apk` (VR UI) | Meta Quest Store | Experimental |
+| **Apple Vision Pro** | visionOS app | Apple App Store | Experimental |
+
+#### Embedded and IoT Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Raspberry Pi 4/5** | `.deb` (ARM64) | apt repository, direct download | Planned |
+| **Raspberry Pi 3** | `.deb` (ARMv7) | apt repository | Experimental |
+| **Raspberry Pi Zero 2 W** | Lightweight build | Direct download | Experimental |
+| **Raspberry Pi Pico** | MicroPython/C companion | Direct flash | Experimental |
+| **Arduino** | Serial companion protocol | Arduino IDE library | Experimental |
+| **ESP32** | Firmware companion | PlatformIO, Arduino IDE | Experimental |
+| **NVIDIA Jetson** | `.deb` (ARM64, CUDA) | Direct download | Planned |
+| **BeagleBone** | `.deb` (ARMv7) | Direct download | Experimental |
+| **Pine64 devices** | `.deb` / Flatpak | Direct download | Experimental |
+| **RISC-V boards** | Portable binary | Direct download | Experimental |
+
+#### Smart TV and Display Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Samsung Smart TV (Tizen)** | Tizen `.wgt` widget | Samsung App Store | Experimental |
+| **LG Smart TV (webOS)** | webOS `.ipk` app | LG Content Store | Experimental |
+| **Android TV** | `.apk` (leanback UI) | Google Play Store | Experimental |
+| **Apple TV (tvOS)** | tvOS app | Apple App Store | Experimental |
+| **Amazon Fire TV** | `.apk` | Amazon Appstore | Experimental |
+| **Roku** | BrightScript channel | Roku Channel Store | Experimental |
+| **Chromecast with Google TV** | `.apk` | Google Play Store | Experimental |
+
+#### Wearable and Specialty Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Apple Watch (watchOS)** | watchOS companion app | Apple App Store | Experimental |
+| **Wear OS (Google)** | `.apk` Wear OS | Google Play Store | Experimental |
+| **Samsung Galaxy Watch (Tizen)** | Tizen wearable | Galaxy Store | Experimental |
+| **Garmin watches** | Connect IQ widget | Garmin Connect IQ | Experimental |
+| **Fitbit** | Fitbit SDK app | Fitbit Gallery | Experimental |
+| **TI-84 Plus CE** | Calculator app | ticalc.org | Experimental |
+| **TI-Nspire CX** | Lua app | ticalc.org | Experimental |
+| **Casio fx-CG50** | Add-in | casio.com | Experimental |
+| **HP Prime** | PPL app | hpcalc.org | Experimental |
+| **Kindle (e-ink)** | Sideloaded APK | Direct download | Experimental |
+| **reMarkable tablet** | Custom app | Direct sideload | Experimental |
+
+#### Web and Cloud Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Web Browser (any)** | Progressive Web App | cryptartiststudio.com | Priority |
+| **Web Browser (any)** | WebAssembly standalone | Direct URL | Priority |
+| **Cloudflare Workers** | Edge deployment | Cloudflare dashboard | Planned |
+| **Docker** | Container image | Docker Hub, GitHub Container Registry | Planned |
+| **Self-hosted server** | Docker Compose | Direct download | Planned |
+| **Kubernetes** | Helm chart | Artifact Hub | Planned |
+| **AWS Lambda** | Serverless build | AWS Marketplace | Experimental |
+| **Google Cloud Run** | Container | GCP Marketplace | Experimental |
+| **Azure Container Instances** | Container | Azure Marketplace | Experimental |
+| **Vercel** | Edge functions | Vercel Marketplace | Planned |
+| **Netlify** | Static + serverless | Netlify | Planned |
+| **GitHub Codespaces** | Dev container | GitHub Marketplace | Planned |
+| **Gitpod** | Dev container | gitpod.io | Planned |
+| **Replit** | Repl template | Replit | Planned |
+| **CodeSandbox** | Sandbox template | CodeSandbox | Planned |
+
+#### Legacy and Retro Platforms
+
+| Platform | Format | Distribution | Status |
+|---|---|---|---|
+| **Windows 7/8** | `.exe` (Electron fallback) | Direct download | Planned |
+| **Windows XP** | Minimal CLI build | Direct download | Experimental |
+| **macOS 10.13+ (High Sierra)** | `.dmg` legacy build | Direct download | Experimental |
+| **Ubuntu 18.04/20.04** | `.AppImage` / `.deb` | Direct download | Planned |
+| **32-bit Linux (i686)** | Portable binary | Direct download | Experimental |
+| **PowerPC Mac (G4/G5)** | CLI-only build | Direct download | Experimental |
+| **DOS** | CLI companion (DJGPP) | Floppy disk image | Experimental |
+| **Amiga** | CLI companion (AmigaOS 4) | AmiNet | Experimental |
+| **Haiku OS** | `.hpkg` package | HaikuDepot | Experimental |
+| **ReactOS** | Windows `.exe` (compatibility) | Direct download | Experimental |
+
+#### Platform-Specific Features
+
+Each platform build includes adaptations for optimal UX:
+
+| Platform | Adaptations |
+|---|---|
+| **Desktop (Win/Mac/Linux)** | Full 11-program suite, keyboard shortcuts, multi-window |
+| **Steam / Steam Deck** | Controller support, Steam overlay, achievements, workshop |
+| **Mobile (iOS/Android)** | Touch-optimized UI, gesture navigation, camera integration |
+| **Tablet (iPad/Android)** | Split-view, Apple Pencil/stylus support, keyboard support |
+| **Smart TV** | D-pad navigation, remote control UI, simplified programs |
+| **Wearable** | Companion notifications, quick actions, voice control |
+| **Calculator** | Text-only Commander interface, basic AI chat |
+| **Raspberry Pi** | GPIO integration, hardware monitoring, lightweight mode |
+| **Arduino/ESP32** | Serial command protocol for hardware projects |
+| **Web** | No install required, cloud save, share via URL |
+| **VR (Quest/Vision Pro)** | 3D workspace, spatial UI, hand tracking, virtual screens |
+| **Console (Xbox/PS5/Switch)** | Controller UI, TV-safe zone, console-native features |
+
+#### API Credit Payment Integration
+
+All platform builds include integrated payment for AI API credits through the
+ecosystem's default payment system:
+
+- **Desktop/Web** - Stripe integration for credit card / debit card payments
+- **Steam** - Steam Wallet microtransactions for API credit bundles
+- **iOS/iPadOS** - Apple In-App Purchase for credit packs
+- **Android** - Google Play Billing for credit packs
+- **Xbox** - Microsoft Store commerce for credit packs
+- **PlayStation** - PlayStation Store wallet for credit packs
+- **Nintendo** - Nintendo eShop prepaid for credit packs
+- **Cryptocurrency** - Bitcoin, Ethereum, and stablecoin payments (all platforms)
+- **GiveGigs Credits** - Earn credits by completing tasks on givegigs.com
+- **DonatePersonalSeconds [🗡️DPS]** - Earn API credits by donating compute time
+
+Credit pricing tiers:
+
+| Tier | Credits | Price | Best For |
+|---|---|---|---|
+| **Starter** | 1,000 credits | $1.00 | Trying out AI features |
+| **Creator** | 10,000 credits | $8.00 | Regular creative work |
+| **Pro** | 50,000 credits | $35.00 | Professional workflows |
+| **Studio** | 200,000 credits | $120.00 | Production teams |
+| **Unlimited** | Unlimited / month | $49.00/mo | Power users |
+| **Free** | 100 credits/day | $0.00 | Funded by DPS donations |
+
+Credits are universal across all AI providers (OpenAI, Anthropic, Google, etc.)
+and all programs in the suite. Unused credits never expire.
+
+#### Platform Launch Timeline
+
+| Phase | Target | Platforms |
+|---|---|---|
+| **Phase 1** | 2026 Q3 | Windows 10/11 (.exe, .msi), macOS, Linux (.deb, .AppImage), Web PWA |
+| **Phase 2** | 2026 Q4 | Steam (PC, Mac, Linux, Deck), Flatpak, Snap, Chromebook |
+| **Phase 3** | 2027 Q1 | iOS (iPhone, iPad), Android (Phone, Tablet), Docker |
+| **Phase 4** | 2027 Q2 | Raspberry Pi, NVIDIA Jetson, Samsung DeX, Kubernetes |
+| **Phase 5** | 2027 Q3 | Smart TVs (Samsung, LG, Android TV, Apple TV, Fire TV) |
+| **Phase 6** | 2027 Q4 | Wearables (Apple Watch, Wear OS, Galaxy Watch) |
+| **Phase 7** | 2028 Q1 | Gaming consoles (Xbox, PS5, Nintendo Switch 1 & 2) |
+| **Phase 8** | 2028 Q2 | VR/AR (Meta Quest, Apple Vision Pro), Calculators |
+| **Phase 9** | 2028 Q3 | Embedded (Arduino, ESP32, BeagleBone, RISC-V) |
+| **Phase 10** | 2028 Q4 | Legacy/Retro (Windows 7, macOS legacy, PowerPC, DOS, Amiga) |
+
 ### Platform and Infrastructure
 
 - [ ] **Android and iOS** - Native mobile builds via Tauri 2 mobile
@@ -4215,23 +4424,44 @@ direct messaging. All communication is encrypted and can be self-hosted.
 - [ ] **Electron fallback** - Alternative desktop build for broader compatibility
 - [ ] **Flatpak and Snap** - Linux package manager distribution
 - [ ] **Microsoft Store and Mac App Store** - Official store listings
+- [ ] **Steam Store** - Steam builds for PC, Mac, Linux, and Steam Deck
 - [ ] **Auto-updater** - In-app update mechanism with delta patches
 - [ ] **Crash reporter** - Opt-in crash reporting with stack traces
 - [ ] **Telemetry dashboard** - Opt-in anonymous usage analytics
-- [ ] **i18n / Localization** - Multi-language UI (Spanish, French, German, Japanese, Chinese, Korean, Arabic, Hindi)
-- [ ] **Accessibility** - Screen reader support, high contrast mode, keyboard-only navigation
-- [ ] **Offline mode** - Full functionality without internet (local AI via Slalom)
+- [ ] **i18n / Localization** - Multi-language UI (Spanish, French, German, Japanese, Chinese, Korean, Arabic, Hindi, Portuguese, Russian, Turkish, Vietnamese, Thai, Indonesian, Polish, Dutch, Swedish, Norwegian, Danish, Finnish, Czech, Romanian, Hungarian, Greek, Hebrew, Swahili, Zulu, Yoruba, Amharic, Tagalog, Malay, Bengali, Urdu, Gujarati, Tamil, Telugu, Kannada, Malayalam, Marathi, Punjabi, Nepali, Sinhala, Burmese, Khmer, Lao, Mongolian, Tibetan, Georgian, Armenian, Azerbaijani, Kazakh, Uzbek, Kurdish, Pashto, Dari, Farsi, Esperanto, Latin, Klingon, Elvish)
+- [ ] **Accessibility** - Screen reader support, high contrast mode, keyboard-only navigation, voice control, reduced motion, large text mode, dyslexia-friendly fonts, color blind modes
+- [ ] **Offline mode** - Full functionality without internet (local AI via Slalom [🎿SLM])
+- [ ] **Docker official image** - `docker pull cryptartiststudio/studio:latest`
+- [ ] **Kubernetes Helm chart** - One-command team deployment
+- [ ] **Edge deployment** - Cloudflare Workers, Vercel Edge, Deno Deploy
+- [ ] **Calculator builds** - TI-84, TI-Nspire, Casio fx-CG50, HP Prime
+- [ ] **Wearable builds** - Apple Watch, Wear OS, Galaxy Watch, Garmin, Fitbit
+- [ ] **Smart TV builds** - Samsung Tizen, LG webOS, Android TV, Apple TV, Roku, Fire TV
+- [ ] **Console builds** - Xbox Series X/S, PS5, Nintendo Switch 1 & 2
+- [ ] **VR/AR builds** - Meta Quest 2/3/Pro, Apple Vision Pro
+- [ ] **Embedded builds** - Raspberry Pi, Arduino, ESP32, Jetson, RISC-V
+- [ ] **Legacy builds** - Windows 7/8, macOS High Sierra, 32-bit Linux, PowerPC
 
 ### AI and Machine Learning
 
-- [ ] **Local AI inference** - Run models locally via llama.cpp, Ollama, or Slalom
+- [ ] **Local AI inference** - Run models locally via llama.cpp, Ollama, or Slalom [🎿SLM]
 - [ ] **Voice control** - Control any program with natural language voice commands
 - [ ] **AI memory** - Persistent context across sessions and programs
 - [ ] **Multi-modal AI** - Image, audio, and video understanding in AI prompts
 - [ ] **AI agents marketplace** - Share and install custom AI agent configurations
-- [ ] **Fine-tuning UI** - Fine-tune models on your own data via TrainYard
+- [ ] **Fine-tuning UI** - Fine-tune models on your own data via TrainYard [TRN]
 - [ ] **AI model benchmarking** - Compare model performance on your specific tasks
 - [ ] **Prompt library** - Community-curated prompt templates for every program
+- [ ] **On-device training** - Train small models directly on user hardware
+- [ ] **Federated learning** - Collaborative model improvement across DPS network
+- [ ] **AI code generation** - Full project scaffolding from natural language
+- [ ] **AI video generation** - Text-to-video with Sora, Runway, Kling integration
+- [ ] **AI music generation** - Suno, Udio, and local music model integration
+- [ ] **AI 3D generation** - Text-to-3D model generation for GameStudio
+- [ ] **AI voice cloning** - ElevenLabs voice cloning for personalized TTS
+- [ ] **Real-time translation** - Live subtitle translation in 100+ languages
+- [ ] **Sentiment analysis** - AI-powered mood detection in text and audio
+- [ ] **Content moderation** - AI-powered content safety for community features
 
 ### Community and Ecosystem
 
@@ -4244,6 +4474,12 @@ direct messaging. All communication is encrypted and can be self-hosted.
 - [ ] **YouTube channel** - Official tutorials and development vlogs
 - [ ] **Discord server** - Community chat and support
 - [ ] **Bug bounty program** - Security rewards for vulnerability reports
+- [ ] **University partnerships** - Academic license and curriculum integration
+- [ ] **Nonprofit program** - Free enhanced features for registered nonprofits
+- [ ] **Creator fund** - Revenue sharing for popular mod/plugin creators
+- [ ] **Localization bounties** - Community-driven translation with rewards
+- [ ] **Annual conference** - CryptArtist Con with workshops and networking
+- [ ] **Ambassador program** - Community leaders with early access and perks
 
 ---
 
@@ -4390,7 +4626,7 @@ CꜴS includes a system-level AI runtime:
 
 ## Detailed SLM Plan
 
-### [SLM] Small Language Model (Slalom) - Full Specification
+### [🎿SLM] Small Language Model (Slalom) - Full Specification
 
 **Slalom** (pronounced like the skiing term) is a planned small, fast,
 locally-runnable language model designed specifically for CryptArtist Studio.

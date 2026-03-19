@@ -177,16 +177,63 @@ export const PROGRAM_LABELS: Record<string, string> = {
   "clone-tool": "Clone Tool",
   "dictate-pic": "DictatePic",
   "luck-factory": "Luck Factory",
+  "alive-speech": "Alive Speech",
   "settings": "Settings",
+  // Imp 96: Missing program labels
+  "virtual-pet": "Virtual Pet",
+  "tax-info-bot": "Tax Info Bot",
+  "crypt-manager": "Crypt Manager",
+  "master": "Master",
+};
+
+// Imp 97: Program emoji lookup
+export const PROGRAM_EMOJIS: Record<string, string> = {
+  "media-mogul": "\uD83C\uDFAC",
+  "vibecode-worker": "\uD83D\uDCBB",
+  "demo-recorder": "\uD83C\uDFA5",
+  "valley-net": "\uD83D\uDC71\uD83C\uDFFB\u200D\u2640\uFE0F",
+  "game-studio": "\uD83C\uDFAE",
+  "commander": "\uD83D\uDC31",
+  "donate-personal-seconds": "\uD83D\uDDE1\uFE0F",
+  "clone-tool": "\uD83D\uDCE6",
+  "dictate-pic": "\uD83E\uDD67",
+  "luck-factory": "\uD83C\uDF40",
+  "alive-speech": "\uD83D\uDE4A",
+  "virtual-pet": "\uD83D\uDC15",
+  "tax-info-bot": "\uD83D\uDCB0",
+  "crypt-manager": "\u26B0\uFE0F",
+  "master": "\uD83D\uDC68\uD83C\uDFFC\u200D\uD83E\uDDB3",
+  "settings": "\u2699\uFE0F",
 };
 
 export function programLabel(program: string): string {
   return PROGRAM_LABELS[program] || program;
 }
 
+// Imp 98: Get program emoji
+export function programEmoji(program: string): string {
+  return PROGRAM_EMOJIS[program] || "\uD83D\uDCBB";
+}
+
 // Program ID to route path
 export function programRoute(program: string): string {
   return `/${program}`;
+}
+
+// Imp 99: Search workspaces by name or program
+export function searchWorkspaces(workspaces: Workspace[], query: string): Workspace[] {
+  if (!query.trim()) return workspaces;
+  const q = query.toLowerCase();
+  return workspaces.filter((w) =>
+    w.displayName.toLowerCase().includes(q) ||
+    w.program.toLowerCase().includes(q) ||
+    (PROGRAM_LABELS[w.program] || "").toLowerCase().includes(q)
+  );
+}
+
+// Imp 100: Get all unique programs from open workspaces
+export function getOpenPrograms(workspaces: Workspace[]): string[] {
+  return [...new Set(workspaces.map((w) => w.program))];
 }
 
 // ---------------------------------------------------------------------------

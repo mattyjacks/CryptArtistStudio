@@ -23,6 +23,14 @@ import {
 import ThemeManager from "../../components/ThemeManager";
 import PluginManager from "../../components/PluginManager";
 import ModManager from "../../components/ModManager";
+import {
+  GRAPHICS_MODE_ORDER,
+  GRAPHICS_MODE_LABELS,
+  loadGraphicsMode,
+  saveGraphicsMode,
+  detectGraphicsMode,
+  type GraphicsMode,
+} from "../virtual-pet/furniture";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -157,7 +165,7 @@ const OPENROUTER_MODELS = [
 // Settings Sections
 // ---------------------------------------------------------------------------
 
-type SettingsSection = "api-keys" | "openrouter" | "appearance" | "themes" | "plugins" | "mods" | "shortcuts" | "data" | "about";
+type SettingsSection = "api-keys" | "openrouter" | "appearance" | "themes" | "virtual-pet" | "plugins" | "mods" | "shortcuts" | "data" | "about";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -218,6 +226,13 @@ export default function Settings() {
   const [autoBackup, setAutoBackup] = useState(() => safeGetRaw("cryptartist_auto_backup") === "true");
   // Improvement 373: Theme preview
   const [themePreview, setThemePreview] = useState<string | null>(null);
+
+  // Virtual Pet graphics settings
+  const [petGraphicsMode, setPetGraphicsMode] = useState<GraphicsMode>(() => loadGraphicsMode());
+  const [petDetectedMode, setPetDetectedMode] = useState<GraphicsMode | null>(null);
+  const [petRugSeed, setPetRugSeed] = useState<string>(() => {
+    try { return localStorage.getItem("cryptartist_pet_rug_seed") || ""; } catch { return ""; }
+  });
 
   // Improvement 306: Calculate localStorage usage
   useEffect(() => {
@@ -358,6 +373,7 @@ export default function Settings() {
     { id: "openrouter", label: "OpenRouter", icon: "\u{1F310}" },
     { id: "appearance", label: "Appearance", icon: "\u{1F3A8}" },
     { id: "themes", label: "Themes", icon: "\u{1F308}" },
+    { id: "virtual-pet", label: "Virtual Pet", icon: "\u{1F431}" },
     { id: "plugins", label: "Plugins", icon: "\u{1F9E9}" },
     { id: "mods", label: "Mods", icon: "\u{1F680}" },
     { id: "shortcuts", label: "Shortcuts", icon: "\u2328\uFE0F" },
@@ -738,6 +754,119 @@ export default function Settings() {
 
           {/* Themes Section */}
           {activeSection === "themes" && <ThemeManager />}
+
+          {/* Virtual Pet Graphics Section */}
+          {activeSection === "virtual-pet" && (
+            <div className="max-w-2xl">
+              <h2 className="text-lg font-bold mb-1">{"\u{1F431}"} Virtual Pet</h2>
+              <p className="text-[11px] text-studio-muted mb-6">Graphics settings for the Virtual Pet room. Changes take effect next time you open Virtual Pet.</p>
+
+              {/* Graphics Mode */}
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="text-[12px] font-semibold text-studio-text mb-1">Graphics Mode</div>
+                <p className="text-[10px] text-studio-muted mb-3">Higher modes add shadows, lighting effects, day/night cycle animations, and volumetric light shafts. Epic mode enables raytracing-like reflections.</p>
+                <div className="flex gap-2 flex-wrap mb-3">
+                  {GRAPHICS_MODE_ORDER.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => { setPetGraphicsMode(m); saveGraphicsMode(m); toast.success(`Graphics set to ${GRAPHICS_MODE_LABELS[m]}`); }}
+                      className={`px-3 py-2 rounded-lg text-[11px] font-medium transition-all border ${
+                        petGraphicsMode === m
+                          ? "bg-studio-cyan/20 border-studio-cyan text-studio-cyan shadow-sm shadow-studio-cyan/20"
+                          : "border-studio-border text-studio-secondary hover:text-studio-text hover:border-studio-muted"
+                      }`}
+                    >
+                      <div className="font-semibold">{GRAPHICS_MODE_LABELS[m]}</div>
+                      <div className="text-[8px] opacity-70 mt-0.5">
+                        {m === "wireframe" && "No shading"}
+                        {m === "basic" && "Flat shading"}
+                        {m === "okay" && "Basic shadows"}
+                        {m === "good" && "PCF shadows"}
+                        {m === "great" && "Soft shadows + FX"}
+                        {m === "epic" && "Raytracing + FX"}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const detected = detectGraphicsMode();
+                    setPetDetectedMode(detected);
+                    setPetGraphicsMode(detected);
+                    saveGraphicsMode(detected);
+                    toast.success(`Auto-detected: ${GRAPHICS_MODE_LABELS[detected]}`);
+                  }}
+                  className="btn text-[10px] px-3 py-1.5"
+                >
+                  {"\u{1F50D}"} Auto-Detect GPU
+                </button>
+                {petDetectedMode && (
+                  <span className="text-[10px] text-studio-muted ml-2">Detected: {GRAPHICS_MODE_LABELS[petDetectedMode]}</span>
+                )}
+              </div>
+
+              {/* Day/Night Cycle Info */}
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="text-[12px] font-semibold text-studio-text mb-1">{"\u{1F305}"} Day/Night Cycle</div>
+                <p className="text-[10px] text-studio-muted">
+                  The room window has a realistic 1-hour day/night cycle synced to your clock minutes. Sunrise and sunset timing varies by season based on New Hampshire, USA latitude (43{"\u00B0"}N). Sunlight color shifts through dawn gold, noon white, and dusk orange. Stars appear at night.
+                </p>
+              </div>
+
+              {/* Rug Seed */}
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border mb-4">
+                <div className="text-[12px] font-semibold text-studio-text mb-1">{"\u{1F9F6}"} Rug Pattern Seed</div>
+                <p className="text-[10px] text-studio-muted mb-3">Enter a number to get a specific rug pattern, or leave empty for a random pattern each time.</p>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={petRugSeed}
+                    onChange={(e) => setPetRugSeed(e.target.value)}
+                    placeholder="Random"
+                    className="input text-[11px] w-40"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (petRugSeed.trim()) {
+                        localStorage.setItem("cryptartist_pet_rug_seed", petRugSeed.trim());
+                        toast.success("Rug seed saved!");
+                      } else {
+                        localStorage.removeItem("cryptartist_pet_rug_seed");
+                        toast.success("Rug set to random pattern");
+                      }
+                    }}
+                    className="btn text-[10px] px-3 py-1.5"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
+
+              {/* Furniture List */}
+              <div className="p-4 rounded-xl bg-studio-surface border border-studio-border">
+                <div className="text-[12px] font-semibold text-studio-text mb-2">{"\u{1F3E0}"} Room Furniture</div>
+                <p className="text-[10px] text-studio-muted mb-3">The room contains 13 individually modeled furniture pieces:</p>
+                <div className="grid grid-cols-2 gap-1.5 text-[10px] text-studio-secondary">
+                  <div>{"\u{1F6CF}"} Bed - cozy with pillow & blanket</div>
+                  <div>{"\u{1F4DA}"} Bookshelf - with colored books</div>
+                  <div>{"\u{1F9CA}"} Fridge/Freezer - stainless steel</div>
+                  <div>{"\u{1F4A1}"} Floor Lamp - with real light</div>
+                  <div>{"\u{1FAB4}"} Potted Plant - with leaf clusters</div>
+                  <div>{"\u{1F408}"} Scratching Post - with dangling toy</div>
+                  <div>{"\u{1F4BB}"} 90s Computer - CRT + tower</div>
+                  <div>{"\u{1FA9F}"} Window - with outside view</div>
+                  <div>{"\u{1F9F6}"} Circular Rug - procedural pattern</div>
+                  <div>{"\u{1F6CB}"} Table - wooden with cross brace</div>
+                  <div>{"\u{1FAA3}"} Litter Box - with scoop</div>
+                  <div>{"\u{1F6BF}"} Sink - cat bath sized</div>
+                  <div>{"\u{1F3BE}"} Tennis Ball - green with seams</div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Plugins Section */}
           {activeSection === "plugins" && <PluginManager />}
