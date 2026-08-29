@@ -66,8 +66,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Master password or individual user passwords
-  const masterPassword = process.env.STUDIO_MASTER_PASSWORD || "cryptartist2026";
+  // Admin & Media Mogul Passwords from environment variables
+  const adminPassword =
+    process.env.ADMIN_PASSWORD ||
+    process.env.STUDIO_ADMIN_PASSWORD ||
+    process.env.STUDIO_MASTER_PASSWORD ||
+    "admin2026";
+
+  const mediaMogulPassword =
+    process.env.MEDIA_MOGUL_PASSWORD ||
+    process.env.STUDIO_MEDIA_MOGUL_PASSWORD ||
+    "mogul2026";
+
   const userPasswordsRaw = process.env.STUDIO_USER_PASSWORDS || "{}";
   let userPasswordsMap: Record<string, string> = {};
   try {
@@ -76,10 +86,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ignore
   }
 
-  const authorizedKeys = [masterPassword, ...Object.keys(userPasswordsMap), ...Object.values(userPasswordsMap)];
-  const isAuthorized = authorizedKeys.some((k) => timingSafeEqual(k, password.trim()));
+  const trimmedPass = password.trim();
+  let userRole: "admin" | "media-mogul" | null = null;
 
-  if (!isAuthorized) {
+  if (timingSafeEqual(adminPassword, trimmedPass)) {
+    userRole = "admin";
+  } else if (timingSafeEqual(mediaMogulPassword, trimmedPass)) {
+    userRole = "media-mogul";
+  } else {
+    for (const [key, roleVal] of Object.entries(userPasswordsMap)) {
+      if (timingSafeEqual(key, trimmedPass)) {
+        userRole = roleVal === "admin" ? "admin" : "media-mogul";
+        break;
+      }
+    }
+  }
+
+  if (!userRole) {
     return res.status(401).json({
       authorized: false,
       error: "Invalid access password. Please check your assigned password or supply your own OpenAI/OpenRouter key in Settings.",
@@ -87,7 +110,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (testAuth) {
-    return res.status(200).json({ authorized: true, message: "Password verified." });
+    return res.status(200).json({
+      authorized: true,
+      role: userRole,
+      roleDisplayName: userRole === "admin" ? "👑 Admin" : "📺 Media Mogul User",
+      message: `Password verified with ${userRole} permissions.`,
+    });
   }
 
   // Input Validation

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useProject } from "../../core/context/ProjectContext";
+import { useAuth } from "../../core/context/AuthContext";
 import { MediaBrowser } from "./components/MediaBrowser";
 import { Timeline } from "./components/Timeline";
 import { PreviewCanvas } from "./components/PreviewCanvas";
@@ -19,6 +20,7 @@ export interface MediaMogulProps {
 
 export const MediaMogul: React.FC<MediaMogulProps> = ({ onOpenSettings }) => {
   const { project, saveProject, exportProjectAsCryptArt, isDirty, lastSavedAt, projectSettings } = useProject();
+  const { role, roleDisplayName, openAuthModal } = useAuth();
 
   const [activeWorkspace, setActiveWorkspace] = useState<WorkspaceView>("edit");
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -114,6 +116,22 @@ export const MediaMogul: React.FC<MediaMogulProps> = ({ onOpenSettings }) => {
 
         {/* Right: Notes, Settings, Save & Export */}
         <div className="flex items-center gap-2">
+          {/* Access Role Pill */}
+          <button
+            onClick={() => openAuthModal("Media Mogul")}
+            className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition flex items-center gap-1.5 ${
+              role === "admin"
+                ? "bg-studio-purple/20 border-studio-purple/50 text-studio-purple hover:bg-studio-purple/30"
+                : role === "media-mogul"
+                ? "bg-studio-cyan/20 border-studio-cyan/50 text-studio-cyan hover:bg-studio-cyan/30"
+                : "bg-studio-surface border-studio-border text-studio-secondary hover:text-studio-text"
+            }`}
+            title="Click to manage access level or login"
+          >
+            <span>{role === "admin" ? "👑" : role === "media-mogul" ? "📺" : "👤"}</span>
+            <span className="hidden sm:inline">{roleDisplayName}</span>
+          </button>
+
           {/* Script Notes Drawer Toggle */}
           <button
             onClick={() => setIsNotesOpen(!isNotesOpen)}

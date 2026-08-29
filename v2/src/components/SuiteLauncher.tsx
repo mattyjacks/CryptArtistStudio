@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useProject } from "../core/context/ProjectContext";
-import { useStudioCore } from "../core/context/StudioCoreContext";
+import { useAuth } from "../core/context/AuthContext";
 import { SuiteProgramManifest } from "../core/types/suite.types";
 
 export const SUITE_PROGRAMS: SuiteProgramManifest[] = [
@@ -221,6 +221,7 @@ export const SUITE_PROGRAMS: SuiteProgramManifest[] = [
 export const SuiteLauncher: React.FC<{ onOpenSettings?: () => void }> = ({ onOpenSettings }) => {
   const navigate = useNavigate();
   const { importCryptArtFile } = useProject();
+  const { role, roleDisplayName, openAuthModal } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [search, setSearch] = useState("");
@@ -305,6 +306,23 @@ export const SuiteLauncher: React.FC<{ onOpenSettings?: () => void }> = ({ onOpe
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Active Role Authentication Pill */}
+          <button
+            onClick={() => openAuthModal()}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-xl border transition flex items-center gap-2 ${
+              role === "admin"
+                ? "bg-studio-purple/20 border-studio-purple/50 text-studio-purple hover:bg-studio-purple/30 shadow-glow-purple"
+                : role === "media-mogul"
+                ? "bg-studio-cyan/20 border-studio-cyan/50 text-studio-cyan hover:bg-studio-cyan/30 shadow-glow-sm"
+                : "bg-studio-surface border-studio-border text-studio-secondary hover:text-studio-text hover:bg-studio-elevated"
+            }`}
+            title="Click to view permissions or switch access role"
+          >
+            <span>{role === "admin" ? "👑" : role === "media-mogul" ? "📺" : "👤"}</span>
+            <span>{roleDisplayName}</span>
+            <span className="text-[10px] opacity-60">▼</span>
+          </button>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -342,7 +360,7 @@ export const SuiteLauncher: React.FC<{ onOpenSettings?: () => void }> = ({ onOpe
         <div className="relative overflow-hidden rounded-3xl border border-studio-cyan/30 bg-gradient-to-r from-studio-panel via-studio-surface to-studio-panel p-8 shadow-elevated">
           <div className="relative z-10 max-w-2xl space-y-3">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-studio-cyan/20 border border-studio-cyan/40 text-studio-cyan text-xs font-bold">
-              <span>🌟</span> Flagship Release
+              <span>🌟</span> Flagship Release • Unlocked for Media Mogul & Admin
             </div>
             <h2 className="text-3xl font-black text-white tracking-tight">
               📺 Media Mogul v2
@@ -394,41 +412,59 @@ export const SuiteLauncher: React.FC<{ onOpenSettings?: () => void }> = ({ onOpe
 
         {/* Programs Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPrograms.map((prog) => (
-            <Link
-              key={prog.id}
-              to={prog.route}
-              className={`group p-5 rounded-2xl border border-studio-border ${prog.borderHover} bg-studio-panel/70 hover:bg-studio-surface/90 transition shadow-panel flex flex-col justify-between relative overflow-hidden`}
-            >
-              <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${prog.gradient} rounded-bl-full -mr-6 -mt-6 pointer-events-none opacity-40 group-hover:opacity-70 transition`} />
+          {filteredPrograms.map((prog) => {
+            const isAdminOnly = prog.id !== "media-mogul";
+            const isAccessible = role === "admin" || prog.id === "media-mogul";
 
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-3xl p-2 rounded-xl bg-studio-bg border border-studio-border">
-                    {prog.emoji}
+            return (
+              <Link
+                key={prog.id}
+                to={prog.route}
+                className={`group p-5 rounded-2xl border border-studio-border ${prog.borderHover} bg-studio-panel/70 hover:bg-studio-surface/90 transition shadow-panel flex flex-col justify-between relative overflow-hidden`}
+              >
+                <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${prog.gradient} rounded-bl-full -mr-6 -mt-6 pointer-events-none opacity-40 group-hover:opacity-70 transition`} />
+
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-3xl p-2 rounded-xl bg-studio-bg border border-studio-border">
+                      {prog.emoji}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {isAdminOnly && (
+                        <span
+                          className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${
+                            role === "admin"
+                              ? "bg-studio-purple/20 text-studio-purple border-studio-purple/30"
+                              : "bg-studio-surface text-studio-muted border-studio-border"
+                          }`}
+                        >
+                          {role === "admin" ? "👑 Admin Unlocked" : "👑 Admin Req"}
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-studio-surface text-studio-secondary border border-studio-border">
+                        [{prog.shortCode}]
+                      </span>
+                    </div>
+                  </div>
+                  <h3 className={`text-base font-bold text-white group-hover:${prog.accentColor} transition flex items-center gap-2`}>
+                    {prog.name}
+                  </h3>
+                  <p className="text-xs text-studio-secondary mt-1.5 leading-relaxed">
+                    {prog.description}
+                  </p>
+                </div>
+
+                <div className="pt-4 flex items-center justify-between text-xs mt-2 border-t border-studio-border/40">
+                  <span className="text-[10px] font-mono text-studio-muted capitalize">
+                    {prog.category}
                   </span>
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-studio-surface text-studio-secondary border border-studio-border">
-                    [{prog.shortCode}]
+                  <span className={`${prog.accentColor} font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition`}>
+                    {isAccessible ? "Launch →" : "🔒 Admin Gate →"}
                   </span>
                 </div>
-                <h3 className={`text-base font-bold text-white group-hover:${prog.accentColor} transition flex items-center gap-2`}>
-                  {prog.name}
-                </h3>
-                <p className="text-xs text-studio-secondary mt-1.5 leading-relaxed">
-                  {prog.description}
-                </p>
-              </div>
-
-              <div className="pt-4 flex items-center justify-between text-xs mt-2 border-t border-studio-border/40">
-                <span className="text-[10px] font-mono text-studio-muted capitalize">
-                  {prog.category}
-                </span>
-                <span className={`${prog.accentColor} font-semibold flex items-center gap-1 group-hover:translate-x-0.5 transition`}>
-                  Launch →
-                </span>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </main>
 

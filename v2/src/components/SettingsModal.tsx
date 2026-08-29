@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAI } from "../core/context/AIContext";
 import { useStudioCore } from "../core/context/StudioCoreContext";
+import { useAuth } from "../core/context/AuthContext";
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -8,7 +9,8 @@ export interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { keys, updateKey, unlockVault, lockVault, isPasswordVaultActive } = useAI();
+  const { keys, updateKey, isPasswordVaultActive } = useAI();
+  const { role, roleDisplayName, permissions, login, logout } = useAuth();
   const { storage } = useStudioCore();
 
   const [activeTab, setActiveTab] = useState<"ai" | "vault" | "storage">("vault");
@@ -23,9 +25,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setIsUnlocking(true);
     setVaultMessage(null);
     try {
-      const res = await unlockVault(passwordInput);
+      const res = await login(passwordInput.trim());
       if (res.success) {
-        setVaultMessage({ type: "success", text: res.message || "Password Vault unlocked!" });
+        setVaultMessage({
+          type: "success",
+          text: `Authenticated as ${res.role === "admin" ? "👑 Admin" : "📺 Media Mogul User"}! Server environment keys active.`,
+        });
         setPasswordInput("");
       } else {
         setVaultMessage({ type: "error", text: res.message || "Invalid password." });
@@ -33,6 +38,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     } finally {
       setIsUnlocking(false);
     }
+  };
+
+  const handleLockVault = async () => {
+    await logout();
+    setVaultMessage({ type: "success", text: "Logged out to Guest mode. Password Vault locked." });
   };
 
   const handleClearCache = async () => {
@@ -98,67 +108,105 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <div className="space-y-4">
               <div className="p-3.5 bg-gradient-to-r from-studio-purple/20 to-studio-cyan/20 border border-studio-purple/30 rounded-xl">
                 <h3 className="text-xs font-bold text-white mb-1 flex items-center gap-1.5">
-                  <span>🔐</span> Password-Gated Server Environment Vault
+                  <span>🔐</span> Multi-Level Role & Password-Gated Vault
                 </h3>
                 <p className="text-studio-secondary leading-relaxed">
-                  Enter your personalized access password assigned to you. This unlocks OpenAI and OpenRouter AI features directly through our server environment variables without needing your own API key.
+                  Enter your assigned user or admin password. This grants access based on your level: <strong className="text-studio-purple">Admin</strong> (all 15 programs + developer suite + server keys) or <strong className="text-studio-cyan">Media Mogul User</strong> (video editor + auto-edit studio).
                 </p>
               </div>
 
-              {isPasswordVaultActive ? (
-                <div className="p-4 bg-studio-green/10 border border-studio-green/30 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-studio-green">
-                    <span className="text-lg">✅</span>
-                    <div>
-                      <strong className="block text-xs">Password Vault is ACTIVE</strong>
-                      <span className="text-[11px] text-studio-muted">
-                        Using server-side environment keys for AI processing.
+              {/* Current Role Card */}
+              <div className="p-3.5 bg-studio-surface border border-studio-border rounded-xl flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] uppercase font-mono text-studio-muted tracking-wider block">
+                    Active Access Role
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <strong className="text-sm text-studio-cyan font-bold">{roleDisplayName}</strong>
+                    {role === "admin" && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-studio-purple/20 text-studio-purple font-bold border border-studio-purple/40">
+                        Full Suite Privileges
                       </span>
-                    </div>
+                    )}
+                    {role === "media-mogul" && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-studio-cyan/20 text-studio-cyan font-bold border border-studio-cyan/40">
+                        Media Mogul Studio
+                      </span>
+                    )}
                   </div>
+                </div>
+
+                {role !== "guest" ? (
                   <button
-                    onClick={lockVault}
+                    onClick={handleLockVault}
                     className="px-3 py-1.5 bg-studio-red/20 hover:bg-studio-red text-studio-red hover:text-white rounded-lg transition font-medium text-xs"
                   >
-                    Lock Vault
+                    Lock / Log Out
                   </button>
-                </div>
-              ) : (
-                <form onSubmit={handleUnlockVault} className="space-y-3">
-                  <div>
-                    <label className="text-xs font-bold text-studio-text block mb-1">
-                      Enter Assigned User Password
-                    </label>
-                    <input
-                      type="password"
-                      placeholder="Enter access password..."
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      className="w-full bg-studio-surface border border-studio-border rounded-lg p-2.5 text-xs text-studio-text focus:outline-none focus:border-studio-purple"
-                    />
+                ) : (
+                  <span className="text-xs text-studio-muted">Guest / Unlocked with BYOK</span>
+                )}
+              </div>
+
+              {/* Permission Checklist */}
+              <div className="p-3 bg-studio-surface/50 border border-studio-border rounded-xl space-y-1.5 text-[11px]">
+                <span className="font-bold text-studio-text block mb-1 text-xs">Active Role Capabilities:</span>
+                <div className="grid grid-cols-2 gap-1.5 text-studio-secondary">
+                  <div className="flex items-center gap-1.5">
+                    <span>{permissions.canAccessMediaMogul ? "✅" : "❌"}</span> Media Mogul Video Studio
                   </div>
+                  <div className="flex items-center gap-1.5">
+                    <span>{permissions.canUseServerAIVault ? "✅" : "❌"}</span> Server AI Environment Vault
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span>{permissions.canAccessVibeCode ? "✅" : "🔒"}</span> VibeCode Monaco IDE
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span>{permissions.canAccessValleyNet ? "✅" : "🔒"}</span> ValleyNet AI Agent
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span>{permissions.canAccessMasterDashboard ? "✅" : "🔒"}</span> Master Command Dashboard
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span>{permissions.canAccessAllPrograms ? "✅" : "🔒"}</span> All 15 Suite Programs
+                  </div>
+                </div>
+              </div>
 
-                  {vaultMessage && (
-                    <div
-                      className={`p-2.5 rounded-lg text-xs ${
-                        vaultMessage.type === "success"
-                          ? "bg-studio-green/20 text-studio-green"
-                          : "bg-studio-red/20 text-studio-red"
-                      }`}
-                    >
-                      {vaultMessage.text}
-                    </div>
-                  )}
+              <form onSubmit={handleUnlockVault} className="space-y-3">
+                <div>
+                  <label className="text-xs font-bold text-studio-text block mb-1">
+                    {role === "guest" ? "Enter Assigned Password" : "Switch Access Password"}
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter Admin or Media Mogul password..."
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    className="w-full bg-studio-surface border border-studio-border rounded-lg p-2.5 text-xs text-studio-text focus:outline-none focus:border-studio-purple"
+                  />
+                </div>
 
-                  <button
-                    type="submit"
-                    disabled={isUnlocking}
-                    className="w-full py-2.5 bg-studio-purple hover:bg-studio-purple/80 text-white font-bold rounded-lg transition shadow-glow-purple flex items-center justify-center gap-1.5 disabled:opacity-50"
+                {vaultMessage && (
+                  <div
+                    className={`p-2.5 rounded-lg text-xs ${
+                      vaultMessage.type === "success"
+                        ? "bg-studio-green/20 text-studio-green border border-studio-green/30"
+                        : "bg-studio-red/20 text-studio-red border border-studio-red/30"
+                    }`}
                   >
-                    <span>{isUnlocking ? "Unlocking..." : "🔓 Unlock Password Vault"}</span>
-                  </button>
-                </form>
-              )}
+                    {vaultMessage.text}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isUnlocking}
+                  className="w-full py-2.5 bg-studio-purple hover:bg-studio-purple/80 text-white font-bold rounded-lg transition shadow-glow-purple flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  <span>{isUnlocking ? "Verifying..." : "🔓 Unlock Role & Vault"}</span>
+                </button>
+              </form>
             </div>
           )}
 

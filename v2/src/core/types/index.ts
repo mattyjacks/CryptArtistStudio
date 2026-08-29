@@ -10,3 +10,5 @@ export * from "./ai.types";
 export * from "./video.types";
 export * from "./drive.types";
 export * from "./suite.types";
+export * from "./auth.types";
+

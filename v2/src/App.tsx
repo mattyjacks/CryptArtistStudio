@@ -7,14 +7,18 @@ import DemoRecorder from "./programs/demo-recorder/DemoRecorder";
 import ValleyNet from "./programs/valley-net/ValleyNet";
 import SuitePlaceholder from "./programs/placeholders/SuitePlaceholder";
 import SettingsModal from "./components/SettingsModal";
+import RoleGate from "./components/RoleGate";
+import AuthModal from "./components/AuthModal";
+import { useAuth } from "./core/context/AuthContext";
 
 export default function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { isAuthModalOpen, closeAuthModal } = useAuth();
 
   return (
     <div className="h-screen w-screen bg-studio-bg text-studio-text flex flex-col overflow-hidden font-sans">
       <Routes>
-        {/* Flagship Media Mogul Web URL routes */}
+        {/* Flagship Media Mogul Web URL routes (Accessible by Media Mogul & Admin roles) */}
         <Route
           path="/web/mediamogul/*"
           element={<MediaMogul onOpenSettings={() => setIsSettingsOpen(true)} />}
@@ -34,12 +38,33 @@ export default function App() {
           element={<SuiteLauncher onOpenSettings={() => setIsSettingsOpen(true)} />}
         />
 
-        {/* Programs */}
-        <Route path="/vibecode-worker" element={<VibeCodeWorker />} />
-        <Route path="/demo-recorder" element={<DemoRecorder />} />
-        <Route path="/valley-net" element={<ValleyNet />} />
+        {/* Admin-Protected Programs */}
+        <Route
+          path="/vibecode-worker"
+          element={
+            <RoleGate requiredRole="admin" programName="VibeCodeWorker" programEmoji="👩🏻‍💻" programShortCode="VCW">
+              <VibeCodeWorker />
+            </RoleGate>
+          }
+        />
+        <Route
+          path="/demo-recorder"
+          element={
+            <RoleGate requiredRole="admin" programName="DemoRecorder" programEmoji="🎥" programShortCode="DRe">
+              <DemoRecorder />
+            </RoleGate>
+          }
+        />
+        <Route
+          path="/valley-net"
+          element={
+            <RoleGate requiredRole="admin" programName="ValleyNet" programEmoji="👱🏻‍♀️" programShortCode="VNt">
+              <ValleyNet />
+            </RoleGate>
+          }
+        />
 
-        {/* Placeholders for all remaining /v1/ suite tools */}
+        {/* Placeholders for remaining suite tools (Admin Role Gated) */}
         {SUITE_PROGRAMS.filter(
           (p) =>
             !["media-mogul", "vibecode-worker", "demo-recorder", "valley-net"].includes(p.id)
@@ -48,15 +73,22 @@ export default function App() {
             key={prog.id}
             path={prog.route}
             element={
-              <SuitePlaceholder
-                id={prog.id}
-                name={prog.name}
-                shortCode={prog.shortCode}
-                emoji={prog.emoji}
-                description={prog.description}
-                accentColor={prog.accentColor}
-                gradient={prog.gradient}
-              />
+              <RoleGate
+                requiredRole="admin"
+                programName={prog.name}
+                programEmoji={prog.emoji}
+                programShortCode={prog.shortCode}
+              >
+                <SuitePlaceholder
+                  id={prog.id}
+                  name={prog.name}
+                  shortCode={prog.shortCode}
+                  emoji={prog.emoji}
+                  description={prog.description}
+                  accentColor={prog.accentColor}
+                  gradient={prog.gradient}
+                />
+              </RoleGate>
             }
           />
         ))}
@@ -67,6 +99,10 @@ export default function App() {
 
       {/* Global Settings & Password Vault Modal */}
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+
+      {/* Quick Role & Access Auth Modal */}
+      <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
     </div>
   );
 }
+

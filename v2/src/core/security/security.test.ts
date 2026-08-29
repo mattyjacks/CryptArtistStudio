@@ -9,6 +9,7 @@ import {
   maskSecret,
   sanitizeProjectForExport,
 } from "./security";
+import { ROLE_PERMISSIONS, UserRole } from "../types/auth.types";
 
 export async function runSecurityTestSuite(): Promise<{ passed: boolean; report: string[] }> {
   const report: string[] = [];
@@ -68,5 +69,23 @@ export async function runSecurityTestSuite(): Promise<{ passed: boolean; report:
   const sanitizedExport = sanitizeProjectForExport(dummyProject);
   assert(sanitizedExport.data.openaiKey === undefined && sanitizedExport.data.vaultPassword === undefined, "API keys and passwords stripped from .cryptart exports");
 
+  // 8. Test Multi-Level RBAC Permissions
+  const adminPerms = ROLE_PERMISSIONS["admin"];
+  assert(adminPerms.canAccessAllPrograms === true, "Admin role grants all program access");
+  assert(adminPerms.canAccessVibeCode === true, "Admin role grants VibeCode access");
+  assert(adminPerms.canAccessMasterDashboard === true, "Admin role grants Master Dashboard access");
+  assert(adminPerms.canUseServerAIVault === true, "Admin role grants Server AI Vault access");
+
+  const mogulPerms = ROLE_PERMISSIONS["media-mogul"];
+  assert(mogulPerms.canAccessMediaMogul === true, "Media Mogul role grants Media Mogul access");
+  assert(mogulPerms.canUseServerAIVault === true, "Media Mogul role grants Server AI Vault access");
+  assert(mogulPerms.canAccessAllPrograms === false, "Media Mogul role denies unpermitted suite programs");
+  assert(mogulPerms.canAccessVibeCode === false, "Media Mogul role denies VibeCode developer IDE");
+
+  const guestPerms = ROLE_PERMISSIONS["guest"];
+  assert(guestPerms.canUseServerAIVault === false, "Guest role denies server AI vault");
+  assert(guestPerms.canAccessAllPrograms === false, "Guest role denies unpermitted suite programs");
+
   return { passed: allPassed, report };
 }
+
