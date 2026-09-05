@@ -7,9 +7,9 @@ import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 try:
-    from companion.vibeo_tools import generate_tts_audio
+    from companion.mediamogul_tools import generate_tts_audio
 except ImportError:
-    from vibeo_tools import generate_tts_audio
+    from mediamogul_tools import generate_tts_audio
 
 
 def setup_voiceover_tab(parent_frame, app):
@@ -46,7 +46,7 @@ def setup_voiceover_tab(parent_frame, app):
             messagebox.showerror("Empty Text", "Please enter script text to narrate.")
             return
 
-        out_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 Audio", "*.mp3")], initialfile="vibeo_voiceover.mp3")
+        out_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 Audio", "*.mp3")], initialfile="mediamogul_voiceover.mp3")
         if not out_path:
             return
 

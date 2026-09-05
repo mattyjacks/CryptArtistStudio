@@ -7,13 +7,13 @@ import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 try:
-    from companion.vibeo_tools import (
+    from companion.mediamogul_tools import (
         extract_audio_for_whisper, transcribe_whisper,
         convert_whisper_to_srt, convert_whisper_to_ass, convert_srt_to_ass,
         tool_burn_subtitles
     )
 except ImportError:
-    from vibeo_tools import (
+    from mediamogul_tools import (
         extract_audio_for_whisper, transcribe_whisper,
         convert_whisper_to_srt, convert_whisper_to_ass, convert_srt_to_ass,
         tool_burn_subtitles
@@ -114,7 +114,7 @@ def setup_subtitles_tab(parent_frame, app):
 
         def _do():
             base, _ = os.path.splitext(media)
-            temp_mp3 = base + "_vibeo_tmp.mp3"
+            temp_mp3 = base + "_mediamogul_tmp.mp3"
             out_srt = base + ".srt"
             out_ass = base + ".ass"
             try:

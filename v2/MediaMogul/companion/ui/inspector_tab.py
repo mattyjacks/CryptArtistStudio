@@ -2,12 +2,12 @@ import os
 import tkinter as tk
 from tkinter import filedialog, messagebox
 try:
-    from companion.vibeo_tools import parse_mlt_project
+    from companion.mediamogul_tools import parse_mlt_project
 except ImportError:
-    from vibeo_tools import parse_mlt_project
+    from mediamogul_tools import parse_mlt_project
 
 def setup_inspector_tab(parent_frame, app):
-    """Sets up the Project Inspector tab in the vibeoVideo Command Center."""
+    """Sets up the Project Inspector tab in the MediaMogul Command Center."""
     frame = tk.Frame(parent_frame, bg="#0f172a", padx=16, pady=16)
     frame.pack(fill=tk.BOTH, expand=True)
 

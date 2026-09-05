@@ -1,19 +1,19 @@
 """
-top_bar.py - Win32 docked overlay button positioning "vibeoVideo" right next to Help on Shotcut's menu bar.
+top_bar.py - Win32 docked overlay button positioning "MediaMogul" right next to Help on Shotcut's menu bar.
 """
 
 import os
 import ctypes
 import tkinter as tk
 try:
-    from companion.vibeo_tools import find_shotcut_window
+    from companion.mediamogul_tools import find_shotcut_window
 except ImportError:
-    from vibeo_tools import find_shotcut_window
+    from mediamogul_tools import find_shotcut_window
 
 user32 = ctypes.windll.user32
 
 
-class VibeoTopBarButton:
+class MediaMogulTopBarButton:
     """Docked Win32 top-bar menu overlay seamlessly placed next to Help in Shotcut."""
     def __init__(self, master_command_center):
         self.cmd_center = master_command_center
@@ -33,7 +33,7 @@ class VibeoTopBarButton:
 
         self.btn = tk.Label(
             self.frame,
-            text="vibeoVideo",
+            text="MediaMogul",
             font=("Segoe UI", 9),
             fg=self.fg_normal,
             bg=self.bg_normal,

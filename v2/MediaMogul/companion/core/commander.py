@@ -20,7 +20,12 @@ except ImportError:
         get_cost_calculator = None
 
 
-class VibeoCommander:
+class MediaMogulCommander:
+    pass
+
+MediaMogulCommander = MediaMogulCommander
+
+class MediaMogulCommander:
     """Orchestrates multiple specialized AI sub-agents in parallel and synthesizes consensus."""
     def __init__(self, api_key: str, model: str = "gpt-5.6-luna"):
         self.api_key = api_key
@@ -70,7 +75,7 @@ class VibeoCommander:
     def orchestrate(self, user_msg: str, chat_history: list = None, status_callback=None, system_prompt: str = None) -> dict:
         """Runs sub-agents concurrently, collects reports, and synthesizes final edit directives."""
         swarm_suffix = (
-            " You are part of the vibeoVideo autonomous AI copilot swarm for Shotcut. "
+            " You are part of the MediaMogul autonomous AI copilot swarm for Shotcut. "
             "You have direct execution access to the host's 50+ video editing tools and active project session context. "
             "NEVER say you cannot access or analyze files on the user's system. Assume the user's footage/timeline is loaded "
             "and provide your specialized, actionable editing directives, parameters, and analysis directly."
@@ -121,7 +126,7 @@ class VibeoCommander:
         base_sys = system_prompt or SYSTEM_PROMPT
         commander_sys = (
             f"{base_sys}\n\n"
-            "You are vibeoVideo Commander, Supreme Director of the Multi-Agent Video Swarm.\n"
+            "You are MediaMogul Commander, Supreme Director of the Multi-Agent Video Swarm.\n"
             "Synthesize the sub-agent expert reports into an executive production plan.\n"
             "CRITICAL DIRECTIVES FOR VIDEO TOOL EXECUTION:\n"
             "1. When the user approves, requests, or confirms video processing or editing (e.g. 'go!', 'proceed', 'yes', 'burn subtitles and apply ducking'), you MUST emit an exact executable JSON tool block.\n"

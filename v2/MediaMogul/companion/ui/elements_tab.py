@@ -10,19 +10,19 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 try:
-    from companion.vibeo_tools import (
+    from companion.mediamogul_tools import (
         list_shotcut_elements, resolve_shotcut_element, find_shotcut_elements_dir,
         tool_add_element_to_timeline, tool_auto_add_elements, find_ffmpeg, find_shotcut_exe
     )
 except ImportError:
-    from vibeo_tools import (
+    from mediamogul_tools import (
         list_shotcut_elements, resolve_shotcut_element, find_shotcut_elements_dir,
         tool_add_element_to_timeline, tool_auto_add_elements, find_ffmpeg, find_shotcut_exe
     )
 
 
 def setup_elements_tab(parent_frame, app):
-    """Sets up the Elements Studio tab in vibeoVideo Command Center."""
+    """Sets up the Elements Studio tab in MediaMogul Command Center."""
     frame = tk.Frame(parent_frame, bg="#0f172a", padx=14, pady=12)
     frame.pack(fill=tk.BOTH, expand=True)
 

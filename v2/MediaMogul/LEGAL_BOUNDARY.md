@@ -1,6 +1,6 @@
 # ⚖️ MediaMogul Legal Boundary & Dual-Licensing Architecture
 
-**Project**: MediaMogul (formerly vibeoVideo)  
+**Project**: MediaMogul (formerly MediaMogul)  
 **Parent Suite**: CryptArtist Studio  
 **Directory Scope**: `/CryptArtistStudio/v2/MediaMogul/`  
 **License for MediaMogul**: GNU General Public License v3.0 (GPL-3.0-or-later)  
@@ -35,7 +35,7 @@ This document establishes the **formal legal separation** between:
 |  |                 [ GNU GENERAL PUBLIC LICENSE v3.0 ]                          |  |
 |  |                                                                              |  |
 |  |  - Shotcut Video Editor Integration & Code Modifications                      |  |
-|  |  - Shotcut QML Filters & VUI Gizmo (`filters/vibeo_video`)                   |  |
+|  |  - Shotcut QML Filters & VUI Gizmo (`filters/mediamogul`)                   |  |
 |  |  - MLT Multimedia Framework Timeline Generators & Transcoders               |  |
 |  |  - Agentic Commander Multi-Agent Swarm (Script, Timeline, Stylist, Audio)   |  |
 |  |  - 50+ Deterministic Video Tools & FFmpeg Automation Engine                 |  |
@@ -71,7 +71,7 @@ Section 5 of the GNU General Public License explicitly states:
 > *"A compilation of a covered work with other separate and independent works, which are not by their nature extensions of the covered work, and which are not combined with it such as to form a larger program, in or on a volume of a storage or distribution medium, is called an 'aggregate' if the compilation and its resulting copyright are not used to limit the access or legal rights of the compilation's users beyond what the individual works permit. Inclusion of a covered work in an aggregate does not cause this License to apply to the other parts of the aggregate."*
 
 ### 3.2 Arm's-Length Inter-Process Communication (IPC)
-MediaMogul is intentionally architected as a **separate, decoupled executable program** (`vibeo_command_center.exe` / `vibeo_agent_center.py`):
+MediaMogul is intentionally architected as a **separate, decoupled executable program** (`mediamogul_command_center.exe` / `mediamogul_agent_center.py`):
 1. **No Proprietary Linking**: MediaMogul does **not** statically or dynamically link to any proprietary CryptArtistStudio libraries (`.dll`, `.so`, or compiled Rust crates).
 2. **Standard Inter-Process Interfaces**: Communication between MediaMogul and the host CryptArtistStudio suite occurs strictly through arm's-length boundaries:
    - Operating system process execution (`subprocess`, `std::process::Command`);

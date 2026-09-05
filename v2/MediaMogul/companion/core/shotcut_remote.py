@@ -1,6 +1,6 @@
 """
 shotcut_remote.py - Direct Win32 transport & hotkey remote controller for Shotcut.
-Allows vibeoVideo to command Shotcut's timeline (Play/Pause, Split, Ripple Delete, Undo)
+Allows MediaMogul to command Shotcut's timeline (Play/Pause, Split, Ripple Delete, Undo)
 without the user having to switch focus manually.
 """
 

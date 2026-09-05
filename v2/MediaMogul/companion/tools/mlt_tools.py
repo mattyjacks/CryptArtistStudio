@@ -109,7 +109,7 @@ def tool_add_to_timeline(ffmpeg: str, input_path: str, mlt_path: str = None,
         mlt = ET.Element("mlt", {
             "LC_NUMERIC": "C",
             "version": "7.15.0",
-            "title": f"vibeoVideo Timeline - {os.path.basename(input_path)}"
+            "title": f"MediaMogul Timeline - {os.path.basename(input_path)}"
         })
         ET.SubElement(mlt, "profile", {
             "description": "HD 1080p 30 fps",
@@ -163,7 +163,7 @@ def tool_modify_shotcut_mlt(mlt_path: str, filter_type: str, params: dict = None
         raise FileNotFoundError(f"MLT file not found: {mlt_path}")
     if not output_path:
         base, ext = os.path.splitext(mlt_path)
-        output_path = f"{base}_vibeo{ext}"
+        output_path = f"{base}_mediamogul{ext}"
     params = params or {}
     tree = ET.parse(mlt_path)
     root = tree.getroot()
@@ -172,7 +172,7 @@ def tool_modify_shotcut_mlt(mlt_path: str, filter_type: str, params: dict = None
     parent = tractor if tractor is not None else root
 
     filter_elem = ET.SubElement(parent, "filter")
-    filter_elem.set("id", f"vibeo_{filter_type}_{int(time.time())}")
+    filter_elem.set("id", f"mediamogul_{filter_type}_{int(time.time())}")
 
     ET.SubElement(filter_elem, "property", name="mlt_service").text = filter_type
     for k, v in params.items():

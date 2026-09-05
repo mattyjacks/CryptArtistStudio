@@ -1,5 +1,5 @@
 """
-core module for vibeoVideo companion
+core module for MediaMogul companion
 """
 from .ffmpeg_utils import (
     find_ffmpeg, find_melt, find_shotcut_exe, find_shotcut_window,
@@ -7,7 +7,7 @@ from .ffmpeg_utils import (
     estimate_tokens, count_conversation_tokens, prune_sliding_context
 )
 from .media_tracker import MediaLibraryTracker
-from .commander import VibeoCommander
+from .commander import MediaMogulCommander
 from .cost_calculator import CostCalculator, get_cost_calculator
 from .fingerprint_tracker import (
     FingerprintTracker, get_fingerprint_tracker,

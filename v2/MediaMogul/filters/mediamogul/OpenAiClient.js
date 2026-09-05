@@ -1,6 +1,6 @@
 .pragma library
 
-// OpenAiClient.js - vibeoVideo Shotcut OpenAI API Integration Client
+// OpenAiClient.js - MediaMogul Shotcut OpenAI API Integration Client
 // Communicates with OpenAI REST endpoints using Qt Quick XMLHttpRequest
 
 function parseErrorMessage(xhr) {
@@ -163,7 +163,7 @@ function chatCompletion(apiKey, model, systemPrompt, userPrompt, temperature, ma
     var messages = [
         {
             role: "system",
-            content: systemPrompt || "You are vibeoVideo, an expert video editor AI. Generate concise, punchy text for video graphics without quotes or markdown formatting."
+            content: systemPrompt || "You are MediaMogul, an expert video editor AI. Generate concise, punchy text for video graphics without quotes or markdown formatting."
         },
         {
             role: "user",

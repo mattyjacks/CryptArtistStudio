@@ -1,7 +1,7 @@
 .pragma library
 .import QtQuick.LocalStorage as Sql
 
-// vibeoStorage.js - Persistent configuration storage for vibeoVideo
+// mediamogulStorage.js - Persistent configuration storage for MediaMogul
 // Stores user preferences and API key persistently across Shotcut sessions
 
 var dbInstance = null;
@@ -10,12 +10,12 @@ function getDatabase() {
     if (!dbInstance) {
         try {
             if (typeof Sql !== "undefined" && Sql.LocalStorage) {
-                dbInstance = Sql.LocalStorage.openDatabaseSync("vibeoVideoDB", "1.0", "vibeoVideo Plugin Storage", 100000);
+                dbInstance = Sql.LocalStorage.openDatabaseSync("MediaMogulDB", "1.0", "MediaMogul Plugin Storage", 100000);
             } else if (typeof LocalStorage !== "undefined") {
-                dbInstance = LocalStorage.openDatabaseSync("vibeoVideoDB", "1.0", "vibeoVideo Plugin Storage", 100000);
+                dbInstance = LocalStorage.openDatabaseSync("MediaMogulDB", "1.0", "MediaMogul Plugin Storage", 100000);
             }
         } catch (e) {
-            console.log("vibeoVideo: Could not open LocalStorage database: " + e.message);
+            console.log("MediaMogul: Could not open LocalStorage database: " + e.message);
         }
     }
     return dbInstance;
@@ -30,7 +30,7 @@ function initDb() {
             });
         }
     } catch (e) {
-        console.log("vibeoVideo: initDb error: " + e.message);
+        console.log("MediaMogul: initDb error: " + e.message);
     }
 }
 
@@ -44,7 +44,7 @@ function saveSetting(key, val) {
             return true;
         }
     } catch (e) {
-        console.log("vibeoVideo: saveSetting error: " + e.message);
+        console.log("MediaMogul: saveSetting error: " + e.message);
     }
     return false;
 }
@@ -63,7 +63,7 @@ function loadSetting(key, defaultVal) {
             return result;
         }
     } catch (e) {
-        console.log("vibeoVideo: loadSetting error: " + e.message);
+        console.log("MediaMogul: loadSetting error: " + e.message);
     }
     return defaultVal;
 }

@@ -1,17 +1,17 @@
 ---
-name: vibeo-video
+name: mediamogul
 description: Autonomous AI Video Editor Copilot for Shotcut with Commander Multi-Agent Swarm, Editor Collaboration & Manifest Pack Exporter, and 50+ Video Manipulation Capabilities.
 ---
 
-# vibeoVideo Skill Guide
+# MediaMogul Skill Guide
 
-`vibeoVideo` is an agentic AI copilot and autonomous video manipulation platform engineered directly for **Shotcut Video Editor**. It integrates multi-model sub-agent orchestration, ultra-lightweight project collaboration packs, and over 50 real video/audio manipulation capabilities powered by FFmpeg, Shotcut MLT XML manipulation, OpenAI `gpt-5.6-luna`, Whisper speech-to-text, and DALL-E 3 visual synthesis.
+`MediaMogul` is an agentic AI copilot and autonomous video manipulation platform engineered directly for **Shotcut Video Editor**. It integrates multi-model sub-agent orchestration, ultra-lightweight project collaboration packs, and over 50 real video/audio manipulation capabilities powered by FFmpeg, Shotcut MLT XML manipulation, OpenAI `gpt-5.6-luna`, Whisper speech-to-text, and DALL-E 3 visual synthesis.
 
 ---
 
 ## 1. Multi-Agent Commander Swarm Architecture
 
-`vibeoVideo` features a hierarchical Commander & Sub-Agent Swarm architecture. When enabled, a single user prompt is decomposed and processed simultaneously by 5 specialized AI instances before being synthesized into an executive edit plan.
+`MediaMogul` features a hierarchical Commander & Sub-Agent Swarm architecture. When enabled, a single user prompt is decomposed and processed simultaneously by 5 specialized AI instances before being synthesized into an executive edit plan.
 
 ### Specialized Sub-Agents
 
@@ -45,7 +45,7 @@ graph TD
 
 ## 2. Video Editor Collaboration & Export Hub
 
-`vibeoVideo` solves collaborative video editing handoffs by distinguishing between lightweight project data and heavy media binaries.
+`MediaMogul` solves collaborative video editing handoffs by distinguishing between lightweight project data and heavy media binaries.
 
 ### Export Formats
 
@@ -229,7 +229,7 @@ By default, conversational context is managed via token estimation (`len(text) /
 
 ## 5. Modular Clean Code Architecture
 
-The vibeoVideo codebase is decomposed into high-cohesion, low-coupling modules:
+The MediaMogul codebase is decomposed into high-cohesion, low-coupling modules:
 
 ```
 companion/
@@ -261,12 +261,12 @@ companion/
 │   ├── vision_tab.py        # Frame JPEG preview & AI composition critique studio
 │   ├── collab_tab.py        # Single action log, lightweight pack, and master turnkey exporter
 │   └── settings_tab.py      # API key, model selection, shotcut executable, dangerous mode
-├── vibeo_tools.py           # Unified facade re-exporting all core and tool modules
-└── vibeo_agent_center.py    # Main window coordinator linking UI tabs with agent engine
+├── mediamogul_tools.py           # Unified facade re-exporting all core and tool modules
+└── mediamogul_agent_center.py    # Main window coordinator linking UI tabs with agent engine
 
-filters/vibeo_video/
+filters/mediamogul/
 ├── ui.qml                   # Main Shotcut QML filter interface
-├── vibeoPresets.js          # Dynamic video styling presets & geometry modifiers
+├── mediamogulPresets.js          # Dynamic video styling presets & geometry modifiers
 ├── OpenAiClient.js          # Asynchronous XMLHttpRequest client for OpenAI
-└── vibeoStorage.js          # Local SQLite storage for API keys and preferences
+└── mediamogulStorage.js          # Local SQLite storage for API keys and preferences
 ```

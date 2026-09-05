@@ -3,9 +3,9 @@ import org.shotcut.qml
 
 Metadata {
     type: Metadata.Filter
-    objectName: 'vibeoVideo'
-    name: qsTr('vibeoVideo')
-    keywords: qsTr('vibeo video ai openai gpt chatgpt text title lower-third dall-e generator script subtitles hook cta', 'search keywords for vibeoVideo video filter') + ' vibeo: video #rgba #10bit'
+    objectName: 'MediaMogul'
+    name: qsTr('MediaMogul')
+    keywords: qsTr('mediamogul video ai openai gpt chatgpt text title lower-third dall-e generator script subtitles hook cta', 'search keywords for MediaMogul video filter') + ' mediamogul: video #rgba #10bit'
     mlt_service: 'dynamictext'
     qml: "ui.qml"
     vui: 'vui.qml'

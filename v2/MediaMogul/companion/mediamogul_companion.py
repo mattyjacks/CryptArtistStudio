@@ -1,5 +1,5 @@
 """
-vibeoVideo Companion - Shotcut AI Assistant
+MediaMogul Companion - Shotcut AI Assistant
 Features:
 - Whisper Speech-to-Text: Auto-transcribe video/audio to .srt subtitles
 - OpenAI TTS: Generate AI voiceovers directly for Shotcut
@@ -163,10 +163,10 @@ def generate_tts_speech(text: str, output_audio_path: str, voice: str, api_key: 
             f.write(audio_content)
 
 
-class VibeoCompanionApp:
+class MediaMogulCompanionApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("vibeoVideo Companion - Shotcut AI Studio")
+        self.root.title("MediaMogul Companion - Shotcut AI Studio")
         self.root.geometry("640x580")
         self.root.minsize(560, 500)
 
@@ -182,7 +182,7 @@ class VibeoCompanionApp:
 
         # Set window icon
         try:
-            ico_path = os.path.join(os.path.dirname(__file__), "vibeo_icon.ico")
+            ico_path = os.path.join(os.path.dirname(__file__), "mediamogul_icon.ico")
             if os.path.exists(ico_path):
                 self.root.iconbitmap(ico_path)
         except Exception:
@@ -193,7 +193,7 @@ class VibeoCompanionApp:
         self.create_widgets()
 
     def load_settings(self):
-        self.settings_file = os.path.join(os.path.expanduser("~"), ".vibeovideo_companion.json")
+        self.settings_file = os.path.join(os.path.expanduser("~"), ".mediamogul_companion.json")
         self.api_key = ""
         if os.path.exists(self.settings_file):
             try:
@@ -216,7 +216,7 @@ class VibeoCompanionApp:
         header = tk.Frame(self.root, bg=self.card_bg, height=60)
         header.pack(fill=tk.X, padx=10, pady=8)
 
-        title = tk.Label(header, text="✨ vibeoVideo AI Companion", font=("Segoe UI", 16, "bold"), fg="#ffffff", bg=self.card_bg)
+        title = tk.Label(header, text="✨ MediaMogul AI Companion", font=("Segoe UI", 16, "bold"), fg="#ffffff", bg=self.card_bg)
         title.pack(anchor=tk.W, padx=12, pady=(8, 2))
 
         subtitle = tk.Label(header, text="Audio Transcriptions (.srt) & Voiceover Studio for Shotcut", font=("Segoe UI", 9), fg="#9ca3af", bg=self.card_bg)
@@ -326,7 +326,7 @@ class VibeoCompanionApp:
         self.root.update()
 
         base, _ = os.path.splitext(media_path)
-        temp_audio = base + "_vibeo_temp.mp3"
+        temp_audio = base + "_mediamogul_temp.mp3"
         output_srt = base + ".srt"
 
         try:
@@ -373,7 +373,7 @@ class VibeoCompanionApp:
             messagebox.showerror("Empty Text", "Please enter script text to narrate.")
             return
 
-        out_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 Audio", "*.mp3")], initialfile="vibeo_voiceover.mp3")
+        out_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 Audio", "*.mp3")], initialfile="mediamogul_voiceover.mp3")
         if not out_path:
             return
 
@@ -393,7 +393,7 @@ class VibeoCompanionApp:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="vibeoVideo Companion - Shotcut AI Assistant")
+    parser = argparse.ArgumentParser(description="MediaMogul Companion - Shotcut AI Assistant")
     parser.add_argument("--transcribe", help="Input media file to transcribe with Whisper")
     parser.add_argument("--srt", help="Output .srt subtitle path")
     parser.add_argument("--key", help="OpenAI API Key")
@@ -425,7 +425,7 @@ def main():
         if not key:
             print("Error: OpenAI API Key must be supplied via --key or OPENAI_API_KEY environment variable.")
             sys.exit(1)
-        out = args.tts_out or "vibeo_voiceover.mp3"
+        out = args.tts_out or "mediamogul_voiceover.mp3"
         print(f"Generating TTS audio with voice {args.voice}...")
         generate_tts_speech(args.tts, out, args.voice, key)
         print(f"Successfully saved voiceover: {out}")
@@ -433,7 +433,7 @@ def main():
 
     # GUI mode
     root = tk.Tk()
-    app = VibeoCompanionApp(root)
+    app = MediaMogulCompanionApp(root)
     root.mainloop()
 
 

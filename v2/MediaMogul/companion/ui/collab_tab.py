@@ -23,7 +23,7 @@ def setup_collab_tab(parent_frame, app):
             title="Export Full Action History",
             defaultextension=".txt",
             filetypes=[("Text Log", "*.txt"), ("Markdown", "*.md"), ("All Files", "*.*")],
-            initialfile="vibeo_full_action_history.txt"
+            initialfile="mediamogul_full_action_history.txt"
         )
         if out:
             res = app.media_tracker.export_single_action_log(out)
@@ -38,7 +38,7 @@ def setup_collab_tab(parent_frame, app):
             title="Export Lightweight Collaboration Pack",
             defaultextension=".zip",
             filetypes=[("Zip Archive", "*.zip")],
-            initialfile="vibeo_lightweight_collab_pack.zip"
+            initialfile="mediamogul_lightweight_collab_pack.zip"
         )
         if out:
             res = app.media_tracker.export_lightweight_pack(out)
@@ -58,7 +58,7 @@ def setup_collab_tab(parent_frame, app):
             title="Export Master Turnkey Archive (Includes Big Media)",
             defaultextension=".zip",
             filetypes=[("Zip Archive", "*.zip")],
-            initialfile="vibeo_master_turnkey_project.zip"
+            initialfile="mediamogul_master_turnkey_project.zip"
         )
         if out:
             app.status_var.set("Bundling master archive with all media assets...")

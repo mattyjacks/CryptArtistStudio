@@ -1,6 +1,6 @@
 """
 cost_calculator.py - Accurate API Cost Calculator, Daily & Lifetime Budget Tracker,
-and Gateway Preparation Engine for vibeoVideo.
+and Gateway Preparation Engine for MediaMogul.
 """
 
 import os
@@ -45,7 +45,7 @@ class CostCalculator:
 
     def __init__(self, storage_path: str = None):
         if not storage_path:
-            storage_path = os.path.join(os.path.expanduser("~"), ".vibeovideo_budget.json")
+            storage_path = os.path.join(os.path.expanduser("~"), ".mediamogul_budget.json")
         self.storage_path = storage_path
         self.data = {
             "daily_budget_limit": 5.00,       # $5.00 default daily budget limit
@@ -55,7 +55,7 @@ class CostCalculator:
             "ledger": [],                     # Recent transaction records
             "custom_gateway": {
                 "enabled": False,
-                "url": "",                    # e.g. https://api.vibeovideo.internal/v1/gateway
+                "url": "",                    # e.g. https://api.mediamogul.internal/v1/gateway
                 "key": "",                    # Custom gateway bearer token / billing ID
                 "billing_account_id": ""
             }

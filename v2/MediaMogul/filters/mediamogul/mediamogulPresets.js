@@ -1,4 +1,4 @@
-// vibeoPresets.js - Preset Styles, Layout Positioning, and Video Filter Modifiers for Shotcut
+// mediamogulPresets.js - Preset Styles, Layout Positioning, and Video Filter Modifiers for Shotcut
 
 .pragma library
 

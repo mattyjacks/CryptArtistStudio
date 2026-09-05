@@ -403,7 +403,7 @@ def tool_add_element_to_timeline(ffmpeg: str, input_video_or_mlt: str, element_n
         mlt = ET.Element("mlt", {
             "LC_NUMERIC": "C",
             "version": "7.24.0",
-            "title": f"vibeoVideo Elements Project - {os.path.basename(input_video_or_mlt)}"
+            "title": f"MediaMogul Elements Project - {os.path.basename(input_video_or_mlt)}"
         })
         ET.SubElement(mlt, "profile", {
             "description": "HD 1080p 30 fps",

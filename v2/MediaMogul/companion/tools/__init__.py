@@ -1,5 +1,5 @@
 """
-tools package for vibeoVideo companion
+tools package for MediaMogul companion
 """
 from .audio_tools import (
     tool_detect_silence, tool_fade_audio, tool_normalize_loudness,

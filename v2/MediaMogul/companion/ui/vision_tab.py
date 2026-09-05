@@ -3,14 +3,14 @@ import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox
 try:
-    from companion.vibeo_tools import (
+    from companion.mediamogul_tools import (
         find_ffmpeg,
         tool_extract_frame_jpeg,
         tool_capture_shotcut_preview_jpeg,
         tool_analyze_frame_vision
     )
 except ImportError:
-    from vibeo_tools import (
+    from mediamogul_tools import (
         find_ffmpeg,
         tool_extract_frame_jpeg,
         tool_capture_shotcut_preview_jpeg,

@@ -1,5 +1,5 @@
 """
-test_prepared_plan_budget_fingerprint.py - Unit test suite for vibeoVideo:
+test_prepared_plan_budget_fingerprint.py - Unit test suite for MediaMogul:
 - Cost Calculator (Daily/Lifetime budgets, accurate pricing, gateway prep)
 - 3-Tier Fingerprint Detection & Policy Enforcement
 - Antigravity-Style Prepared Plan Engine & Execution Modes
@@ -88,13 +88,13 @@ class TestCostCalculator(unittest.TestCase):
         self.calc.set_gateway_config(
             enabled=True,
             url="https://gateway.internal/v1/chat/completions",
-            key="vibeo-key-xyz",
+            key="mediamogul-key-xyz",
             billing_id="acct_99"
         )
         cfg = self.calc.get_gateway_config()
         self.assertTrue(cfg["enabled"])
         self.assertEqual(cfg["url"], "https://gateway.internal/v1/chat/completions")
-        self.assertEqual(cfg["key"], "vibeo-key-xyz")
+        self.assertEqual(cfg["key"], "mediamogul-key-xyz")
         self.assertEqual(cfg["billing_account_id"], "acct_99")
 
 

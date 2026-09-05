@@ -1,5 +1,5 @@
-# vibeoVideo Companion Dependencies
-# vibeoVideo is designed to run out-of-the-box using Python standard libraries (urllib, tkinter, json, subprocess).
+# MediaMogul Companion Dependencies
+# MediaMogul is designed to run out-of-the-box using Python standard libraries (urllib, tkinter, json, subprocess).
 # FFmpeg is automatically loaded from your Shotcut installation (C:\Program Files\Shotcut\ffmpeg.exe).
 #
 # Optional enhancements:

@@ -1,5 +1,5 @@
 """
-settings_tab.py - Settings and Configuration Tab for vibeoVideo.
+settings_tab.py - Settings and Configuration Tab for MediaMogul.
 Includes:
 - API Keys & AI Model Configuration
 - Antigravity-style Execution Mode (Auto-Proceed vs Request to Proceed)
@@ -12,14 +12,14 @@ Includes:
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 try:
-    from companion.vibeo_tools import find_shotcut_exe
+    from companion.mediamogul_tools import find_shotcut_exe
     from companion.core.cost_calculator import get_cost_calculator
     from companion.core.fingerprint_tracker import (
         get_fingerprint_tracker, STATUS_FREE, STATUS_PARTS, STATUS_FULL
     )
 except ImportError:
     try:
-        from vibeo_tools import find_shotcut_exe
+        from mediamogul_tools import find_shotcut_exe
         from core.cost_calculator import get_cost_calculator
         from core.fingerprint_tracker import (
             get_fingerprint_tracker, STATUS_FREE, STATUS_PARTS, STATUS_FULL
@@ -31,7 +31,7 @@ except ImportError:
 
 
 def setup_settings_tab(parent_frame, app):
-    """Sets up the Settings tab in the vibeoVideo Command Center with scrollable canvas."""
+    """Sets up the Settings tab in the MediaMogul Command Center with scrollable canvas."""
     canvas = tk.Canvas(parent_frame, bg="#0f172a", highlightthickness=0)
     scrollbar = tk.Scrollbar(parent_frame, orient="vertical", command=canvas.yview)
     scroll_frame = tk.Frame(canvas, bg="#0f172a", padx=16, pady=16)
@@ -62,7 +62,7 @@ def setup_settings_tab(parent_frame, app):
     # Header Title
     tk.Label(
         scroll_frame,
-        text="⚙️ vibeoVideo Configuration & Budget Center",
+        text="⚙️ MediaMogul Configuration & Budget Center",
         font=("Segoe UI", 14, "bold"),
         fg="#ffffff",
         bg="#0f172a"

@@ -1,12 +1,12 @@
 @echo off
 setlocal
-echo Uninstalling vibeoVideo from Shotcut...
-set "DEST=%LOCALAPPDATA%\Meltytech\Shotcut\extensions\filters\vibeo_video"
+echo Uninstalling MediaMogul from Shotcut...
+set "DEST=%LOCALAPPDATA%\Meltytech\Shotcut\extensions\filters\mediamogul"
 if exist "%DEST%" (
     rmdir /S /Q "%DEST%"
-    echo Successfully removed vibeoVideo.
+    echo Successfully removed MediaMogul.
 ) else (
-    echo vibeoVideo was not found at %DEST%.
+    echo MediaMogul was not found at %DEST%.
 )
 echo.
 pause

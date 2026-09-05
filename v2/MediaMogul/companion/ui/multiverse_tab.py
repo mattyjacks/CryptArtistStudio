@@ -11,19 +11,19 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
 try:
-    from companion.vibeo_tools import (
+    from companion.mediamogul_tools import (
         tool_create_multiverse_timelines, tool_branch_timeline_universe,
         find_ffmpeg, find_shotcut_exe
     )
 except ImportError:
-    from vibeo_tools import (
+    from mediamogul_tools import (
         tool_create_multiverse_timelines, tool_branch_timeline_universe,
         find_ffmpeg, find_shotcut_exe
     )
 
 
 def setup_multiverse_tab(parent_frame, app):
-    """Sets up the Multiverse Timelines Hub tab in the vibeoVideo Command Center."""
+    """Sets up the Multiverse Timelines Hub tab in the MediaMogul Command Center."""
     frame = tk.Frame(parent_frame, bg="#0f172a", padx=14, pady=12)
     frame.pack(fill=tk.BOTH, expand=True)
 

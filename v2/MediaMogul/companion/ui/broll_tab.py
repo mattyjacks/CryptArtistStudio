@@ -7,9 +7,9 @@ import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 try:
-    from companion.vibeo_tools import generate_dalle_image
+    from companion.mediamogul_tools import generate_dalle_image
 except ImportError:
-    from vibeo_tools import generate_dalle_image
+    from mediamogul_tools import generate_dalle_image
 
 
 def setup_broll_tab(parent_frame, app):
@@ -42,7 +42,7 @@ def setup_broll_tab(parent_frame, app):
             messagebox.showerror("Empty Prompt", "Please enter an image prompt.")
             return
 
-        out_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG Image", "*.png")], initialfile="vibeo_broll.png")
+        out_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG Image", "*.png")], initialfile="mediamogul_broll.png")
         if not out_path:
             return
 

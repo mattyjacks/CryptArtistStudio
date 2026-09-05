@@ -1,5 +1,5 @@
 """
-prepared_plan.py - Implementation Plan & Auto-Proceed Engine for vibeoVideo.
+prepared_plan.py - Implementation Plan & Auto-Proceed Engine for MediaMogul.
 
 Modeled after Google Antigravity's structured implementation plans:
 - Defines clear task goals and proposed tool execution steps.
@@ -125,7 +125,7 @@ class PreparedPlan:
 
         lines = [
             f"### 📋 Prepared Plan: {self.goal}",
-            f"**Plan ID**: `vibeo-plan-{self.plan_id}` | **Mode**: `{'Auto-Proceed' if self.auto_proceed else 'Interactive Approval Required'}`",
+            f"**Plan ID**: `mediamogul-plan-{self.plan_id}` | **Mode**: `{'Auto-Proceed' if self.auto_proceed else 'Interactive Approval Required'}`",
             "",
             "#### 💰 Cost & Budget Analysis",
             f"- **Estimated Step Cost**: **${self.estimated_cost:.4f} USD**",

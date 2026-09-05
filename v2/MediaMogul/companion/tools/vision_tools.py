@@ -152,7 +152,7 @@ def tool_analyze_frame_vision(api_key: str, jpeg_path: str, user_prompt: str = N
         b64_data = base64.b64encode(f.read()).decode("utf-8")
 
     sys_instruction = (
-        "You are vibeoVideo Vision AI, an elite Director of Photography, master colorist, and lead video editor for Shotcut.\n"
+        "You are MediaMogul Vision AI, an elite Director of Photography, master colorist, and lead video editor for Shotcut.\n"
         "You are analyzing an individual video frame JPEG extracted from either raw camera footage or a work-in-progress timeline.\n"
         "Deliver a structured, professional cinematographic critique covering:\n\n"
         "1. 📐 Composition & Framing (Rule of Thirds, subject positioning, leading lines, horizon leveling)\n"

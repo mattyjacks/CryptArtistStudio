@@ -1,6 +1,6 @@
 """
-vibeoVideo Agentic AI Command Center for Shotcut
-- Pinned "Open vibeoVideo" option at the top of the screen right next to "Help"
+MediaMogul Agentic AI Command Center for Shotcut
+- Pinned "Open MediaMogul" option at the top of the screen right next to "Help"
 - Agentic AI Assistant window with 50+ tool capabilities (Whisper, TTS, DALL-E 3, MLT inspection, Vision AI)
 - Multi-Agent Commander Swarm & Collaborative Pack Exporter
 - Modular architecture with clean subcomponents in core, tools, and ui
@@ -27,8 +27,8 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 try:
-    from companion.vibeo_tools import (
-        MediaLibraryTracker, VibeoCommander, SYSTEM_PROMPT, execute_video_tool,
+    from companion.mediamogul_tools import (
+        MediaLibraryTracker, MediaMogulCommander, MediaMogulCommander, SYSTEM_PROMPT, execute_video_tool,
         find_ffmpeg, find_shotcut_exe, find_shotcut_window,
         count_conversation_tokens, prune_sliding_context,
         extract_audio, transcribe_whisper, convert_whisper_to_srt,
@@ -39,15 +39,15 @@ try:
         STATUS_FREE, STATUS_PARTS, STATUS_FULL
     )
     from companion.ui import (
-        VibeoTopBarButton, setup_remote_bar,
+        MediaMogulTopBarButton, MediaMogulTopBarButton, setup_remote_bar,
         setup_agent_tab, setup_subtitles_tab, setup_voiceover_tab, setup_broll_tab,
         setup_inspector_tab, setup_vision_tab, setup_collab_tab, setup_settings_tab,
         setup_director_tab, setup_sfx_tab, setup_elements_tab, setup_multiverse_tab
     )
     from companion.ui.onboarding_dialog import OnboardingDialog
 except ImportError:
-    from vibeo_tools import (
-        MediaLibraryTracker, VibeoCommander, SYSTEM_PROMPT, execute_video_tool,
+    from mediamogul_tools import (
+        MediaLibraryTracker, MediaMogulCommander, MediaMogulCommander, SYSTEM_PROMPT, execute_video_tool,
         find_ffmpeg, find_shotcut_exe, find_shotcut_window,
         count_conversation_tokens, prune_sliding_context,
         extract_audio, transcribe_whisper, convert_whisper_to_srt,
@@ -58,7 +58,7 @@ except ImportError:
         STATUS_FREE, STATUS_PARTS, STATUS_FULL
     )
     from ui import (
-        VibeoTopBarButton, setup_remote_bar,
+        MediaMogulTopBarButton, MediaMogulTopBarButton, setup_remote_bar,
         setup_agent_tab, setup_subtitles_tab, setup_voiceover_tab, setup_broll_tab,
         setup_inspector_tab, setup_vision_tab, setup_collab_tab, setup_settings_tab,
         setup_director_tab, setup_sfx_tab, setup_elements_tab, setup_multiverse_tab
@@ -66,11 +66,16 @@ except ImportError:
     from ui.onboarding_dialog import OnboardingDialog
 
 
-class VibeoAgenticCenter:
+class MediaMogulAgenticCenter:
+    pass
+
+MediaMogulAgenticCenter = MediaMogulAgenticCenter
+
+class MediaMogulAgenticCenter:
     """Main application controller coordinating UI tabs, agent workflows, and Shotcut integration."""
     def __init__(self, root):
         self.root = root
-        self.root.title("vibeoVideo - Agentic AI Command Center")
+        self.root.title("MediaMogul - Agentic AI Command Center")
         self.root.geometry("880x740")
         self.root.minsize(780, 580)
         self.root.configure(bg="#0f172a")
@@ -79,7 +84,7 @@ class VibeoAgenticCenter:
         self.style.theme_use("clam")
 
         try:
-            ico_path = os.path.join(current_dir, "vibeo_icon.ico")
+            ico_path = os.path.join(current_dir, "mediamogul_icon.ico")
             if os.path.exists(ico_path):
                 self.root.iconbitmap(ico_path)
         except Exception:
@@ -107,7 +112,7 @@ class VibeoAgenticCenter:
             self.set_active_mlt_path(initial_mlt)
 
         # Initialize top-bar docked overlay button
-        self.top_bar_btn = VibeoTopBarButton(self)
+        self.top_bar_btn = MediaMogulTopBarButton(self)
 
         # Start dynamic Shotcut status checking loop
         self.update_shotcut_status()
@@ -121,7 +126,7 @@ class VibeoAgenticCenter:
             self.root.after(300, self.show_onboarding_modal)
 
     def load_settings(self):
-        self.settings_file = os.path.join(os.path.expanduser("~"), ".vibeovideo_companion.json")
+        self.settings_file = os.path.join(os.path.expanduser("~"), ".mediamogul_companion.json")
         self.settings = {
             "api_key": "",
             "model": "gpt-5.6-luna",
@@ -536,7 +541,7 @@ class VibeoAgenticCenter:
             f"\n⚡ [Shotcut Timeline Change Detected]\n"
             f"📁 Project: {fn}\n"
             f"📊 Structure: {cur_count} clips{delta_str}, {tracks} tracks, {filters} filters.\n"
-            f"🤖 vibeoVideo AI: Re-evaluating timeline pacing, cuts, and composition...\n"
+            f"🤖 MediaMogul AI: Re-evaluating timeline pacing, cuts, and composition...\n"
         )
         self.agent_chat.insert(tk.END, notice)
         self.agent_chat.see(tk.END)
@@ -592,14 +597,14 @@ class VibeoAgenticCenter:
                 with urllib.request.urlopen(req, timeout=45) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
                     ai_reply = data["choices"][0]["message"]["content"].strip()
-                    full_output = f"🤖 vibeoVideo AI (Timeline Re-Evaluation):\n{ai_reply}\n\n"
+                    full_output = f"🤖 MediaMogul AI (Timeline Re-Evaluation):\n{ai_reply}\n\n"
                     self.root.after(0, lambda: self._append_ai_reevaluation(full_output, ai_reply))
                     return
             except Exception:
                 pass
 
         # Fallback / offline intelligent evaluation output
-        full_output = f"🤖 vibeoVideo AI (Timeline Re-Evaluation):\n{report}\n\n"
+        full_output = f"🤖 MediaMogul AI (Timeline Re-Evaluation):\n{report}\n\n"
         self.root.after(0, lambda: self._append_ai_reevaluation(full_output, None))
 
     def _append_ai_reevaluation(self, full_text: str, ai_reply: str = None):
@@ -642,7 +647,7 @@ class VibeoAgenticCenter:
         self.logo_img = None
         try:
             from PIL import Image, ImageTk
-            icon_png = os.path.join(current_dir, "vibeo_logo_icon.png")
+            icon_png = os.path.join(current_dir, "mediamogul_logo_icon.png")
             if os.path.exists(icon_png):
                 pim = Image.open(icon_png).resize((40, 40), Image.Resampling.LANCZOS)
                 self.logo_img = ImageTk.PhotoImage(pim)
@@ -654,7 +659,7 @@ class VibeoAgenticCenter:
         text_sub_box = tk.Frame(title_box, bg="#1e1b4b")
         text_sub_box.pack(side=tk.LEFT)
 
-        title = tk.Label(text_sub_box, text="vibeoVideo AI Command Center", font=("Segoe UI", 16, "bold"), fg="#ffffff", bg="#1e1b4b")
+        title = tk.Label(text_sub_box, text="MediaMogul AI Command Center", font=("Segoe UI", 16, "bold"), fg="#ffffff", bg="#1e1b4b")
         title.pack(anchor=tk.W)
 
         sub = tk.Label(text_sub_box, text="Agentic AI Copilot for Shotcut Video Editor (GPT-5.6 Luna, Whisper, DALL-E 3)", font=("Segoe UI", 9), fg="#a5b4fc", bg="#1e1b4b")
@@ -756,7 +761,7 @@ class VibeoAgenticCenter:
         self.status_bar_frame = tk.Frame(self.root, bg="#0f172a", padx=14, pady=5)
         self.status_bar_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-        self.status_var = tk.StringVar(value="Agent ready. Click 'Open vibeoVideo' next to Help anytime to activate.")
+        self.status_var = tk.StringVar(value="Agent ready. Click 'Open MediaMogul' next to Help anytime to activate.")
         self.status_lbl = tk.Label(self.status_bar_frame, textvariable=self.status_var, font=("Segoe UI", 9), fg="#94a3b8", bg="#0f172a", anchor=tk.W)
         self.status_lbl.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
@@ -830,7 +835,7 @@ class VibeoAgenticCenter:
             return
 
         self.agent_chat.insert(tk.END, f"\n👤 You: {user_msg}\n")
-        self.agent_chat.insert(tk.END, "🤖 vibeoVideo: Orchestrating video tools and processing...\n")
+        self.agent_chat.insert(tk.END, "🤖 MediaMogul: Orchestrating video tools and processing...\n")
         self.agent_chat.see(tk.END)
         self.status_var.set("Agent executing prompt...")
 
@@ -914,10 +919,10 @@ class VibeoAgenticCenter:
             self.plan_card_badge.config(text="🟣 Fingerprint-Full", fg="#c084fc", bg="#3b0764")
 
         self.plan_card_details.config(
-            text=f"Plan ID: vibeo-plan-{plan.plan_id}  |  Est. API Cost: ${plan.estimated_cost:.4f} USD  |  {len(plan.steps)} step(s)"
+            text=f"Plan ID: mediamogul-plan-{plan.plan_id}  |  Est. API Cost: ${plan.estimated_cost:.4f} USD  |  {len(plan.steps)} step(s)"
         )
         self.plan_card_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(4, 0))
-        self.status_var.set(f"📋 Prepared Plan awaiting approval (Plan ID: vibeo-plan-{plan.plan_id}). Click 'Proceed' or type 'proceed'.")
+        self.status_var.set(f"📋 Prepared Plan awaiting approval (Plan ID: mediamogul-plan-{plan.plan_id}). Click 'Proceed' or type 'proceed'.")
 
     def execute_pending_plan(self):
         """User approved the prepared plan: runs the modifications."""
@@ -950,7 +955,7 @@ class VibeoAgenticCenter:
         if hasattr(self, "pending_plan") and self.pending_plan:
             plan_id = self.pending_plan["plan"].plan_id
             self.pending_plan = None
-            self.agent_chat.insert(tk.END, f"❌ Plan vibeo-plan-{plan_id} cancelled by user.\n\n")
+            self.agent_chat.insert(tk.END, f"❌ Plan mediamogul-plan-{plan_id} cancelled by user.\n\n")
             self.agent_chat.see(tk.END)
             self.status_var.set("Plan cancelled.")
 
@@ -1069,7 +1074,7 @@ class VibeoAgenticCenter:
         current_sys_prompt = SYSTEM_PROMPT + context_prompt_addon
 
         # Multi-Agent Commander Swarm Architecture
-        if hasattr(self, "commander_mode_var") and self.commander_mode_var.get() and VibeoCommander:
+        if hasattr(self, "commander_mode_var") and self.commander_mode_var.get() and MediaMogulCommander:
             self.root.after(0, lambda: self.agent_chat.insert(tk.END, "🎖️ [Commander AI] Initializing Sub-Agent Swarm...\n"))
             self.status_var.set("Commander AI orchestrating sub-agent swarm...")
 
@@ -1079,7 +1084,7 @@ class VibeoAgenticCenter:
                 self.root.after(0, self.agent_chat.see, tk.END)
 
             try:
-                commander = VibeoCommander(api_key, model=model)
+                commander = MediaMogulCommander(api_key, model=model)
                 commander_input = user_msg
                 if active_video or active_mlt:
                     commander_input = f"{user_msg}\n(Context: Active Media = {active_video or active_mlt})"
@@ -1191,7 +1196,7 @@ class VibeoAgenticCenter:
             self.root.after(0, self._update_agent_reply, f"Error: {e}")
 
     def _update_agent_reply(self, reply):
-        self.agent_chat.insert(tk.END, f"🤖 vibeoVideo:\n{reply}\n\n")
+        self.agent_chat.insert(tk.END, f"🤖 MediaMogul:\n{reply}\n\n")
         self.agent_chat.see(tk.END)
         self.status_var.set("Agent response completed.")
 
@@ -1220,7 +1225,7 @@ class VibeoAgenticCenter:
 
         def _do():
             base, _ = os.path.splitext(media)
-            temp_mp3 = base + "_vibeo_tmp.mp3"
+            temp_mp3 = base + "_mediamogul_tmp.mp3"
             out_srt = base + ".srt"
             try:
                 extract_audio(media, temp_mp3, self.ffmpeg_path)
@@ -1254,7 +1259,7 @@ class VibeoAgenticCenter:
             messagebox.showerror("Empty Text", "Please enter script text to narrate.")
             return
 
-        out_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 Audio", "*.mp3")], initialfile="vibeo_voiceover.mp3")
+        out_path = filedialog.asksaveasfilename(defaultextension=".mp3", filetypes=[("MP3 Audio", "*.mp3")], initialfile="mediamogul_voiceover.mp3")
         if not out_path:
             return
 
@@ -1285,7 +1290,7 @@ class VibeoAgenticCenter:
             messagebox.showerror("Empty Prompt", "Please enter an image prompt.")
             return
 
-        out_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG Image", "*.png")], initialfile="vibeo_broll.png")
+        out_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG Image", "*.png")], initialfile="mediamogul_broll.png")
         if not out_path:
             return
 
@@ -1311,7 +1316,7 @@ class VibeoAgenticCenter:
 
 def main():
     root = tk.Tk()
-    app = VibeoAgenticCenter(root)
+    app = MediaMogulAgenticCenter(root)
     root.mainloop()
 
 

@@ -1,5 +1,5 @@
 """
-vibeo_tools.py - Comprehensive Video AI Capabilities, Collaboration Exporter & Multi-Agent Architecture.
+mediamogul_tools.py - Comprehensive Video AI Capabilities, Collaboration Exporter & Multi-Agent Architecture.
 This module serves as the primary unified interface and backward-compatible facade,
 re-exporting modularized components from core and tools.
 """
@@ -7,7 +7,7 @@ re-exporting modularized components from core and tools.
 import os
 import sys
 
-# Support running both as `companion.vibeo_tools` and directly within the `companion` directory
+# Support running both as `companion.mediamogul_tools` and directly within the `companion` directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 if current_dir not in sys.path:
@@ -18,7 +18,7 @@ if parent_dir not in sys.path:
 try:
     from companion.core import (
         MediaLibraryTracker,
-        VibeoCommander,
+        MediaMogulCommander,
         CostCalculator,
         get_cost_calculator,
         FingerprintTracker,
@@ -126,7 +126,7 @@ try:
 except ImportError:
     from core import (
         MediaLibraryTracker,
-        VibeoCommander,
+        MediaMogulCommander,
         CostCalculator,
         get_cost_calculator,
         FingerprintTracker,
@@ -236,7 +236,7 @@ __all__ = [
     "safe_parse_tool_call",
     "tool_evaluate_timeline",
     "MediaLibraryTracker",
-    "VibeoCommander",
+    "MediaMogulCommander",
     "find_ffmpeg",
     "find_melt",
     "find_shotcut_exe",

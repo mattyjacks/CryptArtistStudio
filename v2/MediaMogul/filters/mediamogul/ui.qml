@@ -1,5 +1,5 @@
 /*
- * vibeoVideo - OpenAI AI Studio for Shotcut
+ * MediaMogul - OpenAI AI Studio for Shotcut
  * Video Filter powered by OpenAI GPT-5.6 Luna & DALL-E 3
  */
 import QtQuick
@@ -9,15 +9,15 @@ import QtQuick.LocalStorage
 import Shotcut.Controls as Shotcut
 import org.shotcut.qml as Shotcut
 import "OpenAiClient.js" as OpenAiClient
-import "vibeoStorage.js" as VibeoStorage
-import "vibeoPresets.js" as VibeoPresets
+import "mediamogulStorage.js" as MediaMogulStorage
+import "mediamogulPresets.js" as MediaMogulPresets
 
 Shotcut.KeyframableFilter {
-    id: vibeoRoot
+    id: mediaMogulRoot
 
     function applyLoadedKey(key) {
         if (key && key.trim().length > 0) {
-            vibeoRoot.userApiKey = key.trim();
+            mediaMogulRoot.userApiKey = key.trim();
             apiKeyInput.text = key.trim();
             keyStatusLabel.text = "Key connected (" + key.substring(0, 7) + "..." + key.substring(key.length - 4) + ")";
         }
@@ -28,14 +28,14 @@ Shotcut.KeyframableFilter {
             var xhr = new XMLHttpRequest();
             var homeUser = (application.OS === "Windows") ? (settings.appDataLocation ? settings.appDataLocation.replace(/\\/g, "/").split("/AppData/")[0] : "") : "";
             if (homeUser) {
-                xhr.open("GET", "file:///" + homeUser + "/.vibeovideo_companion.json");
+                xhr.open("GET", "file:///" + homeUser + "/.mediamogul_companion.json");
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
                         try {
                             var data = JSON.parse(xhr.responseText);
                             if (data && data.api_key) {
                                 applyLoadedKey(data.api_key);
-                                VibeoStorage.saveSetting("openai_api_key", data.api_key);
+                                MediaMogulStorage.saveSetting("openai_api_key", data.api_key);
                             }
                         } catch (e) {}
                     }
@@ -43,7 +43,7 @@ Shotcut.KeyframableFilter {
                 xhr.send();
             }
         } catch (err) {
-            console.log("vibeoVideo: loadCompanionApiKey error: " + err);
+            console.log("MediaMogul: loadCompanionApiKey error: " + err);
         }
     }
 
@@ -125,18 +125,18 @@ Shotcut.KeyframableFilter {
 
         // Initialize persistent settings and load saved API key
         try {
-            VibeoStorage.initDb();
+            MediaMogulStorage.initDb();
         } catch (e) {
-            console.log("vibeoVideo: initDb: " + e);
+            console.log("MediaMogul: initDb: " + e);
         }
 
         var savedKey = "";
         try {
-            savedKey = VibeoStorage.loadSetting("openai_api_key", "");
+            savedKey = MediaMogulStorage.loadSetting("openai_api_key", "");
         } catch (e) {}
 
         if (!savedKey || savedKey.length === 0) {
-            savedKey = filter.get("shotcut:vibeo_api_key") || "";
+            savedKey = filter.get("shotcut:mediamogul_api_key") || "";
         }
 
         if (savedKey && savedKey.length > 0) {
@@ -148,7 +148,7 @@ Shotcut.KeyframableFilter {
 
         var savedModel = "gpt-5.6-luna";
         try {
-            savedModel = VibeoStorage.loadSetting("openai_model", "gpt-5.6-luna");
+            savedModel = MediaMogulStorage.loadSetting("openai_model", "gpt-5.6-luna");
         } catch (e) {}
         if (savedModel === "gpt-5.6-luna") modelCombo.currentIndex = 0;
         else if (savedModel === "gpt-4o") modelCombo.currentIndex = 1;
@@ -157,9 +157,9 @@ Shotcut.KeyframableFilter {
         else modelCombo.currentIndex = 0;
 
         try {
-            vibeoRoot.dangerousMode = (VibeoStorage.loadSetting("dangerous_mode", "false") === "true");
-            vibeoRoot.maxContextTokens = parseInt(VibeoStorage.loadSetting("max_context_tokens", "8192"), 10) || 8192;
-            vibeoRoot.maxOutputTokens = parseInt(VibeoStorage.loadSetting("max_output_tokens", "800"), 10) || 800;
+            mediaMogulRoot.dangerousMode = (MediaMogulStorage.loadSetting("dangerous_mode", "false") === "true");
+            mediaMogulRoot.maxContextTokens = parseInt(MediaMogulStorage.loadSetting("max_context_tokens", "8192"), 10) || 8192;
+            mediaMogulRoot.maxOutputTokens = parseInt(MediaMogulStorage.loadSetting("max_output_tokens", "800"), 10) || 800;
         } catch (e) {}
     }
 
@@ -171,11 +171,11 @@ Shotcut.KeyframableFilter {
     }
 
     function applyVideoModifications(actionObj) {
-        VibeoPresets.applyVideoModifications(filter, textFilterUi, textArea, setControls, actionObj);
+        MediaMogulPresets.applyVideoModifications(filter, textFilterUi, textArea, setControls, actionObj);
     }
 
     function generateAiText() {
-        if (!vibeoRoot.userApiKey || vibeoRoot.userApiKey.trim() === "") {
+        if (!mediaMogulRoot.userApiKey || mediaMogulRoot.userApiKey.trim() === "") {
             statusIsError = true;
             statusMessage = "Please configure your OpenAI API Key in the 'Settings' tab first.";
             mainTabNav.currentIndex = 3;
@@ -197,7 +197,7 @@ Shotcut.KeyframableFilter {
         var tone = toneCombo.currentText;
         var model = modelCombo.currentValue;
 
-        var systemPrompt = "You are vibeoVideo Copilot, an expert AI video director and graphics animator for Shotcut. " +
+        var systemPrompt = "You are MediaMogul Copilot, an expert AI video director and graphics animator for Shotcut. " +
             "You remember the full conversation history across multiple turns. When the user asks for text or video graphics, generate concise, punchy text. " +
             "You can directly command and manipulate the video filter by appending a JSON action block at the end of your response:\n" +
             "```json\n" +
@@ -245,7 +245,7 @@ Shotcut.KeyframableFilter {
         var outLimit = dangerousMode ? maxOutputTokens : 800;
 
         OpenAiClient.chatConversation(
-            vibeoRoot.userApiKey,
+            mediaMogulRoot.userApiKey,
             model,
             conversationHistory,
             0.7,
@@ -272,7 +272,7 @@ Shotcut.KeyframableFilter {
                             applyVideoModifications(actionObj);
                             actionApplied = true;
                         } catch (pe) {
-                            console.log("vibeoVideo: JSON parse error: " + pe.message);
+                            console.log("MediaMogul: JSON parse error: " + pe.message);
                         }
                     }
 
@@ -295,7 +295,7 @@ Shotcut.KeyframableFilter {
     }
 
     function generateDalleImage() {
-        if (!vibeoRoot.userApiKey || vibeoRoot.userApiKey.trim() === "") {
+        if (!mediaMogulRoot.userApiKey || mediaMogulRoot.userApiKey.trim() === "") {
             statusIsError = true;
             statusMessage = "Please enter your OpenAI API Key in the 'Settings' tab first.";
             mainTabNav.currentIndex = 3;
@@ -323,7 +323,7 @@ Shotcut.KeyframableFilter {
         var quality = imgQualityCombo.currentValue;
 
         OpenAiClient.generateImage(
-            vibeoRoot.userApiKey,
+            mediaMogulRoot.userApiKey,
             fullPrompt,
             size,
             quality,
@@ -376,7 +376,7 @@ Shotcut.KeyframableFilter {
                     Layout.fillWidth: true
 
                     Label {
-                        text: "vibeoVideo"
+                        text: "MediaMogul"
                         font.pixelSize: 14
                         font.bold: true
                         color: "#ffffff"
@@ -393,7 +393,7 @@ Shotcut.KeyframableFilter {
                     text: qsTr("🚀 AI Center")
                     font.pixelSize: 10
                     onClicked: {
-                        var exeUrl = Qt.resolvedUrl("vibeo_command_center.exe");
+                        var exeUrl = Qt.resolvedUrl("mediamogul_command_center.exe");
                         var batUrl = Qt.resolvedUrl("run_command_center.bat");
                         if (!Qt.openUrlExternally(exeUrl)) {
                             Qt.openUrlExternally(batUrl);
@@ -405,14 +405,14 @@ Shotcut.KeyframableFilter {
                     width: 72
                     height: 22
                     radius: 11
-                    color: vibeoRoot.userApiKey ? "#065f46" : "#7f1d1d"
+                    color: mediaMogulRoot.userApiKey ? "#065f46" : "#7f1d1d"
 
                     Label {
                         anchors.centerIn: parent
-                        text: vibeoRoot.userApiKey ? "● Connected" : "● No Key"
+                        text: mediaMogulRoot.userApiKey ? "● Connected" : "● No Key"
                         font.pixelSize: 9
                         font.bold: true
-                        color: vibeoRoot.userApiKey ? "#34d399" : "#f87171"
+                        color: mediaMogulRoot.userApiKey ? "#34d399" : "#f87171"
                     }
                 }
             }
@@ -554,7 +554,7 @@ Shotcut.KeyframableFilter {
                             }
                             onCurrentValueChanged: {
                                 try {
-                                    VibeoStorage.saveSetting("openai_model", currentValue);
+                                    MediaMogulStorage.saveSetting("openai_model", currentValue);
                                 } catch (e) {}
                             }
                         }
@@ -585,8 +585,8 @@ Shotcut.KeyframableFilter {
                         Layout.fillWidth: true
                         Layout.preferredHeight: 34
                         radius: 4
-                        color: vibeoRoot.dangerousMode ? "#3b1111" : "#1e1b4b"
-                        border.color: vibeoRoot.dangerousMode ? "#ef4444" : "#6366f1"
+                        color: mediaMogulRoot.dangerousMode ? "#3b1111" : "#1e1b4b"
+                        border.color: mediaMogulRoot.dangerousMode ? "#ef4444" : "#6366f1"
                         border.width: 1
 
                         RowLayout {
@@ -595,11 +595,11 @@ Shotcut.KeyframableFilter {
                             spacing: 8
 
                             Label {
-                                text: vibeoRoot.dangerousMode ?
-                                      "⚠️ Unlocked: ~" + vibeoRoot.estimatedTokens + " / " + vibeoRoot.maxContextTokens + " tokens (" + Math.max(0, vibeoRoot.conversationHistory.length - 1) + " msgs)" :
-                                      "🧠 Memory: ~" + vibeoRoot.estimatedTokens + " / " + (vibeoRoot.maxContextTokens || 8192) + " tokens (" + Math.max(0, vibeoRoot.conversationHistory.length - 1) + " msgs)"
+                                text: mediaMogulRoot.dangerousMode ?
+                                      "⚠️ Unlocked: ~" + mediaMogulRoot.estimatedTokens + " / " + mediaMogulRoot.maxContextTokens + " tokens (" + Math.max(0, mediaMogulRoot.conversationHistory.length - 1) + " msgs)" :
+                                      "🧠 Memory: ~" + mediaMogulRoot.estimatedTokens + " / " + (mediaMogulRoot.maxContextTokens || 8192) + " tokens (" + Math.max(0, mediaMogulRoot.conversationHistory.length - 1) + " msgs)"
                                 font.pixelSize: 10
-                                color: vibeoRoot.dangerousMode ? "#fca5a5" : "#c7d2fe"
+                                color: mediaMogulRoot.dangerousMode ? "#fca5a5" : "#c7d2fe"
                                 font.bold: true
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
@@ -981,7 +981,7 @@ Shotcut.KeyframableFilter {
                             placeholderText: "sk-proj-..."
                             selectByMouse: true
                             onTextChanged: {
-                                vibeoRoot.userApiKey = text.trim();
+                                mediaMogulRoot.userApiKey = text.trim();
                             }
                         }
 
@@ -994,7 +994,7 @@ Shotcut.KeyframableFilter {
                     Label {
                         id: keyStatusLabel
                         font.pixelSize: 10
-                        color: vibeoRoot.userApiKey ? "#34d399" : "#fbbf24"
+                        color: mediaMogulRoot.userApiKey ? "#34d399" : "#fbbf24"
                         Layout.fillWidth: true
                     }
 
@@ -1008,9 +1008,9 @@ Shotcut.KeyframableFilter {
                             onClicked: {
                                 var key = apiKeyInput.text.trim();
                                 if (key.length > 0) {
-                                    VibeoStorage.saveSetting("openai_api_key", key);
-                                    filter.set("shotcut:vibeo_api_key", key);
-                                    vibeoRoot.userApiKey = key;
+                                    MediaMogulStorage.saveSetting("openai_api_key", key);
+                                    filter.set("shotcut:mediamogul_api_key", key);
+                                    mediaMogulRoot.userApiKey = key;
                                     statusIsError = false;
                                     statusMessage = "API Key saved successfully!";
                                     keyStatusLabel.text = "Key saved permanently.";
@@ -1065,11 +1065,11 @@ Shotcut.KeyframableFilter {
                                 Layout.fillWidth: true
                                 CheckBox {
                                     id: dangerousModeToggle
-                                    checked: vibeoRoot.dangerousMode
+                                    checked: mediaMogulRoot.dangerousMode
                                     text: qsTr("⚠️ Unlock High-Token Dangerous Mode")
                                     font.bold: true
                                     onCheckedChanged: {
-                                        vibeoRoot.dangerousMode = checked;
+                                        mediaMogulRoot.dangerousMode = checked;
                                     }
                                 }
                             }
@@ -1097,7 +1097,7 @@ Shotcut.KeyframableFilter {
                                     }
                                     TextField {
                                         id: contextTokensInput
-                                        text: String(vibeoRoot.maxContextTokens)
+                                        text: String(mediaMogulRoot.maxContextTokens)
                                         Layout.fillWidth: true
                                         placeholderText: "e.g. 32768 or 65536"
                                         selectByMouse: true
@@ -1114,7 +1114,7 @@ Shotcut.KeyframableFilter {
                                     }
                                     TextField {
                                         id: outputTokensInput
-                                        text: String(vibeoRoot.maxOutputTokens)
+                                        text: String(mediaMogulRoot.maxOutputTokens)
                                         Layout.fillWidth: true
                                         placeholderText: "e.g. 2048 or 4096"
                                         selectByMouse: true
@@ -1126,14 +1126,14 @@ Shotcut.KeyframableFilter {
                                 Layout.fillWidth: true
                                 text: qsTr("💾 Save Token Budget Settings")
                                 onClicked: {
-                                    vibeoRoot.dangerousMode = dangerousModeToggle.checked;
+                                    mediaMogulRoot.dangerousMode = dangerousModeToggle.checked;
                                     var cTokens = parseInt(contextTokensInput.text.trim(), 10) || 8192;
                                     var oTokens = parseInt(outputTokensInput.text.trim(), 10) || 800;
-                                    vibeoRoot.maxContextTokens = cTokens;
-                                    vibeoRoot.maxOutputTokens = oTokens;
-                                    VibeoStorage.saveSetting("dangerous_mode", dangerousModeToggle.checked ? "true" : "false");
-                                    VibeoStorage.saveSetting("max_context_tokens", String(cTokens));
-                                    VibeoStorage.saveSetting("max_output_tokens", String(oTokens));
+                                    mediaMogulRoot.maxContextTokens = cTokens;
+                                    mediaMogulRoot.maxOutputTokens = oTokens;
+                                    MediaMogulStorage.saveSetting("dangerous_mode", dangerousModeToggle.checked ? "true" : "false");
+                                    MediaMogulStorage.saveSetting("max_context_tokens", String(cTokens));
+                                    MediaMogulStorage.saveSetting("max_output_tokens", String(oTokens));
                                     statusIsError = false;
                                     statusMessage = "Token settings saved (" + (dangerousModeToggle.checked ? "Dangerous High-Token Active" : "Standard") + ")!";
                                 }
@@ -1171,7 +1171,7 @@ Shotcut.KeyframableFilter {
                     }
 
                     Label {
-                        text: qsTr("vibeoVideo Companion Tools:")
+                        text: qsTr("MediaMogul Companion Tools:")
                         font.bold: true
                     }
 

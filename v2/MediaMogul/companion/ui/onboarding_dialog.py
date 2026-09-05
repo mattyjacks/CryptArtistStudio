@@ -17,7 +17,7 @@ from tkinter import ttk
 class OnboardingDialog(tk.Toplevel):
     def __init__(self, parent, on_choice_callback, current_settings=None):
         super().__init__(parent)
-        self.title("vibeoVideo Setup - Feature & Fingerprint Selection")
+        self.title("MediaMogul Setup - Feature & Fingerprint Selection")
         self.geometry("640x380")
         self.minsize(580, 340)
         self.configure(bg="#0f172a")
@@ -55,7 +55,7 @@ class OnboardingDialog(tk.Toplevel):
 
         tk.Label(
             hdr_frame,
-            text="✨ Welcome to vibeoVideo",
+            text="✨ Welcome to MediaMogul",
             font=("Segoe UI", 16, "bold"),
             fg="#ffffff",
             bg="#0f172a"

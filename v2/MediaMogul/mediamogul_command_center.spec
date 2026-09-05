@@ -2,10 +2,10 @@
 
 
 a = Analysis(
-    ['c:/GitHub5/Antigravity/shotcut-vibeovideo/companion/vibeo_agent_center.py'],
+    ['companion/mediamogul_agent_center.py'],
     pathex=[
-        'c:/GitHub5/Antigravity/shotcut-vibeovideo',
-        'c:/GitHub5/Antigravity/shotcut-vibeovideo/companion'
+        '.',
+        'companion'
     ],
     binaries=[],
     datas=[],
@@ -65,7 +65,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='vibeo_command_center',
+    name='mediamogul_command_center',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -74,9 +74,8 @@ exe = EXE(
     runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
-    argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['c:/GitHub5/Antigravity/shotcut-vibeovideo/companion/vibeo_icon.ico'],
+    icon=['companion/mediamogul_icon.ico'],
 )

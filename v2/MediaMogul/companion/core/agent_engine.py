@@ -21,7 +21,7 @@ for _p in [str(_root_dir), str(_companion_dir), str(_current_dir)]:
 
 try:
     from companion.core.ffmpeg_utils import find_ffmpeg, count_conversation_tokens, prune_sliding_context
-    from companion.core.commander import VibeoCommander
+    from companion.core.commander import MediaMogulCommander
     from companion.core.cost_calculator import get_cost_calculator
     from companion.core.fingerprint_tracker import get_fingerprint_tracker
     from companion.tools.audio_tools import (
@@ -72,7 +72,7 @@ try:
     )
 except ImportError:
     from core.ffmpeg_utils import find_ffmpeg, count_conversation_tokens, prune_sliding_context
-    from core.commander import VibeoCommander
+    from core.commander import MediaMogulCommander
     from core.cost_calculator import get_cost_calculator
     from core.fingerprint_tracker import get_fingerprint_tracker
     from tools.audio_tools import (
@@ -123,7 +123,7 @@ except ImportError:
     )
 
 SYSTEM_PROMPT = (
-    "You are vibeoVideo Agent, an expert autonomous AI video editor copilot for Shotcut.\n"
+    "You are MediaMogul Agent, an expert autonomous AI video editor copilot for Shotcut.\n"
     "You remember the entire conversation history across all turns.\n"
     "You have direct execution access to 50+ video editing tools including:\n"
     "- add_to_timeline, create_multiverse_timelines, branch_timeline_universe, overlay_shotcut_element, auto_add_elements, list_shotcut_elements, trim_video, convert_vertical, extract_audio, burn_subtitles, change_speed, extract_thumbnail, compress_video, modify_mlt\n"
@@ -166,9 +166,10 @@ TOOL_ALIASES = {
     "video_edit": "shotcut",
     "editor": "shotcut",
     "shotcut_editor": "shotcut",
-    "vibeovideo": "shotcut",
-    "vibeo": "shotcut",
-    "vibeo_video": "shotcut",
+    "mediamogul": "shotcut",
+    "media_mogul": "shotcut",
+    
+    
     "commander": "shotcut",
     "ai_video_editor": "shotcut",
     "video_tools": "shotcut",
@@ -1022,7 +1023,7 @@ def execute_video_tool(tool_name: str, params: dict, ffmpeg: str = None, api_key
                 raise FileNotFoundError(f"Media file not found: '{inp}'. Please specify a valid video file.")
 
             base, _ = os.path.splitext(inp)
-            temp_mp3 = f"{base}_vibeo_whisper_tmp.mp3"
+            temp_mp3 = f"{base}_mediamogul_whisper_tmp.mp3"
             out_srt = params.get("output_path") or f"{base}.srt"
 
             _extract = globals().get("extract_audio_for_whisper")

@@ -1,5 +1,5 @@
-"""vibeoVideo UI Tab & Component Modules"""
-from .top_bar import VibeoTopBarButton
+"""MediaMogul UI Tab & Component Modules"""
+from .top_bar import MediaMogulTopBarButton
 from .remote_bar import setup_remote_bar
 from .agent_tab import setup_agent_tab
 from .subtitles_tab import setup_subtitles_tab
@@ -15,7 +15,7 @@ from .elements_tab import setup_elements_tab
 from .multiverse_tab import setup_multiverse_tab
 
 __all__ = [
-    "VibeoTopBarButton",
+    "MediaMogulTopBarButton",
     "setup_remote_bar",
     "setup_agent_tab",
     "setup_subtitles_tab",

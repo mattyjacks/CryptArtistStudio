@@ -7,9 +7,9 @@ import winsound
 import tkinter as tk
 from tkinter import messagebox, filedialog
 try:
-    from companion.vibeo_tools import tool_generate_sfx
+    from companion.mediamogul_tools import tool_generate_sfx
 except ImportError:
-    from vibeo_tools import tool_generate_sfx
+    from mediamogul_tools import tool_generate_sfx
 
 
 def setup_sfx_tab(parent_frame, app):
@@ -35,7 +35,7 @@ def setup_sfx_tab(parent_frame, app):
         ("scratch", "📀 Vinyl Record Scratch", "Retro record stop scratch for comedic pauses & sudden plot twists", "#ec4899")
     ]
 
-    temp_sfx_dir = os.path.join(os.path.expanduser("~"), ".vibeovideo_sfx_cache")
+    temp_sfx_dir = os.path.join(os.path.expanduser("~"), ".mediamogul_sfx_cache")
     os.makedirs(temp_sfx_dir, exist_ok=True)
 
     def play_sfx(sfx_key):
@@ -52,7 +52,7 @@ def setup_sfx_tab(parent_frame, app):
             title=f"Export {default_name}",
             defaultextension=".wav",
             filetypes=[("WAV Audio", "*.wav")],
-            initialfile=f"vibeo_{sfx_key}.wav"
+            initialfile=f"mediamogul_{sfx_key}.wav"
         )
         if out:
             tool_generate_sfx(sfx_key, out)

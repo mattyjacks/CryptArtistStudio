@@ -7,9 +7,9 @@ import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 try:
-    from companion.vibeo_tools import tool_auto_roughcut, tool_extract_viral_short, find_ffmpeg
+    from companion.mediamogul_tools import tool_auto_roughcut, tool_extract_viral_short, find_ffmpeg
 except ImportError:
-    from vibeo_tools import tool_auto_roughcut, tool_extract_viral_short, find_ffmpeg
+    from mediamogul_tools import tool_auto_roughcut, tool_extract_viral_short, find_ffmpeg
 
 
 def setup_director_tab(parent_frame, app):

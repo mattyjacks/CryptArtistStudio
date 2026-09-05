@@ -43,7 +43,7 @@ def tool_auto_roughcut(ffmpeg: str, input_video: str, noise_tolerance_db: float 
 
     if not output_mlt:
         base, _ = os.path.splitext(input_video)
-        output_mlt = f"{base}_vibeo_roughcut.mlt"
+        output_mlt = f"{base}_mediamogul_roughcut.mlt"
 
     total_duration = _get_video_duration_seconds(ffmpeg, input_video)
     silences = tool_detect_silence(ffmpeg, input_video, noise_tolerance_db, min_silence_sec)
@@ -75,7 +75,7 @@ def tool_auto_roughcut(ffmpeg: str, input_video: str, noise_tolerance_db: float 
     mlt = ET.Element("mlt", {
         "LC_NUMERIC": "C",
         "version": "7.15.0",
-        "title": f"vibeoVideo Auto-Roughcut - {os.path.basename(input_video)}"
+        "title": f"MediaMogul Auto-Roughcut - {os.path.basename(input_video)}"
     })
 
     # Profile: 1080p 30fps

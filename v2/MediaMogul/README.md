@@ -67,9 +67,9 @@ It gives video creators, editors, and studios an intelligent co-director that ca
 
 ### 1. Launch MediaMogul Command Center
 ```cmd
-run_vibeo_command_center.bat
+run_mediamogul_command_center.bat
 ```
-*(Or launch `python companion/vibeo_agent_center.py`)*
+*(Or launch `python companion/mediamogul_agent_center.py`)*
 
 ### 2. Install Shotcut Filter
 ```powershell
@@ -78,7 +78,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 
 ### 3. Workflow in Shotcut
 1. Open Shotcut.
-2. In the top menu bar right next to **Help**, click **vibeoVideo / MediaMogul** to summon the Command Center.
+2. In the top menu bar right next to **Help**, click **MediaMogul** to summon the Command Center.
 3. Chat with the Commander AI or use the Studio tabs (Auto-Director, SFX Synthesizer, Elements Library, Subtitle Studio, Voiceover Studio, Multiverse Timelines).
 4. Review the **Prepared Plan**, inspect costs and fingerprint status, and click **[ 🚀 Proceed / Execute Plan ]**!
 
@@ -92,9 +92,9 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 │   ├── core/                  # Engine logic (agent_engine, commander, cost_calc, fingerprint, plan)
 │   ├── tools/                 # 50+ video editing tools (audio, video, fx, mlt, subtitles, vision)
 │   ├── ui/                    # Tkinter UI tabs and Onboarding dialog
-│   └── vibeo_agent_center.py  # Main Command Center application controller
+│   └── mediamogul_agent_center.py  # Main Command Center application controller
 ├── filters/                   # Shotcut QML filter plugins
-│   └── vibeo_video/           # QML metadata, UI, and on-screen interactive VUI gizmo
+│   └── mediamogul/           # QML metadata, UI, and on-screen interactive VUI gizmo
 ├── tests/                     # Unit test suites (budget, fingerprint, prepared plan)
 ├── LICENSE                    # GNU General Public License v3.0
 ├── LEGAL_BOUNDARY.md          # Formal legal separation and dual-licensing architecture

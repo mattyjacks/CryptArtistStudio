@@ -179,4 +179,4 @@ def setup_agent_tab(parent_frame, app):
     )
     app.agent_chat.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
     chat_scroll.config(command=app.agent_chat.yview)
-    app.agent_chat.insert(tk.END, "🤖 vibeoVideo Agent initialized.\nI remember our entire conversation and can execute physical video modifications directly on your files (trimming, 9:16 vertical crop, subtitle burn-in, audio extraction, speed changes, thumbnails, Shotcut .mlt editing, TTS, and DALL-E 3)!\n\n")
+    app.agent_chat.insert(tk.END, "🤖 MediaMogul Agent initialized.\nI remember our entire conversation and can execute physical video modifications directly on your files (trimming, 9:16 vertical crop, subtitle burn-in, audio extraction, speed changes, thumbnails, Shotcut .mlt editing, TTS, and DALL-E 3)!\n\n")

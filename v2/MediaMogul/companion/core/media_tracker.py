@@ -19,7 +19,7 @@ class MediaLibraryTracker:
         if details is None and isinstance(action, dict):
             details = action
             action = actor
-            actor = "vibeoVideo"
+            actor = "MediaMogul"
         entry = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "actor": actor,
@@ -71,7 +71,7 @@ class MediaLibraryTracker:
     def export_single_action_log(self, output_file: str) -> str:
         """Export full conversation and action history as a unified long-format single file."""
         lines = [
-            "# vibeoVideo - Unified Session & Action History Log",
+            "# MediaMogul - Unified Session & Action History Log",
             f"Generated: {time.strftime('%Y-%m-%d %H:%M:%S')}",
             f"Total Actions: {len(self.action_history)}",
             f"Total Referenced Media Assets: {len(self.tracked_media)}",
@@ -104,7 +104,7 @@ class MediaLibraryTracker:
             zf.writestr("session_action_history.json", json.dumps(self.action_history, indent=2))
 
             summary_text = (
-                "vibeoVideo Lightweight Collaboration Pack\n"
+                "MediaMogul Lightweight Collaboration Pack\n"
                 "=========================================\n"
                 "This pack contains all lightweight project metadata, .mlt timeline files, subtitles, and scripts.\n"
                 "Heavy video and audio files are excluded to maintain extreme portability.\n\n"
