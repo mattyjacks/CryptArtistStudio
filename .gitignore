@@ -1,6 +1,9 @@
 node_modules/
 target/
 .env
+.env.local
+.env.*.local
+*.env.local
 dist/
 dist-ssr/
 build/
@@ -11,3 +14,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 v1/tax-backend/data
+v2/MediaMogul/shotcut/
+v2/MediaMogul/shotcut

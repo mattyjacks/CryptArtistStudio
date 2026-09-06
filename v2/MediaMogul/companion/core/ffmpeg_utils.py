@@ -16,14 +16,26 @@ user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 
 
+def get_contained_shotcut_dir() -> str:
+    """Returns the path to the contained shotcut directory inside MediaMogul."""
+    # core -> companion -> MediaMogul
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    shotcut_dir = os.path.join(base_dir, "shotcut")
+    return shotcut_dir if os.path.isdir(shotcut_dir) else None
+
+
 def find_ffmpeg() -> str:
-    """Locate the ffmpeg binary on the system."""
-    paths = [
+    """Locate the ffmpeg binary on the system, prioritizing contained MediaMogul Shotcut."""
+    contained = get_contained_shotcut_dir()
+    paths = []
+    if contained:
+        paths.append(os.path.join(contained, "ffmpeg.exe"))
+    paths.extend([
         r"C:\Program Files\Shotcut\ffmpeg.exe",
         r"C:\Program Files (x86)\Shotcut\ffmpeg.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Shotcut\ffmpeg.exe"),
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Shotcut\ffmpeg.exe"),
-    ]
+    ])
     for p in paths:
         if os.path.exists(p):
             return p
@@ -37,13 +49,17 @@ def find_ffmpeg() -> str:
 
 
 def find_melt() -> str:
-    """Find the MLT Melt engine binary for headless Shotcut .mlt timeline rendering."""
-    paths = [
+    """Find the MLT Melt engine binary, prioritizing contained MediaMogul Shotcut."""
+    contained = get_contained_shotcut_dir()
+    paths = []
+    if contained:
+        paths.append(os.path.join(contained, "melt.exe"))
+    paths.extend([
         r"C:\Program Files\Shotcut\melt.exe",
         r"C:\Program Files (x86)\Shotcut\melt.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Shotcut\melt.exe"),
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Shotcut\melt.exe"),
-    ]
+    ])
     for p in paths:
         if os.path.exists(p):
             return p
@@ -57,13 +73,17 @@ def find_melt() -> str:
 
 
 def find_shotcut_exe() -> str:
-    """Find the path to Shotcut executable on the system."""
-    candidates = [
+    """Find the path to Shotcut executable, prioritizing contained MediaMogul Shotcut."""
+    contained = get_contained_shotcut_dir()
+    candidates = []
+    if contained:
+        candidates.append(os.path.join(contained, "shotcut.exe"))
+    candidates.extend([
         r"C:\Program Files\Shotcut\shotcut.exe",
         r"C:\Program Files (x86)\Shotcut\shotcut.exe",
         os.path.expandvars(r"%LOCALAPPDATA%\Programs\Shotcut\shotcut.exe"),
         os.path.expandvars(r"%LOCALAPPDATA%\Shotcut\shotcut.exe"),
-    ]
+    ])
     for c in candidates:
         if os.path.exists(c):
             return c

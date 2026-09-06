@@ -27,6 +27,11 @@ def setup_remote_bar(parent_frame, app):
 
     tk.Label(bar, text="🎛️ Shotcut Remote:", font=("Segoe UI", 8, "bold"), fg="#93c5fd", bg="#111827").pack(side=tk.LEFT, padx=(0, 6))
 
+    btn_style = {"font": ("Segoe UI", 8, "bold"), "relief": tk.FLAT, "padx": 6, "pady": 2, "cursor": "hand2"}
+
+    tk.Button(bar, text="⚡ 1-Click Video", bg="#f59e0b", fg="#000000", activebackground="#d97706", activeforeground="#ffffff",
+              command=lambda: app.one_click_produce_video(), **btn_style).pack(side=tk.LEFT, padx=(0, 8))
+
     def _safe_call(fn, desc):
         ok = fn()
         if ok:

@@ -46,13 +46,18 @@ try:
         remote_step_frame_backward,
         remote_step_frame_forward,
         remote_undo,
-        bring_shotcut_to_front
+        bring_shotcut_to_front,
+        AutonomousVideoAgent,
+        LocalIntentParser,
+        GoalStage,
+        AgentDaemon
     )
     from companion.tools import (
         tool_auto_roughcut,
         tool_extract_viral_short,
         tool_generate_sfx,
         tool_add_to_timeline,
+        tool_import_media_folder,
         tool_detect_silence,
         tool_fade_audio,
         tool_normalize_loudness,
@@ -121,7 +126,13 @@ try:
         tool_add_element_to_timeline,
         tool_auto_add_elements,
         tool_create_multiverse_timelines,
-        tool_branch_timeline_universe
+        tool_branch_timeline_universe,
+        tool_auto_produce_video,
+        tool_render_mlt_with_shotcut,
+        extract_pexels_video_id,
+        search_pexels_videos,
+        download_pexels_video,
+        tool_download_pexels_video
     )
 except ImportError:
     from core import (
@@ -154,13 +165,18 @@ except ImportError:
         remote_step_frame_backward,
         remote_step_frame_forward,
         remote_undo,
-        bring_shotcut_to_front
+        bring_shotcut_to_front,
+        AutonomousVideoAgent,
+        LocalIntentParser,
+        GoalStage,
+        AgentDaemon
     )
     from tools import (
         tool_auto_roughcut,
         tool_extract_viral_short,
         tool_generate_sfx,
         tool_add_to_timeline,
+        tool_import_media_folder,
         tool_detect_silence,
         tool_fade_audio,
         tool_normalize_loudness,
@@ -229,12 +245,20 @@ except ImportError:
         tool_add_element_to_timeline,
         tool_auto_add_elements,
         tool_create_multiverse_timelines,
-        tool_branch_timeline_universe
+        tool_branch_timeline_universe,
+        tool_auto_produce_video,
+        tool_render_mlt_with_shotcut,
+        extract_pexels_video_id,
+        search_pexels_videos,
+        download_pexels_video,
+        tool_download_pexels_video
     )
 
 __all__ = [
     "safe_parse_tool_call",
     "tool_evaluate_timeline",
+    "tool_auto_produce_video",
+    "tool_render_mlt_with_shotcut",
     "MediaLibraryTracker",
     "MediaMogulCommander",
     "find_ffmpeg",
@@ -250,6 +274,7 @@ __all__ = [
     "SYSTEM_PROMPT",
     "execute_video_tool",
     "tool_add_to_timeline",
+    "tool_import_media_folder",
     "tool_detect_silence",
     "tool_fade_audio",
     "tool_normalize_loudness",
@@ -328,4 +353,12 @@ __all__ = [
     "remote_step_frame_forward",
     "remote_undo",
     "bring_shotcut_to_front",
+    "AutonomousVideoAgent",
+    "LocalIntentParser",
+    "GoalStage",
+    "AgentDaemon",
+    "extract_pexels_video_id",
+    "search_pexels_videos",
+    "download_pexels_video",
+    "tool_download_pexels_video",
 ]

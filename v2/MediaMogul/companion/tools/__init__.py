@@ -23,11 +23,11 @@ from .visual_fx_tools import (
     generate_dalle_image
 )
 from .mlt_tools import (
-    tool_add_to_timeline,
+    tool_add_to_timeline, tool_import_media_folder,
     tool_modify_shotcut_mlt, tool_mlt_add_transition,
     tool_mlt_crop_filter, tool_mlt_blur_filter, tool_export_edl,
     tool_batch_rename, tool_calculate_stats, parse_mlt_project,
-    tool_evaluate_timeline
+    tool_evaluate_timeline, tool_render_mlt_with_shotcut
 )
 from .subtitles_tools import (
     extract_audio_for_whisper, transcribe_whisper,
@@ -40,7 +40,7 @@ from .vision_tools import (
     tool_analyze_frame_vision
 )
 from .auto_director_tools import (
-    tool_auto_roughcut, tool_extract_viral_short
+    tool_auto_roughcut, tool_extract_viral_short, tool_auto_produce_video
 )
 from .sfx_tools import (
     tool_generate_sfx, generate_cinematic_boom, generate_whoosh_transition,
@@ -53,4 +53,8 @@ from .element_tools import (
 )
 from .multiverse_tools import (
     tool_create_multiverse_timelines, tool_branch_timeline_universe
+)
+from .pexels_tools import (
+    extract_pexels_video_id, search_pexels_videos,
+    download_pexels_video, tool_download_pexels_video
 )

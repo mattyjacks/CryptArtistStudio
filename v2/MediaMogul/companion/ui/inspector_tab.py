@@ -54,11 +54,42 @@ def setup_inspector_tab(parent_frame, app):
         else:
             messagebox.showerror("Error", "Select a valid .mlt file to re-evaluate.")
 
+    def import_folder_dialog():
+        d = filedialog.askdirectory(title="Select Media Folder containing Videos/Audio")
+        if d:
+            try:
+                out = app.load_media_folder_to_timeline(d, open_in_shotcut=True)
+                messagebox.showinfo("Success", f"Media folder imported successfully!\nProject: {os.path.basename(out)}\n\nLoaded onto timeline and opened in Shotcut.")
+            except Exception as e:
+                messagebox.showerror("Import Error", f"Failed to import media folder: {e}")
+
+    def load_test_videos():
+        test_dir = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+        if not os.path.exists(test_dir):
+            videos_dir = os.path.expanduser("~/Videos")
+            candidates = [os.path.join(videos_dir, f) for f in os.listdir(videos_dir) if "drive-download" in f.lower()]
+            if candidates:
+                test_dir = candidates[0]
+            else:
+                test_dir = filedialog.askdirectory(title="Locate Test Videos Folder")
+        if test_dir and os.path.exists(test_dir):
+            try:
+                out = app.load_media_folder_to_timeline(test_dir, open_in_shotcut=True)
+                messagebox.showinfo("Success", f"Test videos imported successfully!\n\nFolder: {test_dir}\nProject: {os.path.basename(out)}\n\nAll video clips sequenced on Timeline and opened in Shotcut!")
+            except Exception as e:
+                messagebox.showerror("Import Error", f"Failed to import test videos: {e}")
+        else:
+            messagebox.showerror("Folder Not Found", "Could not locate test videos folder.")
+
     app.browse_mlt = browse_mlt
     app.analyze_mlt = analyze_mlt
     app.reevaluate_mlt = reevaluate_mlt
+    app.import_folder_dialog = import_folder_dialog
+    app.load_test_videos = load_test_videos
 
-    tk.Button(row, text="Browse .mlt...", font=("Segoe UI", 9, "bold"), command=browse_mlt).pack(side=tk.LEFT)
+    tk.Button(row, text="Browse .mlt...", font=("Segoe UI", 9, "bold"), command=browse_mlt).pack(side=tk.LEFT, padx=(0, 4))
+    tk.Button(row, text="📂 Import Media Folder...", font=("Segoe UI", 9, "bold"), bg="#334155", fg="#ffffff", command=import_folder_dialog).pack(side=tk.LEFT, padx=(0, 4))
+    tk.Button(row, text="🧪 Load Test Videos", font=("Segoe UI", 9, "bold"), bg="#0284c7", fg="#ffffff", command=load_test_videos).pack(side=tk.LEFT)
 
     btn_bar = tk.Frame(frame, bg="#0f172a")
     btn_bar.pack(fill=tk.X, pady=6)

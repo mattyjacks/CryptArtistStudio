@@ -7,9 +7,9 @@ import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 try:
-    from companion.mediamogul_tools import tool_auto_roughcut, tool_extract_viral_short, find_ffmpeg
+    from companion.mediamogul_tools import tool_auto_roughcut, tool_extract_viral_short, tool_auto_produce_video, find_ffmpeg
 except ImportError:
-    from mediamogul_tools import tool_auto_roughcut, tool_extract_viral_short, find_ffmpeg
+    from mediamogul_tools import tool_auto_roughcut, tool_extract_viral_short, tool_auto_produce_video, find_ffmpeg
 
 
 def setup_director_tab(parent_frame, app):
@@ -18,8 +18,115 @@ def setup_director_tab(parent_frame, app):
     frame.pack(fill=tk.BOTH, expand=True)
 
     # Header
-    tk.Label(frame, text="🎬 AI Auto-Director & Viral Shorts Repurposer", font=("Segoe UI", 14, "bold"), fg="#ffffff", bg="#0f172a").pack(anchor=tk.W)
-    tk.Label(frame, text="One-click intelligent editing: remove all dead-air pauses to generate a Shotcut .mlt timeline, or extract viral vertical shorts.", font=("Segoe UI", 8), fg="#94a3b8", bg="#0f172a").pack(anchor=tk.W, pady=(2, 10))
+    tk.Label(frame, text="🎬 AI Auto-Director & Autonomous Video Producer", font=("Segoe UI", 14, "bold"), fg="#ffffff", bg="#0f172a").pack(anchor=tk.W)
+    tk.Label(frame, text="Fully automate video creation with contained Shotcut: autonomous multi-clip assembly, narration sync, audio mastering, and zero AI fingerprints.", font=("Segoe UI", 8), fg="#94a3b8", bg="#0f172a").pack(anchor=tk.W, pady=(2, 10))
+
+    # ==========================================
+    # HERO CARD: FULL AUTONOMOUS VIDEO PRODUCER
+    # ==========================================
+    hero = tk.Frame(frame, bg="#1e293b", padx=14, pady=12, relief=tk.GROOVE, bd=1)
+    hero.pack(fill=tk.X, pady=(0, 10))
+
+    tk.Label(hero, text="⚡ Autonomous Video Producer & Shotcut Exporter (Fingerprint-Free)", font=("Segoe UI", 11, "bold"), fg="#10b981", bg="#1e293b").pack(anchor=tk.W)
+    tk.Label(hero, text="Scans any media folder, organizes takes & voiceovers, Masters audio to -14 LUFS, builds a complete Shotcut .mlt timeline, and headlessly renders finished video to MP4.", font=("Segoe UI", 8), fg="#cbd5e1", bg="#1e293b").pack(anchor=tk.W, pady=(2, 6))
+
+    r_hero = tk.Frame(hero, bg="#1e293b")
+    r_hero.pack(fill=tk.X, pady=(2, 6))
+
+    app.autoprod_folder_entry = tk.Entry(r_hero, font=("Segoe UI", 9), bg="#0f172a", fg="#ffffff")
+    app.autoprod_folder_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 6), ipady=2)
+    default_test_dir = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+    app.autoprod_folder_entry.insert(0, default_test_dir if os.path.exists(default_test_dir) else "")
+
+    def browse_autoprod_folder():
+        d = filedialog.askdirectory(title="Select Media Folder")
+        if d:
+            app.autoprod_folder_entry.delete(0, tk.END)
+            app.autoprod_folder_entry.insert(0, d)
+
+    def load_autoprod_test_set():
+        if os.path.exists(default_test_dir):
+            app.autoprod_folder_entry.delete(0, tk.END)
+            app.autoprod_folder_entry.insert(0, default_test_dir)
+
+    tk.Button(r_hero, text="Browse...", font=("Segoe UI", 8, "bold"), command=browse_autoprod_folder).pack(side=tk.LEFT, padx=(0, 4))
+    app.autoprod_test_btn = tk.Button(r_hero, text="🧪 Test Video Set", font=("Segoe UI", 8, "bold"), bg="#10b981", fg="#ffffff", command=load_autoprod_test_set)
+    app.autoprod_test_btn.pack(side=tk.LEFT)
+
+    r_hero_opts = tk.Frame(hero, bg="#1e293b")
+    r_hero_opts.pack(fill=tk.X, pady=(4, 6))
+
+    tk.Label(r_hero_opts, text="Pacing Mode:", font=("Segoe UI", 8), fg="#94a3b8", bg="#1e293b").pack(side=tk.LEFT, padx=(0, 4))
+    app.autoprod_mode_combo = ttk.Combobox(r_hero_opts, values=["Narrated Master Cut (Paced to Voiceover)", "Full Takes Sequence (Consecutive)"], width=34, state="readonly")
+    app.autoprod_mode_combo.set("Narrated Master Cut (Paced to Voiceover)")
+    app.autoprod_mode_combo.pack(side=tk.LEFT, padx=(0, 10))
+
+    app.autoprod_render_var = tk.BooleanVar(value=True)
+    tk.Checkbutton(r_hero_opts, text="Render MP4 with Shotcut (melt)", variable=app.autoprod_render_var, bg="#1e293b", fg="#ffffff", selectcolor="#0f172a", font=("Segoe UI", 8)).pack(side=tk.LEFT, padx=(0, 10))
+
+    app.autoprod_norm_var = tk.BooleanVar(value=True)
+    tk.Checkbutton(r_hero_opts, text="Master Audio (-14 LUFS)", variable=app.autoprod_norm_var, bg="#1e293b", fg="#ffffff", selectcolor="#0f172a", font=("Segoe UI", 8)).pack(side=tk.LEFT)
+
+    app.autoprod_last_result = None
+    app.autoprod_completed = False
+
+    def run_auto_produce():
+        fld = app.autoprod_folder_entry.get().strip()
+        if not fld or not os.path.exists(fld):
+            messagebox.showerror("Folder Error", "Please select a valid media folder path.")
+            return
+
+        mode_val = "narrated_cut" if "Narrated" in app.autoprod_mode_combo.get() else "full_sequence"
+        ffmpeg = app.ffmpeg_path or find_ffmpeg()
+        do_render = app.autoprod_render_var.get()
+        do_norm = app.autoprod_norm_var.get()
+
+        app.status_var.set("Producing video with Shotcut: assembling timeline and rendering...")
+        app.director_log.delete(1.0, tk.END)
+        app.director_log.insert(tk.END, f"🎬 [Auto-Produce] Scanning media in '{os.path.basename(fld)}'...\n")
+
+        def _do_produce():
+            try:
+                res = tool_auto_produce_video(
+                    ffmpeg=ffmpeg,
+                    folder_path=fld,
+                    normalize_audio=do_norm,
+                    render_with_shotcut=do_render,
+                    open_in_shotcut=True,
+                    target_mode=mode_val
+                )
+                app.autoprod_last_result = res
+                app.autoprod_completed = True
+                if app.media_tracker:
+                    if res.get("output_mlt"):
+                        app.media_tracker.track_file(res["output_mlt"], role="timeline_mlt")
+                    if res.get("output_video"):
+                        app.media_tracker.track_file(res["output_video"], role="rendered_video")
+
+                msg = (
+                    f"\n✨ Video Creation Completed with Shotcut!\n"
+                    f"=========================================\n"
+                    f"📁 Shotcut MLT Project: {res['output_mlt']}\n"
+                    f"⏱️ Duration: {res['timeline_duration_sec']}s ({res['video_clips_count']} video takes, {res['audio_clips_count']} voiceovers)\n"
+                    f"🛡️ Fingerprint Status: {res['fingerprint_status']}\n"
+                    f"⚙️ Engine: {res['engine']}\n"
+                )
+                if res.get("output_video"):
+                    msg += f"🎥 Master Rendered Video: {res['output_video']} ({res.get('render_info', {}).get('size_mb', 0)} MB)\n"
+
+                app.root.after(0, lambda: app.director_log.insert(tk.END, msg))
+                app.status_var.set("Video successfully produced with Shotcut!")
+                if not getattr(app, "suppress_modal_alerts", False):
+                    messagebox.showinfo("Video Produced", f"Video generation completed!\nMLT Project:\n{res['output_mlt']}\nRendered MP4:\n{res.get('output_video')}")
+            except Exception as ex:
+                app.root.after(0, lambda: app.director_log.insert(tk.END, f"\n❌ Error: {ex}\n"))
+                if not getattr(app, "suppress_modal_alerts", False):
+                    messagebox.showerror("Production Error", str(ex))
+
+        threading.Thread(target=_do_produce, daemon=True).start()
+
+    app.autoprod_run_btn = tk.Button(hero, text="⚡ 1-CLICK AUTO-PRODUCE VIDEO WITH SHOTCUT (100% FINGERPRINT-FREE)", font=("Segoe UI", 10, "bold"), bg="#f59e0b", fg="#000000", activebackground="#d97706", activeforeground="#ffffff", relief=tk.FLAT, pady=8, cursor="hand2", command=run_auto_produce)
+    app.autoprod_run_btn.pack(fill=tk.X, pady=(2, 2))
 
     # Two Studio Cards
     cards_box = tk.Frame(frame, bg="#0f172a")
@@ -47,7 +154,24 @@ def setup_director_tab(parent_frame, app):
             app.roughcut_entry.delete(0, tk.END)
             app.roughcut_entry.insert(0, fn)
 
-    tk.Button(r1, text="Browse...", font=("Segoe UI", 8, "bold"), command=browse_roughcut_video).pack(side=tk.LEFT)
+    def load_roughcut_test_clip():
+        test_dir = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+        target_clip = None
+        if os.path.exists(test_dir):
+            for f in sorted(os.listdir(test_dir)):
+                if f.lower().endswith((".mov", ".mp4", ".mkv")):
+                    target_clip = os.path.join(test_dir, f)
+                    break
+        if not target_clip and hasattr(app, "get_active_video_path"):
+            target_clip = app.get_active_video_path()
+        if target_clip and os.path.exists(target_clip):
+            app.roughcut_entry.delete(0, tk.END)
+            app.roughcut_entry.insert(0, target_clip)
+        else:
+            browse_roughcut_video()
+
+    tk.Button(r1, text="Browse...", font=("Segoe UI", 8, "bold"), command=browse_roughcut_video).pack(side=tk.LEFT, padx=(0, 4))
+    tk.Button(r1, text="🧪 Test Clip", font=("Segoe UI", 8, "bold"), bg="#0284c7", fg="#ffffff", command=load_roughcut_test_clip).pack(side=tk.LEFT)
 
     r_settings = tk.Frame(c1, bg="#1e293b")
     r_settings.pack(fill=tk.X, pady=(0, 8))
@@ -126,7 +250,24 @@ def setup_director_tab(parent_frame, app):
             app.viral_entry.delete(0, tk.END)
             app.viral_entry.insert(0, fn)
 
-    tk.Button(r2, text="Browse...", font=("Segoe UI", 8, "bold"), command=browse_viral_video).pack(side=tk.LEFT)
+    def load_viral_test_clip():
+        test_dir = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+        target_clip = None
+        if os.path.exists(test_dir):
+            for f in sorted(os.listdir(test_dir)):
+                if f.lower().endswith((".mov", ".mp4", ".mkv")):
+                    target_clip = os.path.join(test_dir, f)
+                    break
+        if not target_clip and hasattr(app, "get_active_video_path"):
+            target_clip = app.get_active_video_path()
+        if target_clip and os.path.exists(target_clip):
+            app.viral_entry.delete(0, tk.END)
+            app.viral_entry.insert(0, target_clip)
+        else:
+            browse_viral_video()
+
+    tk.Button(r2, text="Browse...", font=("Segoe UI", 8, "bold"), command=browse_viral_video).pack(side=tk.LEFT, padx=(0, 4))
+    tk.Button(r2, text="🧪 Test Clip", font=("Segoe UI", 8, "bold"), bg="#f472b6", fg="#ffffff", command=load_viral_test_clip).pack(side=tk.LEFT)
 
     r_opts = tk.Frame(c2, bg="#1e293b")
     r_opts.pack(fill=tk.X, pady=(0, 8))

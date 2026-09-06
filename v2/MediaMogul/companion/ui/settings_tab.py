@@ -364,6 +364,17 @@ def setup_settings_tab(parent_frame, app):
     app.key_entry.pack(anchor=tk.W, fill=tk.X, pady=(0, 8), ipady=3)
     app.key_entry.insert(0, app.settings.get("api_key", ""))
 
+    tk.Label(
+        gen_box,
+        text="Pexels API Key (Optional - for keyword searches & 4K stock video):",
+        font=("Segoe UI", 9, "bold"),
+        fg="#38bdf8",
+        bg="#0f172a"
+    ).pack(anchor=tk.W, pady=(2, 2))
+    app.pexels_key_entry = tk.Entry(gen_box, font=("Consolas", 9), bg="#1e293b", fg="#ffffff", width=55, show="*")
+    app.pexels_key_entry.pack(anchor=tk.W, fill=tk.X, pady=(0, 8), ipady=3)
+    app.pexels_key_entry.insert(0, app.settings.get("pexels_api_key", ""))
+
     tk.Label(gen_box, text="Default AI Model:", font=("Segoe UI", 9, "bold"), fg="#e2e8f0", bg="#0f172a").pack(anchor=tk.W, pady=(2, 2))
     app.model_combo = ttk.Combobox(gen_box, values=["gpt-5.6-luna", "gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"], state="readonly", width=25)
     app.model_combo.set(app.settings.get("model", "gpt-5.6-luna"))

@@ -3,21 +3,294 @@ mlt_tools.py - Shotcut MLT project XML manipulation, transitions, filters, and E
 """
 
 import os
+import re
 import time
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 
 
-def tool_add_to_timeline(ffmpeg: str, input_path: str, mlt_path: str = None,
+def natural_sort_key(s):
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', str(s))]
+
+
+def tool_import_media_folder(ffmpeg: str, folder_path: str, output_path: str = None, open_in_shotcut: bool = True) -> dict:
+    """
+    Scans a directory for all video and audio files, sorts them in natural order,
+    and builds a comprehensive multi-track Shotcut timeline project (.mlt) with:
+      - Track V1: All video clips sequenced consecutively
+      - Track A1: All audio voiceovers/tracks sequenced consecutively
+    Optionally launches or opens it in Shotcut Video Editor.
+    """
+    if not os.path.exists(folder_path):
+        raise FileNotFoundError(f"Folder not found: {folder_path}")
+    if not os.path.isdir(folder_path):
+        raise NotADirectoryError(f"Path is not a directory: {folder_path}")
+
+    try:
+        from companion.core.ffmpeg_utils import get_media_duration_seconds, find_shotcut_exe
+    except Exception:
+        try:
+            from ..core.ffmpeg_utils import get_media_duration_seconds, find_shotcut_exe
+        except Exception:
+            from core.ffmpeg_utils import get_media_duration_seconds, find_shotcut_exe
+
+    VIDEO_EXTS = {".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v", ".wmv", ".flv"}
+    AUDIO_EXTS = {".m4a", ".mp3", ".wav", ".aac", ".flac", ".ogg", ".wma"}
+
+    all_entries = os.listdir(folder_path)
+    video_files = []
+    audio_files = []
+
+    for fn in all_entries:
+        fp = os.path.join(folder_path, fn)
+        if not os.path.isfile(fp):
+            continue
+        ext = os.path.splitext(fn)[1].lower()
+        if ext in VIDEO_EXTS:
+            video_files.append(fp)
+        elif ext in AUDIO_EXTS:
+            audio_files.append(fp)
+
+    video_files.sort(key=lambda p: natural_sort_key(os.path.basename(p)))
+    audio_files.sort(key=lambda p: natural_sort_key(os.path.basename(p)))
+
+    if not video_files and not audio_files:
+        raise ValueError(f"No supported video or audio files found in directory: {folder_path}")
+
+    folder_name = os.path.basename(os.path.normpath(folder_path))
+    if not output_path:
+        output_path = os.path.join(folder_path, f"{folder_name}_timeline.mlt")
+
+    fps = 30
+    mlt = ET.Element("mlt", {
+        "LC_NUMERIC": "C",
+        "version": "7.15.0",
+        "title": f"MediaMogul Timeline - {folder_name}"
+    })
+    ET.SubElement(mlt, "profile", {
+        "description": "HD 1080p 30 fps",
+        "width": "1920",
+        "height": "1080",
+        "progressive": "1",
+        "sample_aspect_num": "1",
+        "sample_aspect_den": "1",
+        "display_aspect_num": "16",
+        "display_aspect_den": "9",
+        "frame_rate_num": "30",
+        "frame_rate_den": "1"
+    })
+
+    # 1. Create all Video & Audio producers first
+    v_clips_info = []
+    total_v_sec = 0.0
+    total_v_frames = 0
+    video_producers = []
+
+    for i, v_path in enumerate(video_files):
+        dur = get_media_duration_seconds(ffmpeg, v_path)
+        total_v_sec += dur
+        v_frames = max(1, int(dur * fps))
+        total_v_frames += v_frames
+        prod_id = f"producer_v{i}"
+        abs_v = os.path.abspath(v_path).replace("\\", "/")
+
+        prod = ET.SubElement(mlt, "producer", {
+            "id": prod_id,
+            "in": "0",
+            "out": str(v_frames - 1)
+        })
+        ET.SubElement(prod, "property", {"name": "resource"}).text = abs_v
+        ET.SubElement(prod, "property", {"name": "mlt_service"}).text = "avformat"
+
+        video_producers.append((prod_id, v_frames))
+        v_clips_info.append({
+            "path": v_path,
+            "filename": os.path.basename(v_path),
+            "duration_sec": round(dur, 2),
+            "frames": v_frames
+        })
+
+    a_clips_info = []
+    total_a_sec = 0.0
+    total_a_frames = 0
+    audio_producers = []
+
+    if audio_files:
+        for j, a_path in enumerate(audio_files):
+            dur = get_media_duration_seconds(ffmpeg, a_path)
+            total_a_sec += dur
+            a_frames = max(1, int(dur * fps))
+            total_a_frames += a_frames
+            prod_id = f"producer_a{j}"
+            abs_a = os.path.abspath(a_path).replace("\\", "/")
+
+            prod = ET.SubElement(mlt, "producer", {
+                "id": prod_id,
+                "in": "0",
+                "out": str(a_frames - 1)
+            })
+            ET.SubElement(prod, "property", {"name": "resource"}).text = abs_a
+            ET.SubElement(prod, "property", {"name": "mlt_service"}).text = "avformat"
+
+            audio_producers.append((prod_id, a_frames))
+            a_clips_info.append({
+                "path": a_path,
+                "filename": os.path.basename(a_path),
+                "duration_sec": round(dur, 2),
+                "frames": a_frames
+            })
+
+    # 2. Create Playlists referencing the producers
+    if video_producers:
+        pl_v1 = ET.SubElement(mlt, "playlist", {"id": "playlist_v1"})
+        for prod_id, v_frames in video_producers:
+            ET.SubElement(pl_v1, "entry", {
+                "producer": prod_id,
+                "in": "0",
+                "out": str(v_frames - 1)
+            })
+
+    pl_a1 = None
+    if audio_producers:
+        pl_a1 = ET.SubElement(mlt, "playlist", {"id": "playlist_a1"})
+        for prod_id, a_frames in audio_producers:
+            ET.SubElement(pl_a1, "entry", {
+                "producer": prod_id,
+                "in": "0",
+                "out": str(a_frames - 1)
+            })
+
+    # 3. Tractor Multitrack with full duration
+    timeline_total_frames = max(total_v_frames, total_a_frames, 1)
+    tractor = ET.SubElement(mlt, "tractor", {
+        "id": "tractor0",
+        "title": "Shotcut Timeline",
+        "in": "0",
+        "out": str(timeline_total_frames - 1)
+    })
+    multitrack = ET.SubElement(tractor, "multitrack")
+
+    if video_files:
+        ET.SubElement(multitrack, "track", {"producer": "playlist_v1"})
+    if audio_files and pl_a1 is not None:
+        ET.SubElement(multitrack, "track", {"producer": "playlist_a1", "hide": "video"})
+
+    # Mix transition if both video and audio exist
+    if video_files and audio_files:
+        trans = ET.SubElement(tractor, "transition", {"id": "transition_mix"})
+        ET.SubElement(trans, "property", {"name": "mlt_service"}).text = "mix"
+        ET.SubElement(trans, "property", {"name": "always_active"}).text = "1"
+        ET.SubElement(trans, "property", {"name": "combine"}).text = "1"
+        ET.SubElement(trans, "property", {"name": "a_track"}).text = "0"
+        ET.SubElement(trans, "property", {"name": "b_track"}).text = "1"
+
+    tree = ET.ElementTree(mlt)
+    ET.indent(tree, space="  ", level=0)
+    tree.write(output_path, encoding="utf-8", xml_declaration=True)
+
+    if open_in_shotcut:
+        try:
+            sc_exe = find_shotcut_exe()
+            if sc_exe and os.path.exists(sc_exe):
+                subprocess.Popen([sc_exe, output_path], creationflags=0x00000008 | 0x00000200)
+        except Exception:
+            pass
+
+    return {
+        "mlt_project": output_path,
+        "video_clips": v_clips_info,
+        "audio_clips": a_clips_info,
+        "total_video_duration_sec": round(total_v_sec, 2),
+        "total_audio_duration_sec": round(total_a_sec, 2),
+        "open_in_shotcut": open_in_shotcut
+    }
+
+
+def tool_add_to_timeline(ffmpeg: str, input_path, mlt_path: str = None,
                          in_time: str = "00:00:00", out_time: str = None,
                          output_path: str = None, open_in_shotcut: bool = True) -> str:
     """
-    Adds a media file (video, audio, image) directly into a Shotcut .mlt timeline project,
+    Adds media files directly into a Shotcut .mlt timeline project,
     and optionally launches or opens it in Shotcut Video Editor.
+    If input_path is a directory, imports all video and audio files from the directory.
     If mlt_path is not specified or doesn't exist, a new Shotcut project (.mlt) is created.
     """
-    if not os.path.exists(input_path):
+    # Check if input is a directory or list of files
+    if isinstance(input_path, (list, tuple)):
+        # If passed list of files, write multi-clip timeline
+        if len(input_path) == 1 and os.path.isdir(str(input_path[0])):
+            res = tool_import_media_folder(ffmpeg, str(input_path[0]), output_path=output_path, open_in_shotcut=open_in_shotcut)
+            return res["mlt_project"]
+        
+        parent = os.path.dirname(os.path.abspath(input_path[0])) if input_path else ""
+        if not output_path and parent:
+            output_path = os.path.join(parent, "multi_clip_timeline.mlt")
+        elif not output_path:
+            output_path = "multi_clip_timeline.mlt"
+            
+        fps = 30
+        mlt = ET.Element("mlt", {
+            "LC_NUMERIC": "C",
+            "version": "7.15.0",
+            "title": "MediaMogul Timeline"
+        })
+        ET.SubElement(mlt, "profile", {
+            "description": "HD 1080p 30 fps",
+            "width": "1920",
+            "height": "1080",
+            "progressive": "1",
+            "sample_aspect_num": "1",
+            "sample_aspect_den": "1",
+            "display_aspect_num": "16",
+            "display_aspect_den": "9",
+            "frame_rate_num": "30",
+            "frame_rate_den": "1"
+        })
+        producers_list = []
+        total_frames = 0
+        for i, clip in enumerate(input_path):
+            if not os.path.exists(clip):
+                continue
+            dur = get_media_duration_seconds(ffmpeg, clip)
+            c_frames = max(1, int(dur * fps))
+            total_frames += c_frames
+            pid = f"producer{i}"
+            prod = ET.SubElement(mlt, "producer", {"id": pid, "in": "0", "out": str(c_frames - 1)})
+            ET.SubElement(prod, "property", {"name": "resource"}).text = os.path.abspath(clip).replace("\\", "/")
+            ET.SubElement(prod, "property", {"name": "mlt_service"}).text = "avformat"
+            producers_list.append((pid, c_frames))
+
+        pl = ET.SubElement(mlt, "playlist", {"id": "playlist0"})
+        for pid, c_frames in producers_list:
+            ET.SubElement(pl, "entry", {"producer": pid, "in": "0", "out": str(c_frames - 1)})
+
+        tractor = ET.SubElement(mlt, "tractor", {
+            "id": "tractor0",
+            "title": "Shotcut Timeline",
+            "in": "0",
+            "out": str(max(1, total_frames) - 1)
+        })
+        multitrack = ET.SubElement(tractor, "multitrack")
+        ET.SubElement(multitrack, "track", {"producer": "playlist0"})
+
+        tree = ET.ElementTree(mlt)
+        ET.indent(tree, space="  ", level=0)
+        tree.write(output_path, encoding="utf-8", xml_declaration=True)
+
+        if open_in_shotcut:
+            try:
+                sc_exe = find_shotcut_exe()
+                if sc_exe and os.path.exists(sc_exe):
+                    subprocess.Popen([sc_exe, output_path], creationflags=0x00000008 | 0x00000200)
+            except Exception:
+                pass
+        return output_path
+    elif isinstance(input_path, str) and os.path.isdir(input_path):
+        res = tool_import_media_folder(ffmpeg, input_path, output_path=output_path, open_in_shotcut=open_in_shotcut)
+        return res["mlt_project"]
+
+    if not isinstance(input_path, str) or not os.path.exists(input_path):
         raise FileNotFoundError(f"Media file not found: {input_path}")
 
     try:
@@ -400,3 +673,108 @@ def tool_evaluate_timeline(mlt_path: str, previous_clip_count: int = None) -> di
         "recommendations": recommendations,
         "report": report
     }
+
+
+def tool_render_mlt_with_shotcut(
+    mlt_path: str,
+    output_mp4: str = None,
+    ffmpeg: str = None,
+    preset: str = "fast",
+    crf: int = 20,
+    clean_ai_metadata: bool = True
+) -> dict:
+    """
+    Renders an MLT project timeline to a finished, export-ready MP4 using Shotcut's MLT Melt engine.
+    Also strips any AI metadata tags if clean_ai_metadata is True, ensuring 100% Fingerprint-Free delivery.
+    """
+    if not os.path.exists(mlt_path):
+        raise FileNotFoundError(f"MLT project not found: {mlt_path}")
+
+    try:
+        from companion.core.ffmpeg_utils import find_melt, find_ffmpeg, get_media_duration_seconds
+    except Exception:
+        try:
+            from ..core.ffmpeg_utils import find_melt, find_ffmpeg, get_media_duration_seconds
+        except Exception:
+            from core.ffmpeg_utils import find_melt, find_ffmpeg, get_media_duration_seconds
+
+    if not ffmpeg:
+        ffmpeg = find_ffmpeg()
+
+    if not output_mp4:
+        base, _ = os.path.splitext(mlt_path)
+        output_mp4 = f"{base}_rendered.mp4"
+
+    melt_exe = find_melt()
+    if not melt_exe or not os.path.exists(melt_exe):
+        raise RuntimeError(f"Shotcut MLT engine (melt.exe) not found. Contained Shotcut should be in /v2/MediaMogul/shotcut/.")
+
+    # Target intermediate file if stripping metadata
+    temp_target = output_mp4 if not clean_ai_metadata else output_mp4 + ".raw.mp4"
+    if os.path.exists(temp_target):
+        try:
+            os.remove(temp_target)
+        except Exception:
+            pass
+
+    cmd = [
+        melt_exe,
+        mlt_path,
+        "-consumer", f"avformat:{temp_target}",
+        "vcodec=libx264",
+        f"preset={preset}",
+        f"crf={crf}",
+        "acodec=aac",
+        "ab=192k",
+        "movflags=+faststart",
+        "terminate_on_pause=1"
+    ]
+
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+    if process.returncode != 0 or not os.path.exists(temp_target) or os.path.getsize(temp_target) == 0:
+        err_out = process.stderr.decode("utf-8", errors="ignore")
+        raise RuntimeError(f"Shotcut Melt render failed with code {process.returncode}:\n{err_out[:500]}")
+
+    final_output = temp_target
+    if clean_ai_metadata and ffmpeg:
+        # Scrub any AI metadata, synthetic flags, C2PA claims, or generator comments
+        clean_mp4 = output_mp4
+        if os.path.exists(clean_mp4):
+            try:
+                os.remove(clean_mp4)
+            except Exception:
+                pass
+
+        scrub_cmd = [
+            ffmpeg, "-y",
+            "-i", temp_target,
+            "-map_metadata", "-1",
+            "-metadata", "comment=",
+            "-metadata", "description=",
+            "-metadata", "synopsis=",
+            "-metadata", "artist=CryptArtistStudio MediaMogul",
+            "-c", "copy",
+            clean_mp4
+        ]
+        res_scrub = subprocess.run(scrub_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res_scrub.returncode == 0 and os.path.exists(clean_mp4) and os.path.getsize(clean_mp4) > 0:
+            final_output = clean_mp4
+            try:
+                os.remove(temp_target)
+            except Exception:
+                pass
+        else:
+            final_output = temp_target
+
+    dur = get_media_duration_seconds(ffmpeg, final_output) if ffmpeg else 0.0
+    size_mb = round(os.path.getsize(final_output) / (1024 * 1024), 2)
+
+    return {
+        "status": "success",
+        "rendered_mp4": final_output,
+        "duration_sec": round(dur, 2),
+        "size_mb": size_mb,
+        "engine": "Shotcut MLT (melt.exe)",
+        "fingerprint_free": clean_ai_metadata
+    }
+

@@ -36,7 +36,8 @@ FINGERPRINT_FREE_TOOLS = {
     "mlt_crop_filter", "mlt_blur_filter", "export_edl", "batch_rename",
     "calculate_stats", "burn_timecode", "add_to_timeline", "overlay_shotcut_element",
     "auto_add_elements", "create_multiverse_timelines", "branch_timeline_universe",
-    "evaluate_timeline", "burn_subtitles", "generate_subtitles", "generate_sfx"
+    "evaluate_timeline", "burn_subtitles", "generate_subtitles", "generate_sfx",
+    "download_pexels_video", "download_pexels", "pexels_video"
 }
 
 

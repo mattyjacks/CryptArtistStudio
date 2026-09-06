@@ -16,6 +16,14 @@ def setup_agent_tab(parent_frame, app):
 
     tk.Label(quick_frame, text="Quick Agent Prompts:", font=("Segoe UI", 9, "bold"), fg="#94a3b8", bg="#0f172a").pack(side=tk.LEFT, padx=(0, 6))
 
+    one_click_btn = tk.Button(
+        quick_frame, text="⚡ 1-Click Auto Video", font=("Segoe UI", 8, "bold"),
+        bg="#f59e0b", fg="#000000", activebackground="#d97706", activeforeground="#ffffff",
+        relief=tk.FLAT, padx=8, pady=2, cursor="hand2",
+        command=app.one_click_produce_video
+    )
+    one_click_btn.pack(side=tk.LEFT, padx=(0, 8))
+
     prompts = [
         ("Transcribe Subtitles", "Transcribe speech from my video clip and create .srt subtitles"),
         ("Create Lower Third", "Format a professional 2-line lower third graphic for: Jane Doe, Lead Engineer"),

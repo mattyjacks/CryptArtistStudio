@@ -63,6 +63,23 @@ It gives video creators, editors, and studios an intelligent co-director that ca
 
 ---
 
+### 0. Contained Shotcut Engine
+MediaMogul directly contains Shotcut inside `/v2/MediaMogul/shotcut/`:
+- Bundles/links `shotcut.exe`, `melt.exe`, and full MLT multimedia libraries directly inside the module.
+- Run `python setup_contained_shotcut.py` to verify or establish the contained junction.
+- All binary lookups prioritize the contained Shotcut engine before checking system paths.
+
+### 1. Autonomous Video Producer (100% Fingerprint-Free)
+- Multi-clip automatic narrative assembly (`tool_auto_produce_video`):
+  - Ingests raw video takes and voiceover recordings (e.g. from `C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001`).
+  - Sorts voiceovers chronologically and syncs video camera takes across narration.
+  - Masters audio loudness to broadcast standard (-14 LUFS).
+  - Generates valid `.mlt` timeline projects with producers, tracks, and mix transitions.
+  - Headlessly renders export-ready MP4s using Shotcut's MLT Melt engine (`melt.exe`).
+  - Scrubs all AI metadata, C2PA claims, and generator tags to ensure **🟢 Fingerprint-Free** algorithmic reach.
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. Launch MediaMogul Command Center
@@ -71,16 +88,16 @@ run_mediamogul_command_center.bat
 ```
 *(Or launch `python companion/mediamogul_agent_center.py`)*
 
-### 2. Install Shotcut Filter
+### 2. Auto-Produce Videos with Shotcut
+In the Command Center's **Auto-Director** tab:
+1. Click **🧪 Test Video Set** (or browse to any footage folder).
+2. Click **[ 🚀 Auto-Produce Video with Shotcut (Fingerprint-Free) ]**.
+3. MediaMogul automatically creates the timeline, renders the finished MP4 via Shotcut's MLT engine, and pulls up the project in Shotcut!
+
+### 3. Install Shotcut Filter
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
-
-### 3. Workflow in Shotcut
-1. Open Shotcut.
-2. In the top menu bar right next to **Help**, click **MediaMogul** to summon the Command Center.
-3. Chat with the Commander AI or use the Studio tabs (Auto-Director, SFX Synthesizer, Elements Library, Subtitle Studio, Voiceover Studio, Multiverse Timelines).
-4. Review the **Prepared Plan**, inspect costs and fingerprint status, and click **[ 🚀 Proceed / Execute Plan ]**!
 
 ---
 

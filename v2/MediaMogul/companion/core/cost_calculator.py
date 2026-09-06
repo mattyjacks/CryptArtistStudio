@@ -123,7 +123,7 @@ class CostCalculator:
     # -------------------------------------------------------------------------
     def calculate_llm_cost(self, model: str, prompt_tokens: int, completion_tokens: int) -> float:
         """Computes exact LLM completion cost based on token counts."""
-        m_info = self.RATES["models"].get(model.lower(), self.RATES["models"]["gpt-4o"])
+        m_info = self.RATES["models"].get(model.lower(), self.RATES["models"]["gpt-5.6-luna"])
         in_cost = (prompt_tokens / 1_000_000.0) * m_info["input_per_m"]
         out_cost = (completion_tokens / 1_000_000.0) * m_info["output_per_m"]
         return round(in_cost + out_cost, 6)

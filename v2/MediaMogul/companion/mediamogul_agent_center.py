@@ -28,7 +28,7 @@ if parent_dir not in sys.path:
 
 try:
     from companion.mediamogul_tools import (
-        MediaLibraryTracker, MediaMogulCommander, MediaMogulCommander, SYSTEM_PROMPT, execute_video_tool,
+        MediaLibraryTracker, MediaMogulCommander, SYSTEM_PROMPT, execute_video_tool,
         find_ffmpeg, find_shotcut_exe, find_shotcut_window,
         count_conversation_tokens, prune_sliding_context,
         extract_audio, transcribe_whisper, convert_whisper_to_srt,
@@ -36,10 +36,11 @@ try:
         parse_mlt_project, tool_evaluate_timeline, bring_shotcut_to_front,
         safe_parse_tool_call, CostCalculator, get_cost_calculator,
         FingerprintTracker, get_fingerprint_tracker, PreparedPlan,
-        STATUS_FREE, STATUS_PARTS, STATUS_FULL
+        STATUS_FREE, STATUS_PARTS, STATUS_FULL,
+        AutonomousVideoAgent, LocalIntentParser, GoalStage
     )
     from companion.ui import (
-        MediaMogulTopBarButton, MediaMogulTopBarButton, setup_remote_bar,
+        MediaMogulTopBarButton, setup_remote_bar,
         setup_agent_tab, setup_subtitles_tab, setup_voiceover_tab, setup_broll_tab,
         setup_inspector_tab, setup_vision_tab, setup_collab_tab, setup_settings_tab,
         setup_director_tab, setup_sfx_tab, setup_elements_tab, setup_multiverse_tab
@@ -47,7 +48,7 @@ try:
     from companion.ui.onboarding_dialog import OnboardingDialog
 except ImportError:
     from mediamogul_tools import (
-        MediaLibraryTracker, MediaMogulCommander, MediaMogulCommander, SYSTEM_PROMPT, execute_video_tool,
+        MediaLibraryTracker, MediaMogulCommander, SYSTEM_PROMPT, execute_video_tool,
         find_ffmpeg, find_shotcut_exe, find_shotcut_window,
         count_conversation_tokens, prune_sliding_context,
         extract_audio, transcribe_whisper, convert_whisper_to_srt,
@@ -55,10 +56,11 @@ except ImportError:
         parse_mlt_project, tool_evaluate_timeline, bring_shotcut_to_front,
         safe_parse_tool_call, CostCalculator, get_cost_calculator,
         FingerprintTracker, get_fingerprint_tracker, PreparedPlan,
-        STATUS_FREE, STATUS_PARTS, STATUS_FULL
+        STATUS_FREE, STATUS_PARTS, STATUS_FULL,
+        AutonomousVideoAgent, LocalIntentParser, GoalStage
     )
     from ui import (
-        MediaMogulTopBarButton, MediaMogulTopBarButton, setup_remote_bar,
+        MediaMogulTopBarButton, setup_remote_bar,
         setup_agent_tab, setup_subtitles_tab, setup_voiceover_tab, setup_broll_tab,
         setup_inspector_tab, setup_vision_tab, setup_collab_tab, setup_settings_tab,
         setup_director_tab, setup_sfx_tab, setup_elements_tab, setup_multiverse_tab
@@ -67,16 +69,19 @@ except ImportError:
 
 
 class MediaMogulAgenticCenter:
-    pass
-
-MediaMogulAgenticCenter = MediaMogulAgenticCenter
-
-class MediaMogulAgenticCenter:
     """Main application controller coordinating UI tabs, agent workflows, and Shotcut integration."""
     def __init__(self, root):
         self.root = root
         self.root.title("MediaMogul - Agentic AI Command Center")
-        self.root.geometry("880x740")
+        
+        # Center window on user's primary display
+        sw = self.root.winfo_screenwidth()
+        sh = self.root.winfo_screenheight()
+        w = min(900, max(780, sw - 100))
+        h = min(760, max(580, sh - 100))
+        x = max(0, (sw - w) // 2)
+        y = max(0, (sh - h) // 2)
+        self.root.geometry(f"{w}x{h}+{x}+{y}")
         self.root.minsize(780, 580)
         self.root.configure(bg="#0f172a")
 
@@ -125,10 +130,14 @@ class MediaMogulAgenticCenter:
         if not self.settings.get("onboarding_completed", False):
             self.root.after(300, self.show_onboarding_modal)
 
+        # Ensure window is visible, brought to front, and focused
+        self.root.after(100, self.show_window)
+
     def load_settings(self):
         self.settings_file = os.path.join(os.path.expanduser("~"), ".mediamogul_companion.json")
         self.settings = {
             "api_key": "",
+            "pexels_api_key": "",
             "model": "gpt-5.6-luna",
             "menu_x_offset": 0,
             "menu_y_offset": 0,
@@ -142,6 +151,18 @@ class MediaMogulAgenticCenter:
             "daily_budget_limit": 5.00,
             "lifetime_budget_limit": 50.00
         }
+
+        # Load environment variables from .env
+        try:
+            from companion.core.env_utils import load_dotenv
+            load_dotenv()
+        except Exception:
+            try:
+                from core.env_utils import load_dotenv
+                load_dotenv()
+            except Exception:
+                pass
+
         if os.path.exists(self.settings_file):
             try:
                 with open(self.settings_file, "r", encoding="utf-8") as f:
@@ -154,9 +175,56 @@ class MediaMogulAgenticCenter:
             except Exception:
                 pass
 
+        # Populate from environment if not yet configured in UI settings
+        if not self.settings.get("api_key") and os.environ.get("OPENAI_API_KEY"):
+            self.settings["api_key"] = os.environ.get("OPENAI_API_KEY", "").strip()
+        if not self.settings.get("pexels_api_key") and os.environ.get("PEXELS_API_KEY"):
+            self.settings["pexels_api_key"] = os.environ.get("PEXELS_API_KEY", "").strip()
+
+    def show_window(self):
+        """Restores, deiconifies and brings MediaMogul Command Center to front."""
+        try:
+            self.root.deiconify()
+            self.root.lift()
+            self.root.attributes("-topmost", True)
+            self.root.after(1000, lambda: self.root.attributes("-topmost", False))
+            self.root.focus_force()
+            try:
+                import ctypes
+                hwnd = self.root.winfo_id()
+                ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+                ctypes.windll.user32.SetForegroundWindow(hwnd)
+            except Exception:
+                pass
+        except Exception:
+            pass
+
+    def show_onboarding_modal(self):
+        """Displays the onboarding selection dialog."""
+        try:
+            def _on_choice(mode, remember):
+                if mode == "fingerprint_free":
+                    self.settings["disable_ai_fingerprint_features"] = True
+                    if hasattr(self, "disable_ai_fingerprint_var"):
+                        self.disable_ai_fingerprint_var.set(True)
+                else:
+                    self.settings["disable_ai_fingerprint_features"] = False
+                    if hasattr(self, "disable_ai_fingerprint_var"):
+                        self.disable_ai_fingerprint_var.set(False)
+                if remember:
+                    self.settings["onboarding_completed"] = True
+                self.save_settings(silent=True)
+                self.update_fingerprint_badge()
+
+            OnboardingDialog(self.root, _on_choice, self.settings)
+        except Exception as e:
+            print(f"Error opening onboarding modal: {e}")
+
     def save_settings(self, silent=False):
         try:
             self.settings["api_key"] = self.key_entry.get().strip()
+            if hasattr(self, "pexels_key_entry"):
+                self.settings["pexels_api_key"] = self.pexels_key_entry.get().strip()
             self.settings["model"] = self.model_combo.get()
             raw_x = self.offset_x_entry.get().strip()
             self.settings["menu_x_offset"] = int(raw_x) if (raw_x.isdigit() and int(raw_x) != 245) else 0
@@ -343,14 +411,18 @@ class MediaMogulAgenticCenter:
                 if fp.lower().endswith(".mlt") and os.path.exists(fp):
                     self._active_mlt_path = os.path.abspath(fp)
                     return self._active_mlt_path
-        # Search user Videos folder for newest MLT
+        # Search user Videos folder and subdirectories for newest MLT
         videos_dir = os.path.expanduser("~/Videos")
         if os.path.exists(videos_dir):
             try:
-                mlt_files = [
-                    os.path.join(videos_dir, f) for f in os.listdir(videos_dir)
-                    if f.lower().endswith(".mlt")
-                ]
+                mlt_files = []
+                for root, dirs, files in os.walk(videos_dir):
+                    depth = root[len(videos_dir):].count(os.sep)
+                    if depth > 2:
+                        continue
+                    for f in files:
+                        if f.lower().endswith(".mlt"):
+                            mlt_files.append(os.path.join(root, f))
                 if mlt_files:
                     mlt_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
                     self._active_mlt_path = os.path.abspath(mlt_files[0])
@@ -358,6 +430,56 @@ class MediaMogulAgenticCenter:
             except Exception:
                 pass
         return None
+
+    def load_media_folder_to_timeline(self, folder_path: str = None, open_in_shotcut: bool = True) -> str:
+        """
+        Loads a directory of videos/audio (defaults to C:\\Users\\ventu\\Videos\\drive-download-20260906T004623Z-1-001 if available)
+        into a new multi-clip Shotcut project, tracks the assets, and sets active timeline.
+        """
+        if not folder_path:
+            default_test = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+            if os.path.exists(default_test):
+                folder_path = default_test
+            else:
+                videos_dir = os.path.expanduser("~/Videos")
+                if os.path.exists(videos_dir):
+                    for item in os.listdir(videos_dir):
+                        sub = os.path.join(videos_dir, item)
+                        if os.path.isdir(sub) and "drive-download" in item.lower():
+                            folder_path = sub
+                            break
+        if not folder_path or not os.path.exists(folder_path):
+            raise FileNotFoundError(f"Media folder not found: {folder_path}")
+
+        try:
+            from companion.tools.mlt_tools import tool_import_media_folder
+        except ImportError:
+            from tools.mlt_tools import tool_import_media_folder
+
+        ffmpeg = self.ffmpeg_path or find_ffmpeg()
+        res = tool_import_media_folder(ffmpeg, folder_path, open_in_shotcut=open_in_shotcut)
+        mlt_path = res["mlt_project"]
+
+        # Track assets
+        if self.media_tracker:
+            for c in res.get("video_clips", []):
+                self.media_tracker.track_file(c["path"], role="source_video")
+            for a in res.get("audio_clips", []):
+                self.media_tracker.track_file(a["path"], role="voiceover_audio")
+            self.media_tracker.track_file(mlt_path, role="timeline_mlt")
+
+        self.set_active_mlt_path(mlt_path)
+        if res.get("video_clips"):
+            self._active_video_path = os.path.abspath(res["video_clips"][0]["path"])
+
+        # Update inspector if available
+        if hasattr(self, "mlt_entry"):
+            self.mlt_entry.delete(0, tk.END)
+            self.mlt_entry.insert(0, mlt_path)
+        if hasattr(self, "analyze_mlt"):
+            self.analyze_mlt()
+
+        return mlt_path
 
     def extract_video_from_mlt(self, mlt_path: str) -> str:
         """Extracts the first valid video source file from a Shotcut .mlt project."""
@@ -394,14 +516,18 @@ class MediaMogulAgenticCenter:
                     self._active_video_path = os.path.abspath(fp)
                     return self._active_video_path
 
-        # 3. Search ~/Videos for the newest video footage
+        # 3. Search ~/Videos and subdirectories for video footage
         videos_dir = os.path.expanduser("~/Videos")
         if os.path.exists(videos_dir):
             try:
-                cand = [
-                    os.path.join(videos_dir, f) for f in os.listdir(videos_dir)
-                    if f.lower().endswith((".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v"))
-                ]
+                cand = []
+                for root, dirs, files in os.walk(videos_dir):
+                    depth = root[len(videos_dir):].count(os.sep)
+                    if depth > 2:
+                        continue
+                    for f in files:
+                        if f.lower().endswith((".mp4", ".mov", ".mkv", ".avi", ".webm", ".m4v")):
+                            cand.append(os.path.join(root, f))
                 if cand:
                     cand.sort(key=lambda x: os.path.getmtime(x), reverse=True)
                     self._active_video_path = os.path.abspath(cand[0])
@@ -668,6 +794,13 @@ class MediaMogulAgenticCenter:
         self.header_actions = tk.Frame(header, bg="#1e1b4b")
         self.header_actions.pack(side=tk.RIGHT)
 
+        self.one_click_btn = tk.Button(
+            self.header_actions, text="⚡ 1-Click Video", font=("Segoe UI", 10, "bold"),
+            bg="#f59e0b", fg="#000000", activebackground="#d97706", activeforeground="#ffffff",
+            relief=tk.FLAT, padx=12, pady=4, cursor="hand2", command=self.one_click_produce_video
+        )
+        self.one_click_btn.pack(side=tk.LEFT, padx=(0, 8))
+
         self.launch_shotcut_btn = tk.Button(
             self.header_actions, text="🚀 Launch Shotcut", font=("Segoe UI", 10, "bold"),
             bg="#10b981", fg="#ffffff", activebackground="#059669", activeforeground="#ffffff",
@@ -732,9 +865,9 @@ class MediaMogulAgenticCenter:
         self.notebook.add(self.tab_voiceover, text="🗣️ Voiceover Studio (TTS)")
         setup_voiceover_tab(self.tab_voiceover, self)
 
-        # Tab 6: B-Roll Studio
+        # Tab 6: B-Roll & Pexels Studio
         self.tab_broll = tk.Frame(self.notebook, bg="#0f172a")
-        self.notebook.add(self.tab_broll, text="🎨 DALL-E 3 B-Roll")
+        self.notebook.add(self.tab_broll, text="🎥 Pexels & B-Roll")
         setup_broll_tab(self.tab_broll, self)
 
         # Tab 7: Shotcut Project Inspector
@@ -824,18 +957,137 @@ class MediaMogulAgenticCenter:
                 self.decline_pending_plan()
                 return
 
-        self.last_user_prompt = text
-        self.send_agent_prompt(text)
+    def one_click_produce_video(self, media_folder: str = None):
+        """One-Click Autonomous Video Production: Ingest -> Mastering -> MLT -> Melt Render -> Quality Gate -> Shotcut Desktop."""
+        folder = media_folder
+        if not folder:
+            if hasattr(self, "autoprod_folder_entry") and self.autoprod_folder_entry.get().strip():
+                candidate = self.autoprod_folder_entry.get().strip()
+                if os.path.exists(candidate) and os.path.isdir(candidate):
+                    folder = candidate
+        if not folder:
+            act_v = self.get_active_video_path()
+            if act_v and os.path.exists(act_v):
+                folder = os.path.dirname(act_v)
+        if not folder:
+            candidate = self.settings.get("media_folder", "")
+            if candidate and os.path.exists(candidate) and os.path.isdir(candidate):
+                folder = candidate
+        if not folder:
+            default_test = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+            if os.path.exists(default_test):
+                folder = default_test
+            else:
+                folder = filedialog.askdirectory(title="Select Media Folder for 1-Click Video Production")
+                if not folder:
+                    return
+
+        if hasattr(self, "notebook") and hasattr(self, "tab_agent"):
+            self.notebook.select(self.tab_agent)
+
+        self.status_var.set("⚡ 1-Click Video Production in progress...")
+        self.agent_chat.insert(tk.END, "\n" + "═"*60 + "\n")
+        self.agent_chat.insert(tk.END, "⚡ [ONE-CLICK AUTO VIDEO] Initiating 100% Autonomous Video Production!\n")
+        self.agent_chat.insert(tk.END, f"📁 Media Source: {folder}\n")
+        self.agent_chat.insert(tk.END, "🛡️ Authenticity: 🟢 100% Fingerprint-Free (Authentic Camera Footage)\n")
+        self.agent_chat.insert(tk.END, "═"*60 + "\n\n")
+        self.agent_chat.see(tk.END)
+
+        def _worker():
+            agent = AutonomousVideoAgent(settings=self.settings)
+
+            def log_cb(msg):
+                self.root.after(0, lambda m=msg: self.agent_chat.insert(tk.END, f"{m}\n"))
+                self.root.after(0, self.agent_chat.see, tk.END)
+
+            def prog_cb(step, name):
+                self.root.after(0, lambda s=step, n=name: self.status_var.set(f"⚡ [1-Click Video {s}/6]: {n}..."))
+
+            goal_desc = "One-Click Video Production with Shotcut, broadcast -14 LUFS audio, and 100% Fingerprint-Free authenticity."
+            res = agent.execute_goal(goal_desc, folder, log_callback=log_cb, progress_callback=prog_cb)
+
+            if res.get("status") == "SUCCESS":
+                out_mlt = res.get("output_mlt")
+                out_vid = res.get("output_video")
+                if out_mlt and os.path.exists(out_mlt):
+                    self.root.after(0, lambda p=out_mlt: self.set_active_mlt_path(p))
+                if self.media_tracker:
+                    if out_mlt:
+                        self.media_tracker.track_file(out_mlt, role="timeline_mlt")
+                    if out_vid:
+                        self.media_tracker.track_file(out_vid, role="rendered_video")
+
+                def _show_success():
+                    self.status_var.set("⚡ [1-Click Video Complete!] Master video rendered and opened in Shotcut.")
+                    self.agent_chat.insert(tk.END, "\n🎉 SUCCESS! Your 1-Click Master Video is Ready:\n")
+                    self.agent_chat.insert(tk.END, f"🎥 Master Video: {out_vid}\n")
+                    self.agent_chat.insert(tk.END, f"📁 Shotcut Timeline: {out_mlt}\n\n")
+                    self.agent_chat.see(tk.END)
+                    self._show_one_click_completion_modal(out_vid, out_mlt)
+
+                self.root.after(0, _show_success)
+            else:
+                err = res.get("error", "Unknown error")
+                self.root.after(0, lambda e=err: self.status_var.set(f"❌ 1-Click Video Failed: {e}"))
+                self.root.after(0, lambda e=err: messagebox.showerror("1-Click Video Error", f"Production failed:\n{e}"))
+
+        threading.Thread(target=_worker, daemon=True).start()
+
+    def _show_one_click_completion_modal(self, out_vid, out_mlt):
+        """Displays a clean modal dialog when 1-click video generation finishes with quick action buttons."""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("🎉 1-Click Video Ready!")
+        dialog.geometry("520x300")
+        dialog.configure(bg="#0f172a")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        hdr = tk.Frame(dialog, bg="#1e1b4b", padx=16, pady=12)
+        hdr.pack(fill=tk.X)
+        tk.Label(hdr, text="⚡ 1-Click Video Production Complete!", font=("Segoe UI", 13, "bold"), fg="#34d399", bg="#1e1b4b").pack(anchor=tk.W)
+        tk.Label(hdr, text="Shotcut MLT assembled, audio mastered to -14 LUFS, and 1080p MP4 master rendered.", font=("Segoe UI", 9), fg="#94a3b8", bg="#1e1b4b").pack(anchor=tk.W)
+
+        body = tk.Frame(dialog, bg="#0f172a", padx=16, pady=14)
+        body.pack(fill=tk.BOTH, expand=True)
+
+        vid_name = os.path.basename(out_vid) if out_vid else "Master Video"
+        tk.Label(body, text=f"🎥 Master Video: {vid_name}", font=("Segoe UI", 10, "bold"), fg="#ffffff", bg="#0f172a", anchor=tk.W).pack(fill=tk.X, pady=(0, 4))
+        if out_vid:
+            tk.Label(body, text=out_vid, font=("Consolas", 8), fg="#64748b", bg="#0f172a", anchor=tk.W, wraplength=480).pack(fill=tk.X, pady=(0, 10))
+
+        btn_row = tk.Frame(body, bg="#0f172a")
+        btn_row.pack(fill=tk.X, pady=10)
+
+        def _play_video():
+            if out_vid and os.path.exists(out_vid):
+                try:
+                    os.startfile(out_vid)
+                except Exception:
+                    messagebox.showinfo("Video Path", f"Video rendered at:\n{out_vid}")
+
+        def _view_shotcut():
+            bring_shotcut_to_front()
+            dialog.destroy()
+
+        def _open_folder():
+            if out_vid and os.path.exists(out_vid):
+                try:
+                    subprocess.Popen(f'explorer /select,"{out_vid}"')
+                except Exception:
+                    os.startfile(os.path.dirname(out_vid))
+
+        tk.Button(btn_row, text="▶️ Play Video", font=("Segoe UI", 10, "bold"), bg="#10b981", fg="#ffffff", relief=tk.FLAT, padx=12, pady=6, cursor="hand2", command=_play_video).pack(side=tk.LEFT, padx=4)
+        tk.Button(btn_row, text="🎬 View in Shotcut", font=("Segoe UI", 10, "bold"), bg="#6366f1", fg="#ffffff", relief=tk.FLAT, padx=12, pady=6, cursor="hand2", command=_view_shotcut).pack(side=tk.LEFT, padx=4)
+        tk.Button(btn_row, text="📁 Open Folder", font=("Segoe UI", 9), bg="#334155", fg="#ffffff", relief=tk.FLAT, padx=10, pady=6, cursor="hand2", command=_open_folder).pack(side=tk.LEFT, padx=4)
+        tk.Button(btn_row, text="Close", font=("Segoe UI", 9), bg="#1e293b", fg="#94a3b8", relief=tk.FLAT, padx=10, pady=6, cursor="hand2", command=dialog.destroy).pack(side=tk.RIGHT, padx=4)
 
     def send_agent_prompt(self, user_msg):
         api_key = self.settings.get("api_key", "").strip()
-        if not api_key:
-            messagebox.showerror("Missing Key", "Please configure your OpenAI API Key in Settings.")
-            self.notebook.select(self.tab_settings)
-            return
-
         self.agent_chat.insert(tk.END, f"\n👤 You: {user_msg}\n")
-        self.agent_chat.insert(tk.END, "🤖 MediaMogul: Orchestrating video tools and processing...\n")
+        if not api_key:
+            self.agent_chat.insert(tk.END, "🤖 MediaMogul: Running in Local Autonomous Agent mode (100% offline & Fingerprint-Free)...\n")
+        else:
+            self.agent_chat.insert(tk.END, "🤖 MediaMogul: Orchestrating video tools and processing...\n")
         self.agent_chat.see(tk.END)
         self.status_var.set("Agent executing prompt...")
 
@@ -1126,6 +1378,38 @@ class MediaMogulAgenticCenter:
             except Exception as ce:
                 self.root.after(0, lambda e=ce: self.agent_chat.insert(tk.END, f"⚠️ Commander swarm fallback to single agent: {e}\n"))
 
+        # Single-Agent Local Mode (when api_key is not set)
+        if not api_key:
+            self.root.after(0, lambda: self.agent_chat.insert(tk.END, "🤖 [Local Agent] Parsing instructions with local offline engine...\n"))
+            self.status_var.set("Local agent analyzing instructions...")
+
+            parsed = LocalIntentParser.parse_intent(user_msg, session_context={
+                "active_video": active_video,
+                "active_mlt": active_mlt,
+                "media_folder": self.settings.get("media_folder", "")
+            })
+            tool_name = parsed.get("tool", "auto_produce_video")
+            tool_params = parsed.get("parameters", {})
+            reasoning = parsed.get("reasoning", "Matched video editing intent.")
+            conf = int(parsed.get("confidence", 0.9) * 100)
+
+            reply = (
+                f"### 🤖 MediaMogul Local Autonomous Agent\n\n"
+                f"• **Intent Recognized**: `{tool_name}` (Confidence: {conf}%)\n"
+                f"• **Reasoning**: {reasoning}\n"
+                f"• **Authenticity Policy**: 🟢 100% Fingerprint-Free (Authentic camera takes)\n\n"
+                f"```json\n"
+                f"{json.dumps({'tool': tool_name, 'parameters': tool_params}, indent=2)}\n"
+                f"```"
+            )
+            self.conversation_history.append({"role": "user", "content": user_msg})
+            self.conversation_history.append({"role": "assistant", "content": reply})
+            tok_count = count_conversation_tokens(self.conversation_history)
+            self.root.after(0, self._update_agent_token_label, tok_count)
+            self.root.after(0, self._update_agent_reply, reply)
+            self.handle_tool_execution_plan(tool_name, tool_params, plan_goal=f"Local Agent: {tool_name}")
+            return
+
         # Single-Agent fallback mode
         url = "https://api.openai.com/v1/chat/completions"
         if self.cost_calc:
@@ -1317,6 +1601,18 @@ class MediaMogulAgenticCenter:
 def main():
     root = tk.Tk()
     app = MediaMogulAgenticCenter(root)
+    if "--test-media" in sys.argv:
+        def _auto_load():
+            try:
+                target_folder = None
+                if "--folder" in sys.argv:
+                    idx = sys.argv.index("--folder")
+                    if idx + 1 < len(sys.argv):
+                        target_folder = sys.argv[idx + 1]
+                app.load_media_folder_to_timeline(target_folder)
+            except Exception as e:
+                print(f"Auto-load test media notice: {e}")
+        root.after(400, _auto_load)
     root.mainloop()
 
 

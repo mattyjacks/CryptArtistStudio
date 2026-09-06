@@ -4,6 +4,7 @@ top_bar.py - Win32 docked overlay button positioning "MediaMogul" right next to 
 
 import os
 import ctypes
+from ctypes import wintypes
 import tkinter as tk
 try:
     from companion.mediamogul_tools import find_shotcut_window

@@ -19,6 +19,10 @@ from .shotcut_remote import (
     remote_step_frame_backward, remote_step_frame_forward, remote_undo,
     bring_shotcut_to_front
 )
+from .autonomous_agent import (
+    AutonomousVideoAgent, LocalIntentParser, GoalStage
+)
+from .agent_daemon import AgentDaemon
 
 
 def __getattr__(name):

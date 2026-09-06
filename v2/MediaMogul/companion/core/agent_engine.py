@@ -20,7 +20,10 @@ for _p in [str(_root_dir), str(_companion_dir), str(_current_dir)]:
         sys.path.insert(0, _p)
 
 try:
-    from companion.core.ffmpeg_utils import find_ffmpeg, count_conversation_tokens, prune_sliding_context
+    from companion.core.ffmpeg_utils import (
+        find_ffmpeg, count_conversation_tokens, prune_sliding_context,
+        extract_audio, get_media_duration_seconds
+    )
     from companion.core.commander import MediaMogulCommander
     from companion.core.cost_calculator import get_cost_calculator
     from companion.core.fingerprint_tracker import get_fingerprint_tracker
@@ -46,9 +49,10 @@ try:
         generate_dalle_image
     )
     from companion.tools.mlt_tools import (
-        tool_add_to_timeline, tool_modify_shotcut_mlt, tool_mlt_add_transition,
+        tool_add_to_timeline, tool_import_media_folder, tool_modify_shotcut_mlt, tool_mlt_add_transition,
         tool_mlt_crop_filter, tool_mlt_blur_filter, tool_export_edl,
-        tool_batch_rename, tool_calculate_stats, parse_mlt_project, tool_evaluate_timeline
+        tool_batch_rename, tool_calculate_stats, parse_mlt_project, tool_evaluate_timeline,
+        tool_render_mlt_with_shotcut
     )
     from companion.tools.subtitles_tools import (
         extract_audio_for_whisper, transcribe_whisper,
@@ -60,7 +64,7 @@ try:
         tool_analyze_frame_vision
     )
     from companion.tools.auto_director_tools import (
-        tool_auto_roughcut, tool_extract_viral_short
+        tool_auto_roughcut, tool_extract_viral_short, tool_auto_produce_video
     )
     from companion.tools.sfx_tools import tool_generate_sfx
     from companion.tools.element_tools import (
@@ -70,8 +74,14 @@ try:
     from companion.tools.multiverse_tools import (
         tool_create_multiverse_timelines, tool_branch_timeline_universe
     )
+    from companion.tools.pexels_tools import (
+        tool_download_pexels_video, download_pexels_video, search_pexels_videos, extract_pexels_video_id
+    )
 except ImportError:
-    from core.ffmpeg_utils import find_ffmpeg, count_conversation_tokens, prune_sliding_context
+    from core.ffmpeg_utils import (
+        find_ffmpeg, count_conversation_tokens, prune_sliding_context,
+        extract_audio, get_media_duration_seconds
+    )
     from core.commander import MediaMogulCommander
     from core.cost_calculator import get_cost_calculator
     from core.fingerprint_tracker import get_fingerprint_tracker
@@ -97,9 +107,10 @@ except ImportError:
         generate_dalle_image
     )
     from tools.mlt_tools import (
-        tool_add_to_timeline, tool_modify_shotcut_mlt, tool_mlt_add_transition,
+        tool_add_to_timeline, tool_import_media_folder, tool_modify_shotcut_mlt, tool_mlt_add_transition,
         tool_mlt_crop_filter, tool_mlt_blur_filter, tool_export_edl,
-        tool_batch_rename, tool_calculate_stats, parse_mlt_project, tool_evaluate_timeline
+        tool_batch_rename, tool_calculate_stats, parse_mlt_project, tool_evaluate_timeline,
+        tool_render_mlt_with_shotcut
     )
     from tools.subtitles_tools import (
         extract_audio_for_whisper, transcribe_whisper,
@@ -111,7 +122,7 @@ except ImportError:
         tool_analyze_frame_vision
     )
     from tools.auto_director_tools import (
-        tool_auto_roughcut, tool_extract_viral_short
+        tool_auto_roughcut, tool_extract_viral_short, tool_auto_produce_video
     )
     from tools.sfx_tools import tool_generate_sfx
     from tools.element_tools import (
@@ -121,20 +132,23 @@ except ImportError:
     from tools.multiverse_tools import (
         tool_create_multiverse_timelines, tool_branch_timeline_universe
     )
+    from tools.pexels_tools import (
+        tool_download_pexels_video, download_pexels_video, search_pexels_videos, extract_pexels_video_id
+    )
 
 SYSTEM_PROMPT = (
     "You are MediaMogul Agent, an expert autonomous AI video editor copilot for Shotcut.\n"
     "You remember the entire conversation history across all turns.\n"
     "You have direct execution access to 50+ video editing tools including:\n"
-    "- add_to_timeline, create_multiverse_timelines, branch_timeline_universe, overlay_shotcut_element, auto_add_elements, list_shotcut_elements, trim_video, convert_vertical, extract_audio, burn_subtitles, change_speed, extract_thumbnail, compress_video, modify_mlt\n"
+    "- add_to_timeline, import_media_folder, create_multiverse_timelines, branch_timeline_universe, overlay_shotcut_element, auto_add_elements, list_shotcut_elements, trim_video, convert_vertical, extract_audio, burn_subtitles, change_speed, extract_thumbnail, compress_video, modify_mlt\n"
     "- detect_silence, fade_audio, normalize_loudness, reverse_video, loop_video, add_watermark, split_scenes, create_gif\n"
     "- adjust_color, blur_video, audio_ducking, generate_chapters, color_lut, flip_video, rotate_video, denoise_audio\n"
     "- extract_keyframes, speed_ramp, render_progress_bar, concat_videos, extract_transcript, mux_audio_video, remove_audio\n"
     "- audio_waveform, storyboard_grid, render_lower_third, split_screen, picture_in_picture, change_framerate, detect_black_frames\n"
     "- credits_roll, slideshow_from_images, mlt_add_transition, mlt_set_gain, mlt_crop_filter, mlt_blur_filter, export_edl, batch_rename, calculate_stats, burn_timecode\n"
-    "- extract_frame, capture_timeline_preview, analyze_frame, generate_subtitles, generate_voiceover, generate_broll, auto_roughcut, extract_viral_short, generate_sfx\n\n"
+    "- extract_frame, capture_timeline_preview, analyze_frame, generate_subtitles, generate_voiceover, generate_broll, auto_roughcut, extract_viral_short, generate_sfx, download_pexels_video\n\n"
     "Special Behaviors:\n"
-    "1. When the user provides a video or media file path (without specifying an explicit action), your default action is to load it onto the Shotcut timeline using 'add_to_timeline' and present helpful recommended next editing options (e.g., auto_roughcut to cut silences, extract_viral_short for vertical TikTok/Reels, subtitles, or color LUTs).\n"
+    "1. When the user provides a video or media file path, or folder of media files (or asks to load test videos / footage), your default action is to import them onto the Shotcut timeline using 'import_media_folder' or 'add_to_timeline' and present helpful recommended next editing options (e.g., auto_roughcut to cut silences, extract_viral_short for vertical TikTok/Reels, subtitles, or color LUTs).\n"
     "2. When the user requests to use elements from Shotcut's library (emojis, animated stickers, graphics, sounds, text, balloons, fireworks, confetti, halloween, subscribe, etc.), use 'overlay_shotcut_element' (to place an element at a timestamp on a dedicated V2 timeline track) or 'auto_add_elements' (to automatically distribute themed elements across the video on a dedicated timeline track).\n"
     "3. When the user asks for multi-versal timelines, multiple parallel cuts at once, or branching timelines, invoke 'create_multiverse_timelines' to generate 5 parallel universes simultaneously (Universe Alpha: Director's Cut, Universe Beta: Viral Fast Cut, Universe Gamma: Elements & Overlays, Universe Delta: Split-Screen A/B Matrix, and Universe Omega: All-in-One Multi-Track Master Stack).\n"
     "4. When the user asks you to edit, transform, or generate video assets, explain your plan clearly AND output a tool block:\n"
@@ -193,7 +207,7 @@ TOOL_ALIASES = {
     "whisper": "generate_subtitles",
     "speech_to_text": "generate_subtitles",
 
-    # Timeline
+    # Timeline & Folder Import
     "add_to_timeline": "add_to_timeline",
     "create_timeline": "add_to_timeline",
     "create-timeline": "add_to_timeline",
@@ -202,6 +216,14 @@ TOOL_ALIASES = {
     "open_timeline": "add_to_timeline",
     "open_in_shotcut": "add_to_timeline",
     "timeline": "add_to_timeline",
+    "import_media_folder": "import_media_folder",
+    "import_folder": "import_media_folder",
+    "load_media_folder": "import_media_folder",
+    "load_test_media": "import_media_folder",
+    "load_test_videos": "import_media_folder",
+    "import_test_videos": "import_media_folder",
+    "test_media": "import_media_folder",
+    "test_videos": "import_media_folder",
 
     # Audio
     "audio_ducking": "audio_ducking",
@@ -244,6 +266,15 @@ TOOL_ALIASES = {
     "viral_shorts": "extract_viral_short",
     "tiktok": "extract_viral_short",
     "reels": "extract_viral_short",
+    "auto_produce_video": "auto_produce_video",
+    "auto_produce": "auto_produce_video",
+    "produce_video": "auto_produce_video",
+    "automate_video": "auto_produce_video",
+    "automatic_video": "auto_produce_video",
+    "automate_videos": "auto_produce_video",
+    "render_mlt_with_shotcut": "render_mlt_with_shotcut",
+    "render_mlt": "render_mlt_with_shotcut",
+    "export_mlt": "render_mlt_with_shotcut",
     "compress_video": "compress_video",
     "compress": "compress_video",
     "change_speed": "change_speed",
@@ -264,6 +295,14 @@ TOOL_ALIASES = {
     "generate_sfx": "generate_sfx",
     "sfx": "generate_sfx",
     "sound_effect": "generate_sfx",
+
+    # Pexels Stock Video Downloader
+    "download_pexels_video": "download_pexels_video",
+    "download_pexels": "download_pexels_video",
+    "pexels_video": "download_pexels_video",
+    "pexels": "download_pexels_video",
+    "stock_video": "download_pexels_video",
+    "download_stock_video": "download_pexels_video",
 }
 
 
@@ -512,16 +551,120 @@ def execute_video_tool(tool_name: str, params: dict, ffmpeg: str = None, api_key
 
             return "✅ Shotcut Pipeline executed successfully:\n" + "\n".join(results)
 
+        elif tool_name in ("auto_produce_video", "produce_video", "automate_video", "automate_videos", "automatic_video"):
+            f_path = params.get("folder_path") or params.get("directory") or params.get("input_path") or params.get("path")
+            default_test = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+            if not f_path or not os.path.exists(f_path):
+                if os.path.exists(default_test):
+                    f_path = default_test
+                else:
+                    raise FileNotFoundError(f"Media folder not found: '{f_path}'")
+            out_vid = params.get("output_video_path") or params.get("output_video") or params.get("output_path")
+            out_mlt = params.get("output_mlt_path") or params.get("output_mlt")
+            norm_aud = bool(params.get("normalize_audio", True))
+            rndr = bool(params.get("render_with_shotcut", True))
+            open_sc = bool(params.get("open_in_shotcut", True))
+            mode = str(params.get("target_mode") or params.get("mode") or "narrated_cut")
+
+            res = tool_auto_produce_video(
+                ffmpeg=ffmpeg,
+                folder_path=f_path,
+                output_video_path=out_vid,
+                output_mlt_path=out_mlt,
+                normalize_audio=norm_aud,
+                render_with_shotcut=rndr,
+                open_in_shotcut=open_sc,
+                target_mode=mode
+            )
+            if media_tracker:
+                if res.get("output_mlt"):
+                    media_tracker.track_file(res["output_mlt"], role="timeline_mlt")
+                if res.get("output_video"):
+                    media_tracker.track_file(res["output_video"], role="rendered_video")
+
+            sc_msg = " and opened in Shotcut" if open_sc else ""
+            rnd_msg = f"\n• Rendered Master Video: {res['output_video']} ({res['render_info'].get('size_mb', 0)} MB)" if res.get("output_video") else ""
+            return (
+                f"🎬 Autonomous Video Production Completed Successfully!{sc_msg}\n"
+                f"• Shotcut MLT Project: {res['output_mlt']}\n"
+                f"• Timeline Duration: {res['timeline_duration_sec']}s ({res['video_clips_count']} video takes, {res['audio_clips_count']} voiceovers)\n"
+                f"• Policy Status: {res['fingerprint_status']}\n"
+                f"• Engine: {res['engine']}"
+                f"{rnd_msg}"
+            )
+
+        elif tool_name in ("render_mlt_with_shotcut", "render_mlt", "export_mlt"):
+            mlt_p = params.get("mlt_path") or params.get("input_path") or params.get("project_path")
+            if not mlt_p or not os.path.exists(mlt_p):
+                raise FileNotFoundError(f"MLT timeline project not found: '{mlt_p}'")
+            out_mp4 = params.get("output_path") or params.get("output_mp4") or params.get("output_video")
+            preset = params.get("preset", "fast")
+            crf = int(params.get("crf", 20))
+            clean_fp = bool(params.get("clean_ai_metadata", True))
+
+            res = tool_render_mlt_with_shotcut(
+                mlt_path=mlt_p,
+                output_mp4=out_mp4,
+                ffmpeg=ffmpeg,
+                preset=preset,
+                crf=crf,
+                clean_ai_metadata=clean_fp
+            )
+            if media_tracker and res.get("rendered_mp4"):
+                media_tracker.track_file(res["rendered_mp4"], role="rendered_video")
+            return (
+                f"🚀 Shotcut Melt Render Complete!\n"
+                f"• Output Video: {res['rendered_mp4']}\n"
+                f"• Duration: {res['duration_sec']}s ({res['size_mb']} MB)\n"
+                f"• Engine: {res['engine']}\n"
+                f"• Fingerprint-Free Cleaned: {'Yes (100% Zero AI Tags)' if res['fingerprint_free'] else 'No'}"
+            )
+
+        elif tool_name in ("import_media_folder", "load_media_folder", "load_test_media", "load_test_videos", "import_test_videos"):
+            f_path = params.get("folder_path") or params.get("directory") or params.get("input_path") or params.get("path")
+            default_test = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+            if not f_path or not os.path.exists(f_path):
+                if os.path.exists(default_test):
+                    f_path = default_test
+                else:
+                    raise FileNotFoundError(f"Media folder not found: '{f_path}'")
+            open_sc = bool(params.get("open_in_shotcut", True))
+            res = tool_import_media_folder(ffmpeg, f_path, output_path=params.get("output_path"), open_in_shotcut=open_sc)
+            out = res["mlt_project"]
+            if media_tracker:
+                for c in res.get("video_clips", []):
+                    media_tracker.track_file(c["path"], role="source_video")
+                for a in res.get("audio_clips", []):
+                    media_tracker.track_file(a["path"], role="voiceover_audio")
+                media_tracker.track_file(out, role="timeline_mlt")
+            sc_msg = " and opened in Shotcut" if open_sc else ""
+            return f"✅ Imported {len(res['video_clips'])} video clips ({res['total_video_duration_sec']}s) and {len(res['audio_clips'])} audio tracks into Shotcut timeline{sc_msg} -> {out}"
+
         elif tool_name == "add_to_timeline":
-            inp = params.get("input_path") or params.get("video_path") or params.get("media_path", "")
+            inp = params.get("input_path") or params.get("video_path") or params.get("media_path") or params.get("folder_path", "")
+            default_test = r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
+            if (not inp or not os.path.exists(inp)) and os.path.exists(default_test):
+                inp = default_test
             mlt = params.get("mlt_path", None)
             start = params.get("in_time") or params.get("start_time") or "00:00:00"
             end = params.get("out_time") or params.get("end_time") or None
             open_sc = bool(params.get("open_in_shotcut", True))
-            out = tool_add_to_timeline(ffmpeg, inp, mlt_path=mlt, in_time=start, out_time=end,
-                                      output_path=params.get("output_path"), open_in_shotcut=open_sc)
-            sc_msg = " and opened in Shotcut" if open_sc else ""
-            return f"✅ Added {os.path.basename(inp)} to Shotcut timeline{sc_msg} -> {out}"
+            if isinstance(inp, str) and os.path.isdir(inp):
+                res = tool_import_media_folder(ffmpeg, inp, output_path=params.get("output_path"), open_in_shotcut=open_sc)
+                out = res["mlt_project"]
+                if media_tracker:
+                    for c in res.get("video_clips", []):
+                        media_tracker.track_file(c["path"], role="source_video")
+                    for a in res.get("audio_clips", []):
+                        media_tracker.track_file(a["path"], role="voiceover_audio")
+                    media_tracker.track_file(out, role="timeline_mlt")
+                sc_msg = " and opened in Shotcut" if open_sc else ""
+                return f"✅ Imported folder '{os.path.basename(inp)}' ({len(res['video_clips'])} video clips, {len(res['audio_clips'])} audio tracks) into Shotcut timeline{sc_msg} -> {out}"
+            else:
+                out = tool_add_to_timeline(ffmpeg, inp, mlt_path=mlt, in_time=start, out_time=end,
+                                          output_path=params.get("output_path"), open_in_shotcut=open_sc)
+                sc_msg = " and opened in Shotcut" if open_sc else ""
+                return f"✅ Added {os.path.basename(inp)} to Shotcut timeline{sc_msg} -> {out}"
 
         elif tool_name in ("overlay_shotcut_element", "add_element_to_timeline"):
             inp = params.get("input_path") or params.get("video_path") or params.get("media_path") or params.get("mlt_path", "")
@@ -1061,7 +1204,7 @@ def execute_video_tool(tool_name: str, params: dict, ffmpeg: str = None, api_key
                     if c_calc:
                         dur_sec = 60.0
                         if os.path.exists(temp_mp3):
-                            dur_sec = get_media_duration_seconds(temp_mp3, ffmpeg)
+                            dur_sec = get_media_duration_seconds(ffmpeg, temp_mp3)
                         w_cost = c_calc.calculate_whisper_cost(dur_sec)
                         c_calc.record_transaction("Whisper STT Transcription", w_cost, {"audio_seconds": dur_sec}, f"Audio duration: {dur_sec:.1f}s")
                 except Exception:
@@ -1126,6 +1269,22 @@ def execute_video_tool(tool_name: str, params: dict, ffmpeg: str = None, api_key
             sfx_t = params.get("sfx_type", "whoosh")
             out = tool_generate_sfx(sfx_t, params.get("output_path"))
             return f"✅ Sound effect ({sfx_t}) synthesized -> {out}"
+
+        elif tool_name in ("download_pexels_video", "download_pexels", "pexels_video", "pexels", "stock_video"):
+            q_or_url = params.get("query") or params.get("url") or params.get("video_url") or params.get("topic") or params.get("keyword") or "nature"
+            dest_dir = params.get("destination_dir") or params.get("output_dir") or params.get("folder")
+            out_p = params.get("output_path") or params.get("output_file")
+            orient = params.get("orientation")
+            p_key = params.get("api_key")
+            out = tool_download_pexels_video(
+                query_or_url=q_or_url,
+                output_path=out_p,
+                destination_dir=dest_dir,
+                api_key=p_key,
+                orientation=orient,
+                media_tracker=media_tracker
+            )
+            return out
 
         else:
             return f"⚠️ Unknown tool requested: {tool_name}"

@@ -39,7 +39,8 @@ if ($SystemWide) {
     Write-Host "[*] Installing to User AppData (Recommended): $targetDir" -ForegroundColor Green
 }
 
-if (Test-Path $legacyDir) {
+$legacyDir = Join-Path $env:LOCALAPPDATA "Meltytech\Shotcut\extensions\filters\vibeo_video"
+if ($legacyDir -and (Test-Path $legacyDir)) {
     Remove-Item -Path $legacyDir -Recurse -Force
     Write-Host "[-] Removed legacy filter at $legacyDir" -ForegroundColor DarkGray
 }
