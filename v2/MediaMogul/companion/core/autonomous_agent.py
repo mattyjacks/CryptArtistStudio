@@ -234,6 +234,28 @@ class AutonomousVideoAgent:
         _log(f"Target Media: {media_folder}")
         _log("="*70)
 
+        # Check for Actor-Critic Studio Swarm mode
+        p_lower = goal_description.lower()
+        if any(k in p_lower for k in ["swarm", "critique", "critic", "actor-critic", "awesome", "self-refin", "well produced"]):
+            _log("\n🎭 Activating Actor-Critic Studio Swarm Orchestrator (Multi-Agent Swarm)...")
+            try:
+                from companion.core.studio_swarm import StudioSwarmOrchestrator
+                swarm = StudioSwarmOrchestrator()
+                res = swarm.run_studio_pipeline(media_dir=media_folder, open_in_shotcut=True)
+                return {
+                    "goal": goal_description,
+                    "status": "SUCCESS",
+                    "mode": "studio_swarm",
+                    "output_mlt": res.get("output_mlt"),
+                    "output_video": res.get("master_video"),
+                    "vertical_video": res.get("vertical_video"),
+                    "dashboard_html": res.get("dashboard_html"),
+                    "scorecard": res.get("scorecard"),
+                    "debate_transcript": res.get("debate_transcript")
+                }
+            except Exception as e:
+                _log(f"⚠️ Studio Swarm notice: {e}. Falling back to baseline goal pipeline...")
+
         results = {
             "goal": goal_description,
             "status": "RUNNING",
