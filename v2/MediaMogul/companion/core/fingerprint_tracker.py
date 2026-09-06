@@ -37,7 +37,9 @@ FINGERPRINT_FREE_TOOLS = {
     "calculate_stats", "burn_timecode", "add_to_timeline", "overlay_shotcut_element",
     "auto_add_elements", "create_multiverse_timelines", "branch_timeline_universe",
     "evaluate_timeline", "burn_subtitles", "generate_subtitles", "generate_sfx",
-    "download_pexels_video", "download_pexels", "pexels_video"
+    "download_pexels_video", "download_pexels", "pexels_video",
+    "build_well_produced_commercial", "master_commercial", "auto_produce_video",
+    "tool_auto_produce_video", "render_mlt_with_shotcut"
 }
 
 

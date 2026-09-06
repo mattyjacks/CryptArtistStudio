@@ -197,41 +197,55 @@ def download_pexels_video(
     vid_id = extract_pexels_video_id(video_id_or_url)
     if not vid_id:
         raise ValueError(f"Could not extract a valid Pexels video ID from: '{video_id_or_url}'")
+    if not str(vid_id).isdigit():
+        raise ValueError(f"Security Error: Invalid non-numeric Pexels video ID: '{vid_id}'")
+
+    from companion.core.security import sanitize_filename, validate_output_video_path, is_safe_url
 
     dest_file = output_path
     if not dest_file:
         folder = destination_dir or r"C:\Users\ventu\Videos\drive-download-20260906T004623Z-1-001"
         if not os.path.exists(folder):
             folder = os.getcwd()
-        dest_file = os.path.join(folder, f"Pexels_Stock_{vid_id}.mp4")
+        safe_fname = sanitize_filename(f"Pexels_Stock_{vid_id}.mp4")
+        dest_file = os.path.join(folder, safe_fname)
 
-    # Ensure parent dir exists
+    dest_file = validate_output_video_path(dest_file)
     os.makedirs(os.path.dirname(dest_file), exist_ok=True)
 
-    download_url = f"https://www.pexels.com/download/video/{vid_id}/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
+    # Performance Optimization: Cache check (skip re-downloading if already downloaded and valid)
+    if os.path.exists(dest_file) and os.path.getsize(dest_file) > 50000:
+        actual_size = os.path.getsize(dest_file)
+        print(f"⚡ [Cache Hit] Found cached Pexels stock video ({actual_size / (1024*1024):.2f} MB): {dest_file}")
+    else:
+        download_url = f"https://www.pexels.com/download/video/{vid_id}/"
+        if not is_safe_url(download_url):
+            raise ValueError(f"Security Error: Untrusted download URL '{download_url}'")
 
-    req = urllib.request.Request(download_url, headers=headers)
-    with urllib.request.urlopen(req, timeout=45) as resp:
-        total_size = int(resp.headers.get("Content-Length", 0))
-        downloaded = 0
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
 
-        with open(dest_file, "wb") as f:
-            while True:
-                chunk = resp.read(128 * 1024)
-                if not chunk:
-                    break
-                f.write(chunk)
-                downloaded += len(chunk)
-                pct = round((downloaded / total_size * 100.0), 1) if total_size > 0 else 0.0
-                if progress_callback:
-                    progress_callback(downloaded, total_size, pct)
+        req = urllib.request.Request(download_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            total_size = int(resp.headers.get("Content-Length", 0))
+            downloaded = 0
 
-    actual_size = os.path.getsize(dest_file)
-    if actual_size < 1000:
-        raise RuntimeError(f"Downloaded file is suspiciously small ({actual_size} bytes). Download may have failed.")
+            with open(dest_file, "wb") as f:
+                while True:
+                    # Optimized 256KB buffer for maximum network throughput
+                    chunk = resp.read(256 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    downloaded += len(chunk)
+                    pct = round((downloaded / total_size * 100.0), 1) if total_size > 0 else 0.0
+                    if progress_callback:
+                        progress_callback(downloaded, total_size, pct)
+
+        actual_size = os.path.getsize(dest_file)
+        if actual_size < 1000:
+            raise RuntimeError(f"Downloaded file is suspiciously small ({actual_size} bytes). Download may have failed.")
 
     # Probe duration and dimensions with ffprobe if available
     duration_sec = 0.0

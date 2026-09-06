@@ -717,6 +717,10 @@ def tool_render_mlt_with_shotcut(
         except Exception:
             pass
 
+    from companion.core.security import sanitize_text, validate_output_video_path
+
+    output_mp4 = validate_output_video_path(output_mp4)
+
     cmd = [
         melt_exe,
         mlt_path,
@@ -724,15 +728,17 @@ def tool_render_mlt_with_shotcut(
         "vcodec=libx264",
         f"preset={preset}",
         f"crf={crf}",
+        "threads=0",      # Auto multi-core threads
+        "real_time=-1",   # Maximize processing throughput
         "acodec=aac",
         "ab=192k",
         "movflags=+faststart",
         "terminate_on_pause=1"
     ]
 
-    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+    process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
     if process.returncode != 0 or not os.path.exists(temp_target) or os.path.getsize(temp_target) == 0:
-        err_out = process.stderr.decode("utf-8", errors="ignore")
+        err_out = sanitize_text(process.stderr.decode("utf-8", errors="ignore"))
         raise RuntimeError(f"Shotcut Melt render failed with code {process.returncode}:\n{err_out[:500]}")
 
     final_output = temp_target
@@ -747,6 +753,7 @@ def tool_render_mlt_with_shotcut(
 
         scrub_cmd = [
             ffmpeg, "-y",
+            "-threads", "0",
             "-i", temp_target,
             "-map_metadata", "-1",
             "-metadata", "comment=",

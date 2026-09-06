@@ -43,10 +43,15 @@ def build_well_produced_commercial(
     graphics_dir = os.path.join(broll_dir, "graphics")
     subtitles_dir = os.path.join(broll_dir, "subtitles")
 
+    from companion.core.security import validate_output_video_path, sanitize_text
+
     if not output_mlt:
         output_mlt = os.path.join(media_dir, "MattyJacks_Master_Production.mlt")
     if not output_mp4:
         output_mp4 = os.path.join(media_dir, "MattyJacks_Master_Production.mp4")
+
+    output_mlt = validate_output_video_path(output_mlt)
+    output_mp4 = validate_output_video_path(output_mp4)
 
     # A-Roll Scenes Definition (Trim points based on speech boundaries)
     # File, in_frame, out_frame, duration_frames
@@ -295,15 +300,17 @@ def build_well_produced_commercial(
         "vcodec=libx264",
         "preset=fast",
         "crf=18",
+        "threads=0",       # Multi-core auto-threading
+        "real_time=-1",    # Saturate multi-core CPU rendering pipeline
         "acodec=aac",
         "ab=256k",
         "movflags=+faststart",
         "terminate_on_pause=1"
     ]
-    print(f"🚀 Rendering master video with Shotcut MLT engine ({total_sec:.1f}s)...")
+    print(f"🚀 Rendering master video with Shotcut MLT engine ({total_sec:.1f}s, multi-threaded)...")
     res_melt = subprocess.run(render_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=300)
     if res_melt.returncode != 0 or not os.path.exists(temp_render) or os.path.getsize(temp_render) == 0:
-        err = res_melt.stderr.decode("utf-8", errors="ignore")
+        err = sanitize_text(res_melt.stderr.decode("utf-8", errors="ignore"))
         raise RuntimeError(f"Shotcut Melt render failed:\n{err[:600]}")
 
     print(f"✓ Base Melt render completed ({os.path.getsize(temp_render) / (1024*1024):.2f} MB)")
@@ -321,6 +328,7 @@ def build_well_produced_commercial(
         print("🎙️ Embedding synchronized broadcast subtitles & applying vocal mastering (-14 LUFS)...")
         ffmpeg_cmd = [
             ffmpeg, "-y",
+            "-threads", "0",
             "-i", temp_render,
             "-i", srt_file,
             "-c:v", "copy",
